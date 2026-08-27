@@ -1,0 +1,165 @@
+from __future__ import annotations
+
+from pathlib import PurePath
+from uuid import uuid4
+
+from botocore.exceptions import ClientError
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+
+from ..aws import s3
+from ..config import get_settings
+from ..db import create_inspection, get_inspection, update_inspection
+from ..models import (
+    CreateInspectionRequest,
+    CreateInspectionResponse,
+    CreateUploadUrlRequest,
+    FramesResponse,
+    InspectionResponse,
+    InspectionStatus,
+    UploadCompleteRequest,
+    UploadUrlResponse,
+)
+from ..services import load_manifest, run_processing_job
+
+router = APIRouter(prefix="/inspections", tags=["inspections"])
+settings = get_settings()
+ALLOWED_CONTENT_TYPES = {"video/mp4", "video/quicktime"}
+ALLOWED_EXTENSIONS = {".mp4", ".mov"}
+
+
+def _require_inspection(inspection_id: str) -> dict:
+    item = get_inspection(inspection_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Inspection not found")
+    return item
+
+
+def _validate_video(filename: str, content_type: str) -> None:
+    ext = PurePath(filename).suffix.lower()
+    if content_type not in ALLOWED_CONTENT_TYPES:
+        raise HTTPException(status_code=400, detail=f"Unsupported content type. Allowed: {sorted(ALLOWED_CONTENT_TYPES)}")
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {sorted(ALLOWED_EXTENSIONS)}")
+
+
+@router.post("", response_model=CreateInspectionResponse, status_code=status.HTTP_201_CREATED)
+def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectionResponse:
+    inspection_id = str(uuid4())
+    item = create_inspection(inspection_id, purpose=payload.purpose.value, property_label=payload.property_label)
+    return CreateInspectionResponse(inspection_id=inspection_id, status=InspectionStatus(item["status"]))
+
+
+@router.post("/{inspection_id}/upload-url", response_model=UploadUrlResponse)
+def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> UploadUrlResponse:
+    _require_inspection(inspection_id)
+    _validate_video(payload.filename, payload.content_type)
+    ext = PurePath(payload.filename).suffix.lower()
+    s3_key = f"inspections/{inspection_id}/original/walkthrough{ext}"
+
+    upload_url = s3.generate_presigned_url(
+        ClientMethod="put_object",
+        Params={"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type},
+        ExpiresIn=settings.presigned_url_ttl_seconds,
+        HttpMethod="PUT",
+    )
+
+    update_inspection(
+        inspection_id,
+        status="UPLOAD_PENDING",
+        original_s3_key=s3_key,
+        original_filename=payload.filename,
+        content_type=payload.content_type,
+    )
+
+    return UploadUrlResponse(
+        inspection_id=inspection_id,
+        upload_url=upload_url,
+        s3_key=s3_key,
+        expires_in_seconds=settings.presigned_url_ttl_seconds,
+        required_headers={"Content-Type": payload.content_type},
+    )
+
+
+@router.post("/{inspection_id}/upload-complete", response_model=InspectionResponse)
+def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> InspectionResponse:
+    item = _require_inspection(inspection_id)
+    _validate_video(payload.filename, payload.content_type)
+    s3_key = item.get("original_s3_key")
+    if not s3_key:
+        raise HTTPException(status_code=409, detail="Upload URL has not been created")
+
+    try:
+        head = s3.head_object(Bucket=settings.s3_bucket, Key=s3_key)
+    except ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code")
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            raise HTTPException(status_code=409, detail="Uploaded object not found in S3") from exc
+        raise
+
+    size = int(head.get("ContentLength", 0))
+    if size <= 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    if size > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="Uploaded file exceeds configured size limit")
+
+    updated = update_inspection(
+        inspection_id,
+        status="UPLOADED",
+        upload_bytes=size,
+        s3_etag=str(head.get("ETag", "")).strip('"'),
+    )
+    return InspectionResponse(**updated)
+
+
+@router.post("/{inspection_id}/process", status_code=status.HTTP_202_ACCEPTED)
+def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> dict:
+    item = _require_inspection(inspection_id)
+    if item["status"] not in {"UPLOADED", "FAILED", "COMPLETE"}:
+        raise HTTPException(status_code=409, detail=f"Inspection cannot be processed from status {item['status']}")
+
+    update_inspection(inspection_id, status="PROCESSING", error=None)
+    # Day 1-3 prototype only. Replace with SQS -> ECS/Fargate in the next milestone.
+    background_tasks.add_task(run_processing_job, inspection_id)
+    return {"inspection_id": inspection_id, "status": "PROCESSING", "note": "Prototype background processing started"}
+
+
+@router.get("/{inspection_id}", response_model=InspectionResponse)
+def get_inspection_route(inspection_id: str) -> InspectionResponse:
+    return InspectionResponse(**_require_inspection(inspection_id))
+
+
+@router.get("/{inspection_id}/status")
+def get_status(inspection_id: str) -> dict:
+    item = _require_inspection(inspection_id)
+    return {
+        "inspection_id": inspection_id,
+        "status": item["status"],
+        "processing": item.get("processing"),
+        "error": item.get("error"),
+        "updated_at": item["updated_at"],
+    }
+
+
+@router.get("/{inspection_id}/frames", response_model=FramesResponse)
+def get_frames(inspection_id: str) -> FramesResponse:
+    _require_inspection(inspection_id)
+    try:
+        manifest = load_manifest(inspection_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return FramesResponse(inspection_id=inspection_id, keyframes=manifest["keyframes"], scenes=manifest["scenes"])
+
+
+@router.get("/{inspection_id}/frames/{frame_index}/url")
+def get_frame_url(inspection_id: str, frame_index: int) -> dict:
+    manifest = load_manifest(inspection_id)
+    matches = [f for f in manifest["keyframes"] if f["index"] == frame_index]
+    if not matches:
+        raise HTTPException(status_code=404, detail="Keyframe not found")
+    key = matches[0]["s3_key"]
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.s3_bucket, "Key": key},
+        ExpiresIn=settings.presigned_url_ttl_seconds,
+    )
+    return {"url": url, "expires_in_seconds": settings.presigned_url_ttl_seconds}
