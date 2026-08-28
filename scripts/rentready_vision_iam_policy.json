@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RentReadyVisionDynamoDb",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:TagResource",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-west-2:*:table/rentready-vision-dev"
+    },
+    {
+      "Sid": "RentReadyVisionBucketSetup",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:GetBucketLocation",
+        "s3:ListBucket",
+        "s3:PutBucketCORS",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutLifecycleConfiguration"
+      ],
+      "Resource": "arn:aws:s3:::rentready-vision-dev-*"
+    },
+    {
+      "Sid": "RentReadyVisionMediaObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::rentready-vision-dev-*/inspections/*"
+    }
+  ]
+}

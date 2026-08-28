@@ -61,14 +61,34 @@ class InspectionResponse(BaseModel):
 
 class Keyframe(BaseModel):
     index: int
+    frame_number: int | None = None
     timestamp_seconds: float
     s3_key: str
     sharpness: float
+    blur_classification: str | None = None
     brightness: float
+    brightness_classification: str | None = None
+    dark_pixels_percent: float | None = None
+    bright_pixels_percent: float | None = None
+    motion_percent_per_second: float | None = None
+    motion_pixels_per_second: float | None = None
+    motion_classification: str | None = None
+    tracked_features: int | None = None
+    evidence_quality_score: float | None = None
     scene_index: int
+    selection_reason: str | None = None
 
 
 class FramesResponse(BaseModel):
     inspection_id: str
+    video: dict[str, Any]
+    processing: dict[str, Any]
     keyframes: list[Keyframe]
     scenes: list[dict[str, Any]]
+    frame_assessments: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class IssuesResponse(BaseModel):
+    inspection_id: str
+    issues: list[dict[str, Any]] = Field(default_factory=list)
+    note: str = "Issue detection starts after the Days 1-3 walking skeleton."

@@ -16,6 +16,7 @@ from ..models import (
     FramesResponse,
     InspectionResponse,
     InspectionStatus,
+    IssuesResponse,
     UploadCompleteRequest,
     UploadUrlResponse,
 )
@@ -49,7 +50,8 @@ def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectio
     return CreateInspectionResponse(inspection_id=inspection_id, status=InspectionStatus(item["status"]))
 
 
-@router.post("/{inspection_id}/upload-url", response_model=UploadUrlResponse)
+@router.post("/{inspection_id}/upload", response_model=UploadUrlResponse)
+@router.post("/{inspection_id}/upload-url", response_model=UploadUrlResponse, include_in_schema=False)
 def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> UploadUrlResponse:
     _require_inspection(inspection_id)
     _validate_video(payload.filename, payload.content_type)
@@ -147,7 +149,20 @@ def get_frames(inspection_id: str) -> FramesResponse:
         manifest = load_manifest(inspection_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return FramesResponse(inspection_id=inspection_id, keyframes=manifest["keyframes"], scenes=manifest["scenes"])
+    return FramesResponse(
+        inspection_id=inspection_id,
+        video=manifest["video"],
+        processing=manifest["processing"],
+        keyframes=manifest["keyframes"],
+        scenes=manifest["scenes"],
+        frame_assessments=manifest.get("frame_assessments", []),
+    )
+
+
+@router.get("/{inspection_id}/issues", response_model=IssuesResponse)
+def get_issues(inspection_id: str) -> IssuesResponse:
+    _require_inspection(inspection_id)
+    return IssuesResponse(inspection_id=inspection_id)
 
 
 @router.get("/{inspection_id}/frames/{frame_index}/url")

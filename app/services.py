@@ -43,6 +43,20 @@ def run_processing_job(inspection_id: str) -> None:
                 min_sharpness=settings.processing_min_sharpness,
                 min_brightness=settings.processing_min_brightness,
                 max_brightness=settings.processing_max_brightness,
+                dark_pixel_value=settings.processing_dark_pixel_value,
+                bright_pixel_value=settings.processing_bright_pixel_value,
+                max_dark_pixels_percent=settings.processing_max_dark_pixels_percent,
+                max_bright_pixels_percent=settings.processing_max_bright_pixels_percent,
+                max_motion_percent_per_second=settings.processing_max_motion_percent_per_second,
+                min_motion_features=settings.processing_min_motion_features,
+                quality_analysis_width=settings.processing_quality_analysis_width,
+                motion_analysis_width=settings.processing_motion_analysis_width,
+                motion_interval_seconds=settings.processing_motion_interval_seconds,
+                motion_window_size=settings.processing_motion_window_size,
+                min_motion_inliers=settings.processing_min_motion_inliers,
+                min_motion_inlier_ratio=settings.processing_min_motion_inlier_ratio,
+                min_output_keyframes=settings.processing_min_output_keyframes,
+                fallback_spacing_seconds=settings.processing_fallback_spacing_seconds,
             )
 
             prefix = f"inspections/{inspection_id}"
@@ -55,20 +69,20 @@ def run_processing_job(inspection_id: str) -> None:
                     str(local_path), settings.s3_bucket, s3_key,
                     ExtraArgs={"ContentType": "image/jpeg"},
                 )
-                public_keyframes.append({
-                    "index": record["index"],
-                    "timestamp_seconds": record["timestamp_seconds"],
-                    "s3_key": s3_key,
-                    "sharpness": record["sharpness"],
-                    "brightness": record["brightness"],
-                    "scene_index": record["scene_index"],
-                })
+                public_record = {
+                    key: value
+                    for key, value in record.items()
+                    if key != "local_path"
+                }
+                public_record["s3_key"] = s3_key
+                public_keyframes.append(public_record)
 
             remote_manifest = {
                 "video": manifest["video"],
                 "processing": manifest["processing"],
                 "scenes": manifest["scenes"],
                 "keyframes": public_keyframes,
+                "frame_assessments": manifest["frame_assessments"],
             }
 
             manifest_key = f"{prefix}/manifest.json"
