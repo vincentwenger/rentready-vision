@@ -21,9 +21,13 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Normalize camera motion as percentage of the frame diagonal per second.
 - Reject fast-motion frames as weak inspection evidence.
 - Calculate an explainable 0–100 evidence-quality score.
+- Compare consecutive and scene-reference frames using HSV histograms.
+- Match ORB features and validate them geometrically with RANSAC.
+- Fuse color similarity, feature similarity, camera motion and elapsed time into auditable scene boundaries.
+- Create timestamped scene segments and choose the strongest distinct evidence within each segment.
+- Adaptively retain between three and eight representatives when enough distinct scene evidence exists, while keeping the complete AI-bound set under 120 frames.
 - Retain clearly labeled best-available fallback frames when strict filtering would otherwise return fewer than three frames.
-- Detect coarse scene changes.
-- Remove near-duplicate frames.
+- Remove near-duplicate frames only when both HSV and ORB similarity support that decision.
 - Upload selected keyframes to S3.
 - Store processing summary in DynamoDB.
 - Retrieve inspection status, scenes and keyframes and display the frames in the browser.
@@ -105,7 +109,8 @@ reasoning layer sees them.
 
 For every sampled frame, the manifest records:
 
-- `blur.variance_of_laplacian` and blur classification.
+- Whole-frame and 3x3 tiled variance-of-Laplacian scores, the percentage of
+  sharp tiles, motion-supported blur evidence and the final blur classification.
 - Brightness mean, 5th/95th percentiles, clipped-dark percentage and clipped-highlight percentage.
 - Optical-flow feature count, RANSAC inlier ratio, global translation, rotation and normalized motion.
 - Every rejection reason and the final selection decision.
@@ -124,18 +129,128 @@ This produces an auditable `frame_assessments` entry for every sampled frame.
 The browser report shows selected/rejected totals and the score, Laplacian value,
 brightness and motion value for each retained frame.
 
+### Scene-change pipeline
+
+RentReady Vision does not send every decoded video frame to a future AI model:
+
+```text
+source video frames
+        |
+        v
+1-second OpenCV samples
+        |
+        +-- HSV histogram similarity
+        +-- ORB feature similarity + RANSAC geometry
+        +-- optical-flow camera motion
+        +-- minimum/maximum scene duration
+        |
+        v
+timestamped scenes
+        |
+        v
+best distinct frames per scene (maximum 120 total)
+        |
+        v
+future property-inspection AI
+```
+
+For each sampled frame, `scene_change` in `manifest.json` records:
+
+- HSV similarity to the previous frame and current scene reference.
+- ORB feature similarity, good-match counts and geometric confidence.
+- Combined visual similarity and change confidence.
+- Camera motion and time since the scene began.
+- The boundary decision and reason, including minimum-duration suppression or a maximum-duration split.
+
+Each `scenes` entry includes its start/end timestamps, duration, boundary
+evidence, candidate count and selected-keyframe count. A low-quality visual
+transition waits for a stable frame to confirm the new view, but the configured
+maximum scene duration is always enforced. A final segment shorter than the
+minimum duration is merged into the preceding segment instead of producing a
+zero-looking end scene.
+
+Within each scene, acceptable frames are ranked by variance-of-Laplacian
+sharpness, with the evidence-quality score used as a tie-breaker. OpenCV checks
+every ranked frame against existing visual-cluster representatives using HSV
+and geometrically validated ORB similarity. Strong RANSAC-supported ORB evidence
+can identify a shifted duplicate even when panning changes its color histogram.
+An additional short-window pass removes duplicates across adjacent scene
+boundaries. Because the sharpest frame is encountered first, every
+near-duplicate cluster keeps its sharpest acceptable representative. Duplicate
+classification happens before temporal, scene-size and global limits so the
+reported reduction reason remains accurate. The global cap defaults to 120, so
+a large input cannot accidentally create thousands of downstream AI requests.
+
+### Adaptive keyframe selection
+
+The selector does not use one fixed frame count for every scene. After removing
+near duplicates, it greedily evaluates each remaining representative using:
+
+- Sharpness: log-normalized variance of Laplacian within the scene.
+- Brightness: distance from balanced exposure, with clipping penalties.
+- Camera stability: motion relative to the fast-motion threshold.
+- Distinctiveness: inverse HSV/ORB similarity to selected frames.
+- Temporal distance: distance from the closest selected timestamp.
+
+When at least three distinct candidates exist, the selector retains three for
+baseline coverage. It may continue up to eight while the best remaining frame
+clears the configurable marginal-value threshold. These defaults are starting
+points for benchmarking, not a fixed final decision:
+
+```text
+PROCESSING_MIN_KEYFRAMES_PER_SCENE=3
+PROCESSING_MAX_KEYFRAMES_PER_SCENE=8
+PROCESSING_KEYFRAME_MARGINAL_SCORE_THRESHOLD=0.58
+```
+
+Every retained frame records its aggregate selection score, selection rank and
+all five component scores. Rejected candidates record
+`low_marginal_keyframe_value` when they add too little evidence. This audit
+trail supports later threshold and weight benchmarking against real labeled
+walkthroughs.
+
+### Competition frame-reduction evidence
+
+`processing.reduction_metrics` in `manifest.json` and the browser report expose
+the complete reduction funnel:
+
+```json
+{
+  "original_video_frames": 5520,
+  "frames_initially_sampled": 552,
+  "frames_rejected_for_blur": 71,
+  "near_duplicates_removed": 349,
+  "representative_frames": 132
+}
+```
+
+The actual object also records exposure and motion rejection, scene/global
+limit removals, and source-to-representative and sampled-to-representative
+reduction percentages. Values always come from the current video; the numbers
+above only illustrate the competition-ready output format. With the default
+global cap enabled, the final representative count cannot exceed 120.
+
 ### Default quality thresholds
 
 | Measurement | Default | Result |
 | --- | ---: | --- |
-| Variance of Laplacian at 720px analysis width | `< 30` | Reject as blurry |
+| Variance of Laplacian at 720px analysis width | `< 45` | Reject as blurry |
+| Sharp 3x3 tiles in a borderline frame | `< 50%` | Reject localized-detail false positive |
+| Camera motion with borderline Laplacian | `≥ 8%/s` and Laplacian `< 1.5 × minimum` | Reject as motion-supported blur |
 | Mean brightness | `< 25` | Reject as too dark |
 | Mean brightness | `> 235` | Reject as overexposed |
 | Pixels at or below intensity 16 | `≥ 60%` | Reject as too dark |
 | Pixels at or above intensity 240 | `≥ 35%` | Reject as overexposed |
-| Global camera motion | `> 8%` of diagonal/second | Reject as fast motion |
+| Global camera motion | `> 30%` of diagonal/second | Reject as fast motion |
 | Tracked optical-flow features | `< 12` | Motion unknown; do not reject on motion alone |
 | RANSAC inliers | `< 12` or `< 25%` | Motion unknown; do not reject on motion alone |
+| HSV scene similarity | `< 0.75` | Evidence supporting a scene boundary |
+| ORB feature similarity | `< 0.22` | Evidence supporting a scene boundary |
+| Combined scene similarity | `< 0.55` | Scene-change candidate |
+| Scene duration | `< 4 seconds` | Suppress boundary to avoid flicker |
+| Scene duration | `≥ 30 seconds` | Create a coverage segment |
+| Distinct keyframes per scene | `3–8` | Stop adaptively when added value falls below `0.58` |
+| Total keyframes | `> 120` | Preserve scene coverage, then apply global cap |
 | Strictly accepted output frames | `< 3` | Add labeled, temporally separated best-available frames |
 
 These are explicit starting thresholds, not universal constants. Tune the values
@@ -238,7 +353,9 @@ Add per-frame Laplacian blur scoring and exposure/clipping classification.
 Add sparse optical flow, robust affine camera-motion estimation and fast-motion rejection.
 
 ### Day 8
-Expose the audit trail and quality metrics in the manifest, API and browser; tune thresholds on real walkthroughs.
+Fuse HSV, ORB, optical-flow motion and time separation into scene segments;
+select the best distinct evidence per scene; expose the complete audit trail in
+the manifest, API and browser; tune thresholds on real walkthroughs.
 
 ## Definition of done
 
@@ -252,6 +369,8 @@ Expose the audit trail and quality metrics in the manifest, API and browser; tun
 - Every sampled frame has an auditable decision and rejection reasons.
 - Camera motion is resolution- and sampling-rate-normalized.
 - Scene changes look plausible.
+- Every scene contains explicit timestamps and auditable boundary evidence.
+- Each scene adaptively contributes up to eight representatives and no run emits more than 120 frames by default.
 - Keyframes and `manifest.json` are stored in S3.
 - Failures become `FAILED` with an error message.
 - `/docs` can exercise the API.

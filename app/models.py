@@ -65,6 +65,9 @@ class Keyframe(BaseModel):
     timestamp_seconds: float
     s3_key: str
     sharpness: float
+    tile_median_sharpness: float | None = None
+    sharp_tiles_percent: float | None = None
+    motion_blur_suspected: bool | None = None
     blur_classification: str | None = None
     brightness: float
     brightness_classification: str | None = None
@@ -77,6 +80,9 @@ class Keyframe(BaseModel):
     evidence_quality_score: float | None = None
     scene_index: int
     selection_reason: str | None = None
+    keyframe_selection_score: float | None = None
+    keyframe_selection_components: dict[str, float] | None = None
+    keyframe_selection_rank: int | None = None
 
 
 class FramesResponse(BaseModel):

@@ -30,6 +30,10 @@
     details { margin: 18px 0; color: #475569; }
     details summary { cursor: pointer; font-weight: 700; color: #1e293b; }
     .methods { columns: 2; padding-left: 22px; }
+    .scene-list { display: grid; gap: 9px; margin: 12px 0 22px; }
+    .scene-row { display: grid; grid-template-columns: 86px 1fr auto; gap: 12px; align-items: center; padding: 11px 13px; border: 1px solid #dce3ee; border-radius: 11px; background: #f8fafc; font-size: .9rem; }
+    .scene-row strong { color: #172033; }
+    .scene-row span { color: #64748b; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 18px; }
     figure { margin: 0; overflow: hidden; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
     figure img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #e2e8f0; }
@@ -70,11 +74,16 @@
   <section class="card" id="results" hidden>
     <h2>OpenCV evidence-quality report</h2>
     <p id="summary"></p>
+    <h3>Frame-reduction evidence</h3>
+    <div class="metrics" id="reduction-metrics"></div>
+    <h3>Other filtering decisions</h3>
     <div class="metrics" id="quality-metrics"></div>
     <details>
       <summary>OpenCV operations used</summary>
       <ul class="methods" id="opencv-methods"></ul>
     </details>
+    <h3>Detected scenes</h3>
+    <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
     <div class="grid" id="frames"></div>
   </section>
@@ -83,6 +92,11 @@
 const runButton = document.getElementById("run");
 const errorEl = document.getElementById("error");
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+function formatTimestamp(seconds) {
+  const value = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+}
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -112,13 +126,38 @@ async function renderResults(id, response) {
   summary.textContent = `${duration}s video · ${response.video.total_frames} source frames · ${processing.sampled_frames} sampled · ${response.keyframes.length} retained across ${response.scenes.length} scene(s).`;
   frameGrid.replaceChildren();
 
+  const reduction = processing.reduction_metrics ?? {
+    original_video_frames: response.video.total_frames,
+    frames_initially_sampled: processing.sampled_frames,
+    frames_rejected_for_blur: processing.rejected_blur,
+    near_duplicates_removed: processing.rejected_duplicate,
+    representative_frames: processing.selected_keyframes
+  };
+  const reductionMetrics = [
+    [reduction.original_video_frames, "Original video frames"],
+    [reduction.frames_initially_sampled, "Frames initially sampled"],
+    [reduction.frames_rejected_for_blur, "Frames rejected for blur"],
+    [reduction.near_duplicates_removed, "Near duplicates removed"],
+    [reduction.representative_frames, "Representative frames"]
+  ];
+  const reductionElement = document.getElementById("reduction-metrics");
+  reductionElement.replaceChildren();
+  reductionMetrics.forEach(([value, label]) => {
+    const card = document.createElement("div");
+    card.className = "metric";
+    const count = document.createElement("strong");
+    count.textContent = Number(value).toLocaleString();
+    card.append(count, label);
+    reductionElement.append(card);
+  });
+
   const metrics = [
-    [processing.selected_keyframes, "Selected"],
     [processing.strict_selected_keyframes, "Passed strict filters"],
     [processing.fallback_selected_keyframes, "Best available"],
-    [processing.rejected_blur, "Flagged: blur"],
     [processing.rejected_fast_motion, "Flagged: fast motion"],
-    [processing.rejected_duplicate, "Flagged: duplicate"]
+    [processing.rejected_adaptive_selection ?? 0, "Skipped: low added value"],
+    [processing.rejected_scene_limit ?? 0, "Skipped: scene limit"],
+    [processing.rejected_output_limit ?? 0, "Skipped: 120-frame cap"]
   ];
   const metricsElement = document.getElementById("quality-metrics");
   metricsElement.replaceChildren();
@@ -139,6 +178,21 @@ async function renderResults(id, response) {
     methodsElement.append(item);
   });
 
+  const scenesElement = document.getElementById("scenes");
+  scenesElement.replaceChildren();
+  response.scenes.forEach(scene => {
+    const row = document.createElement("div");
+    row.className = "scene-row";
+    const name = document.createElement("strong");
+    name.textContent = `Scene ${scene.scene_index + 1}`;
+    const range = document.createElement("span");
+    range.textContent = `${formatTimestamp(scene.start_seconds)}–${formatTimestamp(scene.end_seconds)} · ${scene.end_reason.replaceAll("_", " ")}`;
+    const selected = document.createElement("span");
+    selected.textContent = `${scene.selected_keyframe_count ?? 0} selected`;
+    row.append(name, range, selected);
+    scenesElement.append(row);
+  });
+
   const cards = await Promise.all(response.keyframes.map(async frame => {
     const image = await api(`/inspections/${id}/frames/${frame.index}/url`);
     const figure = document.createElement("figure");
@@ -152,8 +206,14 @@ async function renderResults(id, response) {
       : `motion ${frame.motion_percent_per_second.toFixed(2)}%/s`;
     const selection = frame.selection_reason === "best_available_fallback"
       ? "BEST AVAILABLE — quality warning"
-      : "Passed strict filters";
-    caption.textContent = `${selection}\n${frame.timestamp_seconds}s · scene ${frame.scene_index + 1} · quality ${frame.evidence_quality_score}/100\nLaplacian ${frame.sharpness.toFixed(1)} · brightness ${frame.brightness.toFixed(1)} · ${motion}`;
+      : `Adaptive representative ${frame.keyframe_selection_rank ?? ""}`.trim();
+    const adaptiveScore = frame.keyframe_selection_score == null
+      ? ""
+      : ` · selection ${frame.keyframe_selection_score.toFixed(3)}`;
+    const tiledSharpness = frame.tile_median_sharpness == null
+      ? ""
+      : ` · tile median ${frame.tile_median_sharpness.toFixed(1)} · sharp tiles ${frame.sharp_tiles_percent.toFixed(0)}%`;
+    caption.textContent = `${selection}\n${frame.timestamp_seconds}s · scene ${frame.scene_index + 1} · quality ${frame.evidence_quality_score}/100${adaptiveScore}\nLaplacian ${frame.sharpness.toFixed(1)}${tiledSharpness} · brightness ${frame.brightness.toFixed(1)} · ${motion}`;
     figure.append(img, caption);
     return figure;
   }));

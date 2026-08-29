@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")
 os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("AWS_SESSION_TOKEN", "test")
+os.environ.setdefault("S3_BUCKET", "rentready-test-bucket")
 
 from app.main import app  # noqa: E402
 from app.routers import inspections as inspection_routes  # noqa: E402
