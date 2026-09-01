@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "rentready-step8-stock-opencv5-baseline",
+  "status": "HISTORICAL_RESULT_CAPTURED_REPRODUCTION_PENDING",
+  "provenance": {
+    "source_git_commit": "8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c",
+    "source_archive_sha256": "2bd78b5dfbfdf0d286973fb2badc61cbd51b8b22d5cfc8a3f724b8717ac781ee",
+    "evidence_report_original_sha256": "5de3b3caa977ca979b67cdd8969afe6f6fcf181c266a7c24ee01ea94f03f2cee",
+    "evidence_report_augmented_sha256": "22499280407c2f07d3f86443e64b4da6862d2e33addfe50b8b7272cbe9cc43f0",
+    "evidence_report_created_at": "2026-08-29T13:15:09-03:00",
+    "evidence_report_creator": "Microsoft Windows 10, Win64, Edge/Chromium 151, Skia/PDF m151"
+  },
+  "input": {
+    "display_filename": "2025.09.08-Mozart House video before the tenants come in the house.MOV",
+    "s3_bucket": "rentready-vision-dev-081087819788",
+    "s3_key": null,
+    "sha256": null,
+    "duration_seconds": 1053.3,
+    "source_frame_count": 31576
+  },
+  "recorded_result": {
+    "sampled_frame_count": 1053,
+    "representative_frame_count": 73,
+    "scene_count": 56,
+    "frames_rejected_for_blur": 923,
+    "near_duplicates_removed": 17,
+    "strict_selected_keyframes": 73,
+    "fallback_selected_keyframes": 0,
+    "frames_flagged_for_fast_motion": 506,
+    "rejected_adaptive_selection": 0,
+    "rejected_scene_limit": 0,
+    "rejected_output_limit": 0
+  },
+  "historical_runtime_evidence": {
+    "python_cache_tag_found_in_archive": "cpython-314",
+    "python_version": "3.14.x (minor/patch not recorded)",
+    "operating_system": "Microsoft Windows 10",
+    "architecture": "Win64/x86_64",
+    "cv2_version": null,
+    "cv2_file": null,
+    "cv2_build_information": null,
+    "opencv_distribution": null,
+    "note": "The original report omitted the exact OpenCV runtime. These fields intentionally remain null until the clean reproduction succeeds."
+  },
+  "pinned_reproduction_target": {
+    "python": "3.14.6",
+    "opencv_distribution": "opencv-python-headless==5.0.0.93",
+    "dependency_lock": "requirements.lock.txt"
+  },
+  "gate_passed": false
+}

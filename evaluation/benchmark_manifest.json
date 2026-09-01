@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "rentready-step8-stock-opencv5-baseline",
+  "description": "Frozen deterministic OpenCV-only Step-8 workload. Bedrock, room understanding, issue detection, and agent orchestration are excluded.",
+  "source_snapshot": {
+    "git_commit": "8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c",
+    "original_archive": "app(2).zip",
+    "original_archive_sha256": "2bd78b5dfbfdf0d286973fb2badc61cbd51b8b22d5cfc8a3f724b8717ac781ee",
+    "note": "The supplied archive contained no Git metadata. This root commit was created from its tracked source before benchmark tooling was added. The archive checksum preserves the byte-exact original."
+  },
+  "input": {
+    "display_filename": "2025.09.08-Mozart House video before the tenants come in the house.MOV",
+    "s3_bucket": "rentready-vision-dev-081087819788",
+    "s3_key": null,
+    "sha256": null,
+    "size_bytes": null,
+    "duration_seconds": 1053.3,
+    "source_frame_count": 31576
+  },
+  "processing_parameters": {
+    "sample_every_seconds": 1.0,
+    "scene_histogram_similarity": 0.75,
+    "scene_feature_similarity": 0.22,
+    "scene_combined_similarity": 0.55,
+    "scene_minimum_duration_seconds": 4.0,
+    "scene_maximum_duration_seconds": 30.0,
+    "scene_motion_support_percent_per_second": 12.0,
+    "scene_analysis_width": 480,
+    "scene_max_orb_features": 600,
+    "duplicate_histogram_similarity": 0.96,
+    "duplicate_feature_similarity": 0.55,
+    "minimum_variance_of_laplacian": 45.0,
+    "blur_tile_grid_size": 3,
+    "minimum_sharp_tiles_percent": 50.0,
+    "motion_blur_minimum_motion_percent_per_second": 8.0,
+    "motion_blur_sharpness_multiplier": 1.5,
+    "minimum_mean_brightness": 25.0,
+    "maximum_mean_brightness": 235.0,
+    "dark_pixel_value": 16,
+    "bright_pixel_value": 240,
+    "maximum_dark_pixels_percent": 60.0,
+    "maximum_bright_pixels_percent": 35.0,
+    "maximum_motion_percent_per_second": 30.0,
+    "minimum_motion_features": 12,
+    "quality_analysis_width": 720,
+    "motion_analysis_width": 480,
+    "motion_interval_seconds": 0.1,
+    "motion_window_size": 3,
+    "minimum_motion_inliers": 12,
+    "minimum_motion_inlier_ratio": 0.25,
+    "minimum_keyframes_per_scene": 3,
+    "maximum_keyframes_per_scene": 8,
+    "preferred_keyframe_separation_seconds": 4.0,
+    "keyframe_marginal_score_threshold": 0.58,
+    "keyframe_selection_weights": {
+      "sharpness": 0.3,
+      "brightness": 0.15,
+      "camera_stability": 0.2,
+      "distinctiveness": 0.25,
+      "temporal_distance": 0.1
+    },
+    "maximum_output_keyframes": 120,
+    "minimum_output_keyframes": 3,
+    "fallback_spacing_seconds": 2.0
+  },
+  "expected_output_invariants": {
+    "duration_seconds": 1053.3,
+    "source_frame_count": 31576,
+    "sampled_frame_count": 1053,
+    "representative_frame_count": 73,
+    "scene_count": 56,
+    "frames_rejected_for_blur": 923,
+    "near_duplicates_removed": 17
+  },
+  "historical_evidence_report": {
+    "path": "evaluation/evidence/RentReady_Vision_OpenCV_Step8_Baseline_Evidence.pdf",
+    "original_report_name": "RentReady Vision — OpenCV Evidence Processing - v2.pdf",
+    "original_report_sha256": "5de3b3caa977ca979b67cdd8969afe6f6fcf181c266a7c24ee01ea94f03f2cee",
+    "original_page_count": 18,
+    "augmented_report_sha256": "22499280407c2f07d3f86443e64b4da6862d2e33addfe50b8b7272cbe9cc43f0",
+    "augmented_page_count": 21,
+    "generator": "scripts/build_baseline_evidence_pdf.py"
+  },
+  "gate": {
+    "status": "BLOCKED",
+    "passed": false,
+    "blockers": [
+      "Exact input S3 key has not been recovered.",
+      "Input video bytes are unavailable, so SHA-256 is unknown.",
+      "The historical report did not display cv2.__file__ or cv2.getBuildInformation().",
+      "The Step-8 workload has not yet been rerun from the pinned clean environment."
+    ],
+    "verified_run_id": null,
+    "verified_runtime_build_sha256": null
+  }
+}

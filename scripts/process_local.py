@@ -25,7 +25,7 @@ def main() -> None:
     parser.add_argument("--scene-max-duration-seconds", type=float, default=30.0)
     parser.add_argument("--min-keyframes-per-scene", type=int, default=3)
     parser.add_argument("--max-keyframes-per-scene", type=int, default=8)
-    parser.add_argument("--keyframe-marginal-score-threshold", type=float, default=0.58)
+    parser.add_argument("--keyframe-marginal-score-threshold", type=float, default=0.62)
     parser.add_argument("--max-output-keyframes", type=int, default=120)
     parser.add_argument("--quality-analysis-width", type=int, default=720)
     parser.add_argument("--motion-analysis-width", type=int, default=480)

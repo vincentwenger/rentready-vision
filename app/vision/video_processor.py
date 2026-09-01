@@ -9,6 +9,8 @@ import math
 import cv2
 import numpy as np
 
+from ..runtime_evidence import collect_runtime_evidence
+
 
 @dataclass
 class KeyframeRecord:
@@ -116,7 +118,7 @@ def blur_metrics(
     low_global_sharpness = laplacian_variance < min_sharpness
     localized_detail_only = (
         laplacian_variance < min_sharpness * 1.5
-        and tile_median < min_sharpness * 0.75
+        and tile_median < min_sharpness
         and sharp_tiles_percent < min_sharp_tiles_percent
     )
     motion_blur_suspected = (
@@ -889,6 +891,27 @@ def _choose_scene_keyframes(
     return chosen, duplicate_count, adaptive_rejection_count, scene_limit_count
 
 
+def duration_aware_minimum_keyframes(
+    scene_duration_seconds: float,
+    configured_minimum: int,
+) -> int:
+    """Scale mandatory scene coverage without hard-coding three every time.
+
+    Very short scenes usually describe one view and should not be forced to
+    retain three adjacent seconds of nearly identical evidence. Longer scenes
+    can require more baseline coverage before marginal-value stopping applies.
+    """
+    configured = max(0, int(configured_minimum))
+    duration = max(0.0, float(scene_duration_seconds))
+    if duration < 8.0:
+        duration_target = 1
+    elif duration < 20.0:
+        duration_target = 2
+    else:
+        duration_target = 3
+    return min(configured, duration_target)
+
+
 def _remove_adjacent_scene_duplicates(
     selected_by_scene: list[list[dict]],
     *,
@@ -983,7 +1006,7 @@ def process_video(
     scene_motion_support_percent_per_second: float = 12.0,
     scene_analysis_width: int = 480,
     scene_max_orb_features: int = 600,
-    dedupe_threshold: float = 0.96,
+    dedupe_threshold: float = 0.94,
     dedupe_feature_threshold: float = 0.55,
     min_sharpness: float = 45.0,
     blur_tile_grid_size: int = 3,
@@ -1007,7 +1030,7 @@ def process_video(
     min_keyframes_per_scene: int = 3,
     max_keyframes_per_scene: int = 8,
     min_keyframe_separation_seconds: float = 4.0,
-    keyframe_marginal_score_threshold: float = 0.58,
+    keyframe_marginal_score_threshold: float = 0.62,
     keyframe_weight_sharpness: float = 0.30,
     keyframe_weight_brightness: float = 0.15,
     keyframe_weight_stability: float = 0.20,
@@ -1293,6 +1316,12 @@ def process_video(
 
     selected_by_scene: list[list[dict]] = []
     for scene in scenes:
+        effective_minimum = duration_aware_minimum_keyframes(
+            float(scene["duration_seconds"]),
+            min_keyframes_per_scene,
+        )
+        scene["adaptive_minimum_keyframes"] = effective_minimum
+        scene["adaptive_maximum_keyframes"] = max(1, max_keyframes_per_scene)
         scene_candidates = [
             candidate
             for candidate in candidates
@@ -1300,7 +1329,7 @@ def process_video(
         ]
         chosen, duplicates, adaptive_rejections, limited = _choose_scene_keyframes(
             scene_candidates,
-            minimum_keyframes=max(0, min_keyframes_per_scene),
+            minimum_keyframes=effective_minimum,
             maximum_keyframes=max(1, max_keyframes_per_scene),
             preferred_separation_seconds=max(0.0, min_keyframe_separation_seconds),
             histogram_dedupe_threshold=dedupe_threshold,
@@ -1328,53 +1357,94 @@ def process_video(
     )
     rejected_duplicate += cross_scene_duplicates
 
-    selected_candidates = [candidate for group in selected_by_scene for candidate in group]
-    if max_output_keyframes > 0 and len(selected_candidates) > max_output_keyframes:
-        cap_priority: list[tuple[bool, float, dict]] = []
-        for group in selected_by_scene:
-            for rank, candidate in enumerate(group):
-                cap_priority.append(
-                    (
-                        rank == 0,
-                        float(candidate["assessment"]["evidence_quality_score"]),
-                        candidate,
-                    )
+    output_selections: list[dict] = []
+    for group in selected_by_scene:
+        if not group:
+            continue
+        coverage_candidate = min(
+            group,
+            key=lambda candidate: int(
+                (candidate["assessment"].get("keyframe_selection") or {}).get(
+                    "selection_rank"
                 )
-        cap_priority.sort(key=lambda item: (item[0], item[1]), reverse=True)
-        retained_ids = {id(item[2]) for item in cap_priority[:max_output_keyframes]}
-        for candidate in selected_candidates:
-            if id(candidate) not in retained_ids:
-                assessment = candidate["assessment"]
-                assessment["decision"] = "rejected_output_limit"
-                assessment["rejection_reasons"].append("global_keyframe_limit")
-                rejected_output_limit += 1
-        selected_candidates = [
-            candidate for candidate in selected_candidates if id(candidate) in retained_ids
-        ]
+                or 10_000
+            ),
+        )
+        for candidate in group:
+            output_selections.append(
+                {
+                    "assessment": candidate["assessment"],
+                    "selection_reason": "adaptive_scene_representative",
+                    "fallback": False,
+                    "coverage_required": candidate is coverage_candidate,
+                }
+            )
 
-    strict_selected_keyframes = len(selected_candidates)
+    def fallback_rank(assessment: dict) -> tuple:
+        reasons = set(assessment["rejection_reasons"])
+        exposure_penalty = int("too_dark" in reasons or "overexposed" in reasons)
+        duplicate_penalty = int(
+            "near_duplicate" in reasons
+            or "near_duplicate_across_adjacent_scenes" in reasons
+        )
+        motion = assessment["motion"].get("percent_per_second")
+        motion_rank = -float(motion) if motion is not None else -1_000.0
+        return (
+            -exposure_penalty,
+            -duplicate_penalty,
+            -len(reasons),
+            float(assessment["evidence_quality_score"]),
+            float(assessment["blur"]["variance_of_laplacian"]),
+            motion_rank,
+        )
+
+    selected_scene_indices = {
+        int(selection["assessment"]["scene_index"])
+        for selection in output_selections
+    }
+    scene_fallback_assessments: list[dict] = []
+    for scene in scenes:
+        scene_index_value = int(scene["scene_index"])
+        if scene_index_value in selected_scene_indices:
+            continue
+        scene_assessments = [
+            assessment
+            for assessment in frame_assessments
+            if int(assessment["scene_index"]) == scene_index_value
+        ]
+        if not scene_assessments:
+            continue
+        best_available = max(scene_assessments, key=fallback_rank)
+        best_available["scene_coverage_fallback"] = True
+        scene_fallback_assessments.append(best_available)
+        output_selections.append(
+            {
+                "assessment": best_available,
+                "selection_reason": "best_available_scene_fallback",
+                "fallback": True,
+                "coverage_required": True,
+            }
+        )
+
+    # The per-scene pass guarantees coverage. Very short videos may still need
+    # extra temporally separated fallbacks to satisfy the global minimum output.
     fallback_assessments: list[dict] = []
-    needed_fallbacks = max(0, min_output_keyframes - strict_selected_keyframes)
+    needed_fallbacks = max(0, min_output_keyframes - len(output_selections))
     if needed_fallbacks:
+        occupied_ids = {id(selection["assessment"]) for selection in output_selections}
         fallback_candidates = sorted(
             (
                 assessment
                 for assessment in frame_assessments
-                if assessment["decision"] != "selected_keyframe"
+                if id(assessment) not in occupied_ids
             ),
-            key=lambda assessment: (
-                float(assessment["evidence_quality_score"]),
-                -len(assessment["rejection_reasons"]),
-            ),
+            key=fallback_rank,
             reverse=True,
         )
         occupied_times = [
-            float(candidate["assessment"]["timestamp_seconds"])
-            for candidate in selected_candidates
+            float(selection["assessment"]["timestamp_seconds"])
+            for selection in output_selections
         ]
-
-        # Prefer strong candidates that are temporally separated, then relax the
-        # spacing rule only if the clip is too short to reach the minimum output.
         for enforce_spacing in (True, False):
             for assessment in fallback_candidates:
                 if assessment in fallback_assessments:
@@ -1387,37 +1457,52 @@ def process_video(
                     continue
                 fallback_assessments.append(assessment)
                 occupied_times.append(timestamp)
+                output_selections.append(
+                    {
+                        "assessment": assessment,
+                        "selection_reason": "best_available_fallback",
+                        "fallback": True,
+                        "coverage_required": False,
+                    }
+                )
                 if len(fallback_assessments) >= needed_fallbacks:
                     break
             if len(fallback_assessments) >= needed_fallbacks:
                 break
 
-        if fallback_assessments and not scenes:
-            scenes.append(
-                {
-                    "scene_index": 0,
-                    "start_seconds": 0.0,
-                    "end_seconds": round(duration, 3),
-                    "selection_note": "Fallback scene because no frame passed strict quality filters.",
-                }
-            )
+    # Enforce the AI-request cap after scene fallbacks are included. The first
+    # representative for each scene has priority over additional strict frames.
+    if max_output_keyframes > 0 and len(output_selections) > max_output_keyframes:
+        ranked_output = sorted(
+            output_selections,
+            key=lambda selection: (
+                bool(selection["coverage_required"]),
+                not bool(selection["fallback"]),
+                float(selection["assessment"]["evidence_quality_score"]),
+                float(
+                    (selection["assessment"].get("keyframe_selection") or {}).get(
+                        "aggregate_score"
+                    )
+                    or 0.0
+                ),
+            ),
+            reverse=True,
+        )
+        retained_selection_ids = {
+            id(selection) for selection in ranked_output[:max_output_keyframes]
+        }
+        retained_output: list[dict] = []
+        for selection in output_selections:
+            if id(selection) in retained_selection_ids:
+                retained_output.append(selection)
+                continue
+            assessment = selection["assessment"]
+            assessment["decision"] = "rejected_output_limit"
+            if "global_keyframe_limit" not in assessment["rejection_reasons"]:
+                assessment["rejection_reasons"].append("global_keyframe_limit")
+            rejected_output_limit += 1
+        output_selections = retained_output
 
-    output_selections = [
-        {
-            "assessment": candidate["assessment"],
-            "selection_reason": "adaptive_scene_representative",
-            "fallback": False,
-        }
-        for candidate in selected_candidates
-    ]
-    output_selections.extend(
-        {
-            "assessment": assessment,
-            "selection_reason": "best_available_fallback",
-            "fallback": True,
-        }
-        for assessment in fallback_assessments
-    )
     output_selections.sort(key=lambda item: float(item["assessment"]["timestamp_seconds"]))
 
     keyframes: list[KeyframeRecord] = []
@@ -1449,9 +1534,15 @@ def process_video(
             assessment["decision"] = "selected_fallback" if selection["fallback"] else "selected_keyframe"
             assessment["selection_reason"] = selection["selection_reason"]
             if selection["fallback"]:
-                assessment["selection_warning"] = (
-                    "Best available frame retained because too few frames passed strict quality filters."
-                )
+                if selection["selection_reason"] == "best_available_scene_fallback":
+                    assessment["selection_warning"] = (
+                        "Best available frame retained to prevent this scene from having no evidence; "
+                        "it did not pass every strict quality filter."
+                    )
+                else:
+                    assessment["selection_warning"] = (
+                        "Best available frame retained because too few frames passed strict quality filters."
+                    )
             keyframes.append(
                 KeyframeRecord(
                     index=len(keyframes),
@@ -1486,8 +1577,14 @@ def process_video(
     strict_selected_keyframes = sum(
         record.selection_reason == "adaptive_scene_representative" for record in keyframes
     )
-    fallback_selected_keyframes = sum(
+    global_fallback_selected_keyframes = sum(
         record.selection_reason == "best_available_fallback" for record in keyframes
+    )
+    scene_fallback_selected_keyframes = sum(
+        record.selection_reason == "best_available_scene_fallback" for record in keyframes
+    )
+    fallback_selected_keyframes = (
+        global_fallback_selected_keyframes + scene_fallback_selected_keyframes
     )
 
     for scene in scenes:
@@ -1501,6 +1598,32 @@ def process_video(
         scene["selected_keyframe_count"] = sum(
             record.scene_index == index for record in keyframes
         )
+        scene["strict_selected_keyframe_count"] = sum(
+            record.scene_index == index
+            and record.selection_reason == "adaptive_scene_representative"
+            for record in keyframes
+        )
+        scene["fallback_selected_keyframe_count"] = sum(
+            record.scene_index == index
+            and record.selection_reason == "best_available_scene_fallback"
+            for record in keyframes
+        )
+        scene["coverage_status"] = (
+            "strict"
+            if scene["strict_selected_keyframe_count"] > 0
+            else "best_available_fallback"
+            if scene["fallback_selected_keyframe_count"] > 0
+            else "missing"
+        )
+
+    scenes_without_selected_frames = sum(
+        int(scene.get("selected_keyframe_count", 0)) == 0 for scene in scenes
+    )
+    scene_coverage_percent = (
+        round((1.0 - scenes_without_selected_frames / len(scenes)) * 100.0, 3)
+        if scenes
+        else 100.0
+    )
 
     source_reduction_percent = (
         round((1.0 - len(keyframes) / total_frames) * 100.0, 3)
@@ -1522,6 +1645,9 @@ def process_video(
         "frames_removed_by_low_marginal_value": rejected_adaptive_selection,
         "frames_removed_by_scene_limit": rejected_scene_limit,
         "frames_removed_by_global_limit": rejected_output_limit,
+        "scene_coverage_fallback_frames": scene_fallback_selected_keyframes,
+        "scenes_without_selected_frames": scenes_without_selected_frames,
+        "scene_coverage_percent": scene_coverage_percent,
         "representative_frames": len(keyframes),
         "source_to_representative_reduction_percent": source_reduction_percent,
         "sampled_to_representative_reduction_percent": sampled_reduction_percent,
@@ -1558,12 +1684,14 @@ def process_video(
                 "short_final_scene_merge",
                 "scene_aware_best_frame_selection",
                 "adaptive_multi_factor_keyframe_selection",
+                "duration_aware_scene_keyframe_minimum",
                 "marginal_information_gain_stopping",
                 "hsv_and_orb_near_duplicate_reduction",
                 "geometric_orb_supported_shifted_view_deduplication",
                 "adjacent_scene_near_duplicate_reduction",
                 "sharpness_ranked_duplicate_representative_selection",
                 "global_ai_request_frame_cap",
+                "per_scene_best_available_coverage_fallback",
                 "best_available_fallback_selection",
             ],
             "sample_every_seconds": sample_every_seconds,
@@ -1583,7 +1711,11 @@ def process_video(
             "selected_keyframes": len(keyframes),
             "strict_selected_keyframes": strict_selected_keyframes,
             "fallback_selected_keyframes": fallback_selected_keyframes,
+            "scene_fallback_selected_keyframes": scene_fallback_selected_keyframes,
+            "global_fallback_selected_keyframes": global_fallback_selected_keyframes,
             "scene_count": len(scenes),
+            "scenes_without_selected_frames": scenes_without_selected_frames,
+            "scene_coverage_percent": scene_coverage_percent,
             "reduction_metrics": reduction_metrics,
             "thresholds": {
                 "minimum_variance_of_laplacian": min_sharpness,
@@ -1621,6 +1753,11 @@ def process_video(
                 "duplicate_feature_similarity": dedupe_feature_threshold,
                 "minimum_keyframes_per_scene": min_keyframes_per_scene,
                 "maximum_keyframes_per_scene": max_keyframes_per_scene,
+                "duration_aware_minimum_keyframes": {
+                    "under_8_seconds": min(max(0, min_keyframes_per_scene), 1),
+                    "from_8_to_under_20_seconds": min(max(0, min_keyframes_per_scene), 2),
+                    "20_seconds_or_longer": min(max(0, min_keyframes_per_scene), 3),
+                },
                 "preferred_keyframe_separation_seconds": min_keyframe_separation_seconds,
                 "keyframe_marginal_score_threshold": keyframe_marginal_score_threshold,
                 "keyframe_selection_weights": {
@@ -1637,6 +1774,15 @@ def process_video(
         "keyframes": [asdict(record) for record in keyframes],
         "frame_assessments": frame_assessments,
     }
+
+    manifest["processing"]["runtime"] = collect_runtime_evidence(
+        repo_root=Path(__file__).resolve().parents[2],
+        input_s3_key=None,
+        processing_parameters={
+            "sample_every_seconds": sample_every_seconds,
+            **manifest["processing"]["thresholds"],
+        },
+    )
 
     with open(output_dir / "manifest.local.json", "w", encoding="utf-8") as file:
         json.dump(manifest, file, indent=2)

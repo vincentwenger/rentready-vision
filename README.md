@@ -1,5 +1,17 @@
 # RentReady Vision — Days 1–8 Technical Implementation
 
+## Frozen stock OpenCV 5 baseline
+
+The exact tracked Step-8 source from the supplied archive is frozen at Git commit
+`8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c`. The original archive SHA-256 is
+`2bd78b5dfbfdf0d286973fb2badc61cbd51b8b22d5cfc8a3f724b8717ac781ee`.
+
+The benchmark contract, historical result, fully pinned dependencies, clean-run
+instructions and explicit continuation gate are under `evaluation/`. The gate
+is intentionally blocked until the exact S3 key/video checksum are recovered
+and the 31,576 -> 1,053 -> 73 / 56-scene output is reproduced. Do not claim the
+historical report as a clean reproduction.
+
 This project implements the walking skeleton plus substantive OpenCV evidence processing:
 
 **Browser upload → presigned S3 PUT → DynamoDB inspection state → OpenCV 5 processing → S3 keyframes/manifest → API results**
@@ -25,8 +37,8 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Match ORB features and validate them geometrically with RANSAC.
 - Fuse color similarity, feature similarity, camera motion and elapsed time into auditable scene boundaries.
 - Create timestamped scene segments and choose the strongest distinct evidence within each segment.
-- Adaptively retain between three and eight representatives when enough distinct scene evidence exists, while keeping the complete AI-bound set under 120 frames.
-- Retain clearly labeled best-available fallback frames when strict filtering would otherwise return fewer than three frames.
+- Use a duration-aware target of one to three baseline representatives per scene, then adaptively retain up to eight when additional frames add distinct evidence.
+- Retain one clearly labeled best-available frame for any scene whose strict quality candidates are all rejected, plus global fallbacks when the complete output would otherwise contain fewer than three frames.
 - Remove near-duplicate frames only when both HSV and ORB similarity support that decision.
 - Upload selected keyframes to S3.
 - Store processing summary in DynamoDB.
@@ -192,15 +204,17 @@ near duplicates, it greedily evaluates each remaining representative using:
 - Distinctiveness: inverse HSV/ORB similarity to selected frames.
 - Temporal distance: distance from the closest selected timestamp.
 
-When at least three distinct candidates exist, the selector retains three for
-baseline coverage. It may continue up to eight while the best remaining frame
-clears the configurable marginal-value threshold. These defaults are starting
-points for benchmarking, not a fixed final decision:
+The baseline target depends on scene duration: one frame for scenes shorter than
+8 seconds, two for scenes from 8 to under 20 seconds, and three for longer
+scenes. This avoids forcing three almost-identical frames out of a brief camera
+transition. The selector may continue up to eight while the best remaining
+frame clears the configurable marginal-value threshold. These defaults are
+starting points for benchmarking, not a fixed final decision:
 
 ```text
 PROCESSING_MIN_KEYFRAMES_PER_SCENE=3
 PROCESSING_MAX_KEYFRAMES_PER_SCENE=8
-PROCESSING_KEYFRAME_MARGINAL_SCORE_THRESHOLD=0.58
+PROCESSING_KEYFRAME_MARGINAL_SCORE_THRESHOLD=0.62
 ```
 
 Every retained frame records its aggregate selection score, selection rank and
@@ -224,18 +238,19 @@ the complete reduction funnel:
 }
 ```
 
-The actual object also records exposure and motion rejection, scene/global
-limit removals, and source-to-representative and sampled-to-representative
-reduction percentages. Values always come from the current video; the numbers
-above only illustrate the competition-ready output format. With the default
-global cap enabled, the final representative count cannot exceed 120.
+The actual object also records exposure and motion rejection, strict versus
+fallback selections, scene coverage, scene/global limit removals, and
+source-to-representative and sampled-to-representative reduction percentages.
+Values always come from the current video; the numbers above only illustrate
+the competition-ready output format. With the default global cap enabled, the
+final representative count cannot exceed 120.
 
 ### Default quality thresholds
 
 | Measurement | Default | Result |
 | --- | ---: | --- |
 | Variance of Laplacian at 720px analysis width | `< 45` | Reject as blurry |
-| Sharp 3x3 tiles in a borderline frame | `< 50%` | Reject localized-detail false positive |
+| Borderline whole-frame Laplacian plus weak 3x3 evidence | Laplacian `< 67.5`, tile median `< 45`, and sharp tiles `< 50%` | Reject localized-detail false positive |
 | Camera motion with borderline Laplacian | `≥ 8%/s` and Laplacian `< 1.5 × minimum` | Reject as motion-supported blur |
 | Mean brightness | `< 25` | Reject as too dark |
 | Mean brightness | `> 235` | Reject as overexposed |
@@ -249,9 +264,12 @@ global cap enabled, the final representative count cannot exceed 120.
 | Combined scene similarity | `< 0.55` | Scene-change candidate |
 | Scene duration | `< 4 seconds` | Suppress boundary to avoid flicker |
 | Scene duration | `≥ 30 seconds` | Create a coverage segment |
-| Distinct keyframes per scene | `3–8` | Stop adaptively when added value falls below `0.58` |
+| Baseline keyframes by scene duration | `< 8s: 1`, `8–<20s: 2`, `≥ 20s: 3` | Avoid redundant frames in short scenes |
+| Additional distinct keyframes per scene | Up to `8` | Stop adaptively when added value falls below `0.62` |
+| Near-duplicate similarity | HSV `≥ 0.94` and ORB `≥ 0.55` | Keep the sharpest cluster representative |
 | Total keyframes | `> 120` | Preserve scene coverage, then apply global cap |
-| Strictly accepted output frames | `< 3` | Add labeled, temporally separated best-available frames |
+| Scene has no strict selection | `0` | Add one labeled best-available scene frame |
+| Complete output frames | `< 3` | Add temporally separated global best-available frames |
 
 These are explicit starting thresholds, not universal constants. Tune the values
 in `.env` against real phone walkthroughs and retain the evaluation results for

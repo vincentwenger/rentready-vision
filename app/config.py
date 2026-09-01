@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     processing_scene_motion_support_percent_per_second: float = 12.0
     processing_scene_analysis_width: int = 480
     processing_scene_max_orb_features: int = 600
-    processing_dedupe_threshold: float = 0.96
+    processing_dedupe_threshold: float = 0.94
     processing_dedupe_feature_threshold: float = 0.55
     processing_min_sharpness: float = 45.0
     processing_blur_tile_grid_size: int = 3
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     processing_min_keyframes_per_scene: int = 3
     processing_max_keyframes_per_scene: int = 8
     processing_min_keyframe_separation_seconds: float = 4.0
-    processing_keyframe_marginal_score_threshold: float = 0.58
+    processing_keyframe_marginal_score_threshold: float = 0.62
     processing_keyframe_weight_sharpness: float = 0.30
     processing_keyframe_weight_brightness: float = 0.15
     processing_keyframe_weight_stability: float = 0.20

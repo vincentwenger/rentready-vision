@@ -84,6 +84,7 @@ def run_processing_job(inspection_id: str) -> None:
                 min_output_keyframes=settings.processing_min_output_keyframes,
                 fallback_spacing_seconds=settings.processing_fallback_spacing_seconds,
             )
+            manifest["processing"]["runtime"]["input_s3_key"] = source_key
 
             prefix = f"inspections/{inspection_id}"
             public_keyframes = []

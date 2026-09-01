@@ -4,6 +4,7 @@ import numpy as np
 from app.vision.video_processor import (
     blur_metrics,
     brightness_metrics,
+    duration_aware_minimum_keyframes,
     estimate_camera_motion,
     feature_similarity,
     frame_sharpness,
@@ -100,6 +101,31 @@ def test_motion_supported_blur_rejects_borderline_panning_frame() -> None:
     assert panning["classification"] == "blurry"
     assert panning["motion_blur_suspected"] is True
     assert "motion_supported_blur" in panning["reasons"]
+
+
+def test_tiled_blur_rejects_localized_detail_false_positive() -> None:
+    frame = np.full((240, 320), 128, dtype=np.uint8)
+    checker = (np.indices((80, 106)).sum(axis=0) % 2 * 255).astype(np.uint8)
+    frame[:80, :106] = checker
+    global_sharpness = frame_sharpness(frame, analysis_width=320)
+
+    result = blur_metrics(
+        frame,
+        min_sharpness=global_sharpness / 1.2,
+        analysis_width=320,
+        motion_percent_per_second=None,
+    )
+
+    assert result["classification"] == "blurry"
+    assert result["sharp_tiles_percent"] < 50.0
+    assert "insufficient_sharp_tiles" in result["reasons"]
+
+
+def test_duration_aware_minimum_keyframes_scales_with_scene_length() -> None:
+    assert duration_aware_minimum_keyframes(4.0, 3) == 1
+    assert duration_aware_minimum_keyframes(12.0, 3) == 2
+    assert duration_aware_minimum_keyframes(30.0, 3) == 3
+    assert duration_aware_minimum_keyframes(30.0, 0) == 0
 
 
 def test_brightness_classifies_dark_usable_and_overexposed() -> None:
@@ -287,6 +313,7 @@ def test_scene_selection_honors_global_ai_frame_cap(tmp_path: Path) -> None:
         max_keyframes_per_scene=2,
         min_keyframe_separation_seconds=0.1,
         max_output_keyframes=4,
+        keyframe_marginal_score_threshold=0.0,
     )
 
     assert manifest["processing"]["selected_keyframes"] == 4
@@ -324,6 +351,7 @@ def test_adaptive_keyframe_count_changes_with_marginal_value_threshold(tmp_path:
         **common,
     )
 
+    assert conservative["processing"]["strict_selected_keyframes"] == 1
     assert conservative["processing"]["selected_keyframes"] == 3
     assert permissive["processing"]["selected_keyframes"] == 8
     assert conservative["processing"]["rejected_adaptive_selection"] > 0
@@ -397,6 +425,39 @@ def test_best_available_fallback_prevents_empty_frame_output(tmp_path: Path) -> 
 
     assert manifest["processing"]["strict_selected_keyframes"] == 0
     assert manifest["processing"]["fallback_selected_keyframes"] == 3
+    assert manifest["processing"]["scene_fallback_selected_keyframes"] == 1
+    assert manifest["processing"]["global_fallback_selected_keyframes"] == 2
     assert manifest["processing"]["selected_keyframes"] == 3
     assert len(list((out / "frames").glob("*_fallback.jpg"))) == 3
-    assert all(frame["selection_reason"] == "best_available_fallback" for frame in manifest["keyframes"])
+    assert {frame["selection_reason"] for frame in manifest["keyframes"]} == {
+        "best_available_scene_fallback",
+        "best_available_fallback",
+    }
+
+
+def test_every_scene_gets_a_labeled_best_available_frame(tmp_path: Path) -> None:
+    video = tmp_path / "scene-fallbacks.avi"
+    out = tmp_path / "scene-fallbacks-output"
+    _make_test_video(video)
+
+    manifest = process_video(
+        video,
+        out,
+        sample_every_seconds=0.5,
+        min_sharpness=1_000_000.0,
+        scene_min_duration_seconds=0.5,
+        scene_max_duration_seconds=1.0,
+        min_output_keyframes=1,
+    )
+
+    assert manifest["processing"]["strict_selected_keyframes"] == 0
+    assert manifest["processing"]["scenes_without_selected_frames"] == 0
+    assert manifest["processing"]["scene_coverage_percent"] == 100.0
+    assert manifest["processing"]["scene_fallback_selected_keyframes"] == len(
+        manifest["scenes"]
+    )
+    assert all(scene["selected_keyframe_count"] == 1 for scene in manifest["scenes"])
+    assert all(
+        frame["selection_reason"] == "best_available_scene_fallback"
+        for frame in manifest["keyframes"]
+    )

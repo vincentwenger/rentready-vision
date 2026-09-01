@@ -38,6 +38,10 @@
     figure { margin: 0; overflow: hidden; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
     figure img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: #e2e8f0; }
     figcaption { padding: 10px; color: #475569; font-size: .86rem; white-space: pre-line; line-height: 1.5; }
+    .runtime-grid { display: grid; grid-template-columns: minmax(160px, .7fr) 1.3fr; gap: 8px 16px; margin: 14px 0; padding: 16px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; font-size: .88rem; }
+    .runtime-grid dt { color: #64748b; font-weight: 650; }
+    .runtime-grid dd { margin: 0; color: #172033; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .runtime-note { color: #475569; font-size: .9rem; }
     @media (max-width: 600px) { .methods { columns: 1; } }
     [hidden] { display: none !important; }
   </style>
@@ -82,6 +86,9 @@
       <summary>OpenCV operations used</summary>
       <ul class="methods" id="opencv-methods"></ul>
     </details>
+    <h3>Runtime</h3>
+    <p class="runtime-note">Exact runtime identity captured with this evidence result.</p>
+    <dl class="runtime-grid" id="runtime"></dl>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -116,6 +123,34 @@ function setStep(name, state) {
   element.classList.remove("active", "done");
   if (state) element.classList.add(state);
   element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : "○";
+}
+
+function renderRuntime(processing) {
+  const runtimeElement = document.getElementById("runtime");
+  runtimeElement.replaceChildren();
+  const runtime = processing.runtime ?? {};
+  const distribution = runtime.cv2_distribution ?? {};
+  const values = [
+    ["OpenCV", runtime.cv2_version ?? processing.opencv_version ?? "Unavailable"],
+    ["Distribution", distribution.name && distribution.version ? `${distribution.name}==${distribution.version}` : "Unavailable"],
+    ["cv2 module", runtime.cv2_file ?? "Unavailable"],
+    ["cv2 SHA-256", runtime.cv2_file_sha256 ?? "Unavailable"],
+    ["cv2 binary", runtime.cv2_binary_file ?? "Unavailable"],
+    ["cv2 binary SHA-256", runtime.cv2_binary_sha256 ?? "Unavailable"],
+    ["Build information SHA-256", runtime.cv2_build_information_sha256 ?? "Unavailable"],
+    ["Python", `${runtime.python_implementation ?? ""} ${runtime.python_version ?? "Unavailable"}`.trim()],
+    ["Operating system", runtime.operating_system ?? "Unavailable"],
+    ["Architecture", `${runtime.architecture ?? "Unavailable"} / ${runtime.machine ?? "Unavailable"}`],
+    ["Git commit", runtime.git_commit ?? "Unavailable"],
+    ["Input S3 key", runtime.input_s3_key ?? "Unavailable"]
+  ];
+  values.forEach(([label, value]) => {
+    const term = document.createElement("dt");
+    term.textContent = label;
+    const detail = document.createElement("dd");
+    detail.textContent = value;
+    runtimeElement.append(term, detail);
+  });
 }
 
 async function renderResults(id, response) {
@@ -154,6 +189,8 @@ async function renderResults(id, response) {
   const metrics = [
     [processing.strict_selected_keyframes, "Passed strict filters"],
     [processing.fallback_selected_keyframes, "Best available"],
+    [processing.scene_fallback_selected_keyframes ?? 0, "Scene coverage fallbacks"],
+    [processing.scenes_without_selected_frames ?? 0, "Scenes without evidence"],
     [processing.rejected_fast_motion, "Flagged: fast motion"],
     [processing.rejected_adaptive_selection ?? 0, "Skipped: low added value"],
     [processing.rejected_scene_limit ?? 0, "Skipped: scene limit"],
@@ -177,6 +214,7 @@ async function renderResults(id, response) {
     item.textContent = method.replaceAll("_", " ");
     methodsElement.append(item);
   });
+  renderRuntime(processing);
 
   const scenesElement = document.getElementById("scenes");
   scenesElement.replaceChildren();
@@ -188,7 +226,10 @@ async function renderResults(id, response) {
     const range = document.createElement("span");
     range.textContent = `${formatTimestamp(scene.start_seconds)}–${formatTimestamp(scene.end_seconds)} · ${scene.end_reason.replaceAll("_", " ")}`;
     const selected = document.createElement("span");
-    selected.textContent = `${scene.selected_keyframe_count ?? 0} selected`;
+    const fallbackNote = (scene.fallback_selected_keyframe_count ?? 0) > 0
+      ? " · best available"
+      : "";
+    selected.textContent = `${scene.selected_keyframe_count ?? 0} selected${fallbackNote}`;
     row.append(name, range, selected);
     scenesElement.append(row);
   });
@@ -204,9 +245,11 @@ async function renderResults(id, response) {
     const motion = frame.motion_percent_per_second == null
       ? "motion unavailable"
       : `motion ${frame.motion_percent_per_second.toFixed(2)}%/s`;
-    const selection = frame.selection_reason === "best_available_fallback"
-      ? "BEST AVAILABLE — quality warning"
-      : `Adaptive representative ${frame.keyframe_selection_rank ?? ""}`.trim();
+    const selection = frame.selection_reason === "best_available_scene_fallback"
+      ? "BEST AVAILABLE FOR SCENE — quality warning"
+      : frame.selection_reason === "best_available_fallback"
+        ? "BEST AVAILABLE — quality warning"
+        : `Adaptive representative ${frame.keyframe_selection_rank ?? ""}`.trim();
     const adaptiveScore = frame.keyframe_selection_score == null
       ? ""
       : ` · selection ${frame.keyframe_selection_score.toFixed(3)}`;
