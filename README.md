@@ -1,16 +1,31 @@
-# RentReady Vision — Days 1–8 Technical Implementation
+# RentReady Vision — OpenCV evidence processing and COOL validation
 
-## Frozen stock OpenCV 5 baseline
+## Step 12 COOL validation — PASS
+
+The real RentReady Step-8 `process_video()` workload has now executed under the
+Marketplace `/opt/cool` runtime on an AWS Graviton `m8g.4xlarge` instance. A
+controlled stock OpenCV 5.0.0 baseline was first reproduced twice on the same
+instance, using the same byte-identical EBS-resident walkthrough and the frozen
+Step-8 parameters. COOL then produced an **EQUIVALENT** result: 54 scenes, 74
+representative frames, exact scene-boundary and selected-frame identity matches,
+and a maximum selection-score delta of `0.0`.
+
+**COOL eligibility gate #1: PASS.** See [`STEP12_COOL_VALIDATION.md`](STEP12_COOL_VALIDATION.md)
+for the complete audit trail and `evaluation/step12_cool_validation.json` for the
+machine-readable summary.
+
+## Historical Step-8 evidence versus the controlled Graviton baseline
 
 The exact tracked Step-8 source from the supplied archive is frozen at Git commit
 `8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c`. The original archive SHA-256 is
 `2bd78b5dfbfdf0d286973fb2badc61cbd51b8b22d5cfc8a3f724b8717ac781ee`.
 
-The benchmark contract, historical result, fully pinned dependencies, clean-run
-instructions and explicit continuation gate are under `evaluation/`. The gate
-is intentionally blocked until the exact S3 key/video checksum are recovered
-and the 31,576 -> 1,053 -> 73 / 56-scene output is reproduced. Do not claim the
-historical report as a clean reproduction.
+The original browser evidence recorded 31,576 -> 1,053 -> 73 representatives
+across 56 scenes, but that historical Windows observation was not reproduced
+exactly on later runtimes. It is preserved for provenance rather than rewritten
+as a clean reproduction. Step 12 therefore uses the separately verified
+same-Graviton stock baseline in `evaluation/benchmark_manifest_graviton_stock.json`,
+which reproduced 74 representatives / 54 scenes twice before the COOL run.
 
 This project implements the walking skeleton plus substantive OpenCV evidence processing:
 
@@ -50,7 +65,7 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 
 `POST /inspections/{id}/process` uses FastAPI `BackgroundTasks`. This keeps the Days 1–8 prototype easy to run locally. It is **not durable production job processing**. A later milestone replaces only that implementation with:
 
-`API → SQS → ECS/Fargate worker`
+`API → SQS → official OpenCV COOL EC2 worker on AWS Graviton4`
 
 while preserving the public API.
 
@@ -323,6 +338,10 @@ object access plus DynamoDB item access.
 
 ### 3. Alternative: provision with Terraform
 
+For the official Graviton4 worker, follow `COOL_AWS_LAUNCH.md`. It covers the
+Marketplace subscription checkpoint, Region-specific AMI ID, Session Manager,
+least-privilege IAM, SQS/DLQ, `requirements-cool.txt`, and runtime evidence.
+
 ```bash
 cd infra/terraform
 terraform init
@@ -423,7 +442,7 @@ for that optional browser request.
 
 ## Next milestone
 
-1. SQS → ECS/Fargate durable processing.
+1. Benchmark and validate the SQS → COOL Graviton4 durable processing path.
 2. Threshold calibration on labeled real-world walkthrough frames.
 3. Room labels.
 4. Candidate issue detection.

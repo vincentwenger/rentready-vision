@@ -15,3 +15,4 @@ s3 = session.client(
 
 dynamodb = session.resource("dynamodb")
 table = dynamodb.Table(settings.ddb_table)
+sqs = session.client("sqs")

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "benchmark_id": "rentready-step8-stock-opencv5-baseline",
-  "description": "Historical Step-8 stock OpenCV evidence contract. The 73-frame / 56-scene result is preserved as historical evidence; the controlled Step-12 COOL A/B comparison uses evaluation/benchmark_manifest_graviton_stock.json.",
+  "benchmark_id": "rentready-step8-stock-opencv5-graviton-baseline",
+  "description": "Controlled stock OpenCV 5.0.0 Step-8 reference on the same AWS Graviton m8g.4xlarge used for the COOL Step-12 A/B comparison.",
   "source_snapshot": {
     "git_commit": "8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c",
     "original_archive": "app(2).zip",
@@ -64,13 +64,13 @@
     "fallback_spacing_seconds": 2.0
   },
   "expected_output_invariants": {
-    "duration_seconds": 1053.3,
+    "duration_seconds": 1053.308,
     "source_frame_count": 31576,
     "sampled_frame_count": 1053,
-    "representative_frame_count": 73,
-    "scene_count": 56,
-    "frames_rejected_for_blur": 923,
-    "near_duplicates_removed": 17
+    "representative_frame_count": 74,
+    "scene_count": 54,
+    "frames_rejected_for_blur": 928,
+    "near_duplicates_removed": 14
   },
   "historical_evidence_report": {
     "path": "evaluation/evidence/RentReady_Vision_OpenCV_Step8_Baseline_Evidence.pdf",
@@ -82,15 +82,20 @@
     "generator": "scripts/build_baseline_evidence_pdf.py"
   },
   "gate": {
-    "status": "HISTORICAL_REPRODUCTION_UNRESOLVED",
-    "passed": false,
-    "blockers": [
-      "The historical 73-keyframe / 56-scene Windows observation was not reproduced exactly on later runtimes.",
-      "After restoring the actual Step-8 source defaults (duplicate threshold 0.94 and marginal score threshold 0.62), Windows produced 77 keyframes / 55 scenes / 928 blur rejects / 14 duplicates removed.",
-      "This historical result is retained for provenance only; Step 12 uses the separately verified same-Graviton stock baseline."
-    ],
-    "verified_run_id": null,
-    "verified_runtime_build_sha256": null,
-    "step12_control_manifest": "evaluation/benchmark_manifest_graviton_stock.json"
+    "status": "PASS",
+    "passed": true,
+    "verified_run_id": "20260906T035008Z",
+    "verification": "A second identical stock Graviton run exactly reproduced the first controlled run invariants.",
+    "comparison_target": "COOL run 20260906T035612Z"
+  },
+  "controlled_runtime": {
+    "runtime": "stock",
+    "opencv_version": "5.0.0",
+    "opencv_distribution": "opencv-python-headless==5.0.0.93",
+    "architecture": "aarch64",
+    "instance_type": "m8g.4xlarge",
+    "region": "us-west-2",
+    "python_path": "/home/ssm-user/stock-opencv/bin/python",
+    "cv2_path": "/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py"
   }
 }

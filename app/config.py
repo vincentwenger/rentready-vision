@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     aws_region: str = "us-west-2"
     s3_bucket: str
     ddb_table: str = "rentready-vision-dev"
+    processing_queue_url: str | None = None
     presigned_url_ttl_seconds: int = 900
     max_upload_bytes: int = 1024 * 1024 * 1024
     cors_origins: str = "http://localhost:8000,http://localhost:5173"

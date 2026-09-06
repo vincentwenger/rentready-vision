@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+install -d -o ubuntu -g ubuntu /opt/rentready-vision /var/lib/rentready-vision/runtime-evidence
+
+cat >/etc/profile.d/rentready-cool.sh <<'EOF'
+if [ -f /opt/cool/venvs/python_3.12/bin/activate ]; then
+  source /opt/cool/venvs/python_3.12/bin/activate
+fi
+EOF
+chmod 0644 /etc/profile.d/rentready-cool.sh
+
+cat >>/etc/environment <<'EOF'
+APP_ENV=${environment}
+AWS_REGION=${aws_region}
+S3_BUCKET=${s3_bucket}
+DDB_TABLE=${ddb_table}
+PROCESSING_QUEUE_URL=${queue_url}
+RUNTIME_EVIDENCE_S3_PREFIX=s3://${s3_bucket}/runtime-evidence
+COOL_VERSION=${cool_version}
+COOL_AMI_ID=${cool_ami_id}
+EC2_INSTANCE_TYPE=${instance_type}
+COOL_EXPECTED_CV2_PREFIX=/opt/cool
+COOL_LOG_GROUP=${log_group_name}
+EOF
+
+cat >/var/lib/rentready-vision/runtime-evidence/launch.json <<'EOF'
+{
+  "cool_version": "${cool_version}",
+  "ami_id": "${cool_ami_id}",
+  "instance_type": "${instance_type}",
+  "region": "${aws_region}",
+  "s3_bucket": "${s3_bucket}",
+  "dynamodb_table": "${ddb_table}",
+  "processing_queue_url": "${queue_url}"
+}
+EOF
+
+if [ ! -x /opt/cool/venvs/python_3.12/bin/python ]; then
+  echo "COOL Python 3.12 environment not found" >/var/lib/rentready-vision/bootstrap-error.txt
+  exit 1
+fi
+
+/opt/cool/venvs/python_3.12/bin/python - <<'PY' >/var/lib/rentready-vision/runtime-evidence/initial-cv2.txt
+import cv2
+import platform
+print(f"opencv_version={cv2.__version__}")
+print(f"cv2_path={cv2.__file__}")
+print(f"architecture={platform.machine()}")
+print(cv2.getBuildInformation())
+PY
+
+chown -R ubuntu:ubuntu /opt/rentready-vision /var/lib/rentready-vision

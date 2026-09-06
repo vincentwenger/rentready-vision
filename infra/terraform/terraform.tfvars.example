@@ -1,0 +1,23 @@
+aws_region            = "us-west-2"
+s3_bucket_name        = "rentready-vision-dev-REPLACE_WITH_ACCOUNT_ID"
+dynamodb_table_name   = "rentready-vision-dev"
+manage_data_resources = false
+
+# Copy this region-specific AMI ID only after accepting the official product:
+# https://aws.amazon.com/marketplace/pp/prodview-fdvbfiewzuehs
+cool_ami_id  = "ami-REPLACE_WITH_MARKETPLACE_AMI_ID"
+cool_version = "3.1"
+instance_type = "m8g.4xlarge"
+
+vpc_id    = "vpc-REPLACE_ME"
+subnet_id = "subnet-REPLACE_ME"
+
+# Keep false for a private subnet with NAT or the required VPC endpoints.
+# If using a public subnet, true is acceptable because the security group has
+# no inbound rules and Terraform creates no SSH key.
+associate_public_ip_address = false
+
+# The current app configuration uses the US Nova Lite inference profile. AWS
+# requires the profile ARN plus every destination foundation-model ARN returned
+# by GetInferenceProfile. Add only those exact ARNs; do not use Resource="*".
+bedrock_model_arns = []

@@ -7,6 +7,9 @@ import os
 import platform
 import subprocess
 import sys
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +64,47 @@ def _opencv_binary(cv2_path: Path) -> Path | None:
     return None
 
 
+def _cool_version() -> str | None:
+    configured = os.getenv("COOL_VERSION")
+    if configured:
+        return configured
+    for path in (
+        Path("/opt/cool/VERSION"),
+        Path("/opt/cool/version.txt"),
+        Path("/opt/cool/release.txt"),
+    ):
+        try:
+            value = path.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if value:
+            return value
+    return None
+
+
+def _ec2_identity() -> dict[str, Any]:
+    """Read the live EC2 identity through IMDSv2 when the COOL bootstrap is present."""
+    if not (os.getenv("COOL_AMI_ID") or os.getenv("EC2_INSTANCE_TYPE")):
+        return {}
+    token_request = urllib.request.Request(
+        "http://169.254.169.254/latest/api/token",
+        method="PUT",
+        headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"},
+    )
+    try:
+        with urllib.request.urlopen(token_request, timeout=0.5) as response:
+            token = response.read().decode("utf-8")
+        identity_request = urllib.request.Request(
+            "http://169.254.169.254/latest/dynamic/instance-identity/document",
+            headers={"X-aws-ec2-metadata-token": token},
+        )
+        with urllib.request.urlopen(identity_request, timeout=0.5) as response:
+            document = json.loads(response.read().decode("utf-8"))
+        return document if isinstance(document, dict) else {}
+    except (OSError, ValueError, urllib.error.URLError):
+        return {}
+
+
 def collect_runtime_evidence(
     *,
     repo_root: Path,
@@ -71,9 +115,18 @@ def collect_runtime_evidence(
     cv2_path = Path(cv2.__file__).resolve()
     cv2_binary = _opencv_binary(cv2_path)
     git_status = _git_value(repo_root, "status", "--porcelain")
-    git_commit = _git_value(repo_root, "rev-parse", "HEAD")
+    git_commit = _git_value(repo_root, "rev-parse", "HEAD") or os.getenv("GIT_COMMIT")
+    machine = platform.machine()
+    ec2_identity = _ec2_identity()
+    cool_version = _cool_version()
+    is_cool = bool(cool_version) or str(cv2_path).startswith("/opt/cool/")
     evidence = {
-        "schema_version": "1.0",
+        "schema_version": "1.2",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "runtime": "COOL" if is_cool else "stock",
+        "cool_version": cool_version,
+        "opencv_version": cv2.__version__,
+        "cv2_path": str(cv2_path),
         "cv2_version": cv2.__version__,
         "cv2_file": str(cv2_path),
         "cv2_file_sha256": _sha256_file(cv2_path),
@@ -91,10 +144,18 @@ def collect_runtime_evidence(
         "operating_system": platform.platform(),
         "system": platform.system(),
         "release": platform.release(),
-        "architecture": platform.architecture()[0],
-        "machine": platform.machine(),
+        "architecture": machine,
+        "machine": machine,
+        "word_size": platform.architecture()[0],
         "processor": platform.processor() or None,
         "container": bool(os.path.exists("/.dockerenv")),
+        "instance_id": ec2_identity.get("instanceId"),
+        "instance_type": ec2_identity.get("instanceType") or os.getenv("EC2_INSTANCE_TYPE"),
+        "ami_id": ec2_identity.get("imageId") or os.getenv("COOL_AMI_ID"),
+        "region": ec2_identity.get("region")
+        or os.getenv("AWS_REGION")
+        or os.getenv("AWS_DEFAULT_REGION"),
+        "availability_zone": ec2_identity.get("availabilityZone"),
         "git_commit": git_commit,
         "git_dirty": bool(git_status) if git_commit is not None else None,
         "input_s3_key": input_s3_key,

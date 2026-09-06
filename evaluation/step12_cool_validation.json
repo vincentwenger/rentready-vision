@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "step": 12,
+  "title": "Run the completed Step-8 core workload under COOL",
+  "status": "COMPLETE",
+  "execution_date_local": "2026-09-05",
+  "execution_date_utc": "2026-09-06",
+  "inspection_id": "STEP12_INSPECTION_ID",
+  "input": {
+    "s3_bucket": "rentready-vision-dev-ACCOUNT_ID",
+    "s3_key": "inspections/STEP12_INSPECTION_ID/original/walkthrough.mov",
+    "size_bytes": 1999530086,
+    "sha256": "57bfbbfecb5c5a9d9229f683693b9100a5d7a1a98e634fd12687800ba4c69ef9",
+    "local_ebs_path": "/home/ssm-user/rentready-step12/benchmark-cache/57bfbbfecb5c5a9d9229f683693b9100a5d7a1a98e634fd12687800ba4c69ef9.mov",
+    "duration_seconds": 1053.308,
+    "source_frame_count": 31576,
+    "sampled_frame_count": 1053
+  },
+  "processing_parameters_of_interest": {
+    "duplicate_histogram_similarity": 0.94,
+    "keyframe_marginal_score_threshold": 0.62
+  },
+  "stock_baseline": {
+    "run_id": "20260906T035008Z",
+    "status": "PASS",
+    "runtime": "stock",
+    "opencv_version": "5.0.0",
+    "opencv_distribution": "opencv-python-headless==5.0.0.93",
+    "architecture": "aarch64",
+    "instance_type": "m8g.4xlarge",
+    "representative_frame_count": 74,
+    "scene_count": 54,
+    "frames_rejected_for_blur": 928,
+    "near_duplicates_removed": 14
+  },
+  "cool_run": {
+    "run_id": "20260906T035612Z",
+    "runtime": "COOL",
+    "marketplace_release_label_configured": "3.1",
+    "opencv_version_observed": "5.1.0-dev",
+    "cv2_binary": "/opt/cool/python_3.12/site-packages/cv2/python-3.12/cv2.cpython-312-aarch64-linux-gnu.so",
+    "architecture": "aarch64",
+    "os": "Ubuntu 24.04.3 LTS",
+    "region": "us-west-2",
+    "instance_type": "m8g.4xlarge",
+    "ami_id": "ami-08dacb72c289c8261",
+    "scene_count": 54,
+    "selected_keyframes": 74
+  },
+  "comparison": {
+    "status": "EQUIVALENT",
+    "equivalent": true,
+    "scene_boundaries_match": true,
+    "frame_identities_match": true,
+    "frames_only_in_stock": [],
+    "frames_only_in_cool": [],
+    "selection_scores_within_tolerance": true,
+    "maximum_selection_score_delta": 0.0,
+    "boundary_tolerance_seconds": 0.05,
+    "selection_score_tolerance": 0.001
+  },
+  "production_integration": {
+    "selected_frames_uploaded": 74,
+    "normal_inspection_manifest_written": true,
+    "dynamodb_inspection_final_status": "COMPLETE",
+    "judge_report_s3_key": "inspections/STEP12_INSPECTION_ID/benchmark/cool/20260906T035612Z/processing_report.json",
+    "judge_report_s3_uri": "s3://rentready-vision-dev-ACCOUNT_ID/inspections/STEP12_INSPECTION_ID/benchmark/cool/20260906T035612Z/processing_report.json"
+  },
+  "iam_recovery": {
+    "initial_report_upload": "AccessDenied",
+    "core_processing_had_completed": true,
+    "local_report_showed_gate_pass": true,
+    "report_uploaded_after_permission_fix_without_reprocessing": true,
+    "dynamodb_repaired_to_complete": true
+  },
+  "cool_eligibility_gate_1": {
+    "passed": true,
+    "claim": "COOL executed the real RentReady Step-8 core video workload on AWS Graviton and produced outputs equivalent to the verified same-Graviton stock OpenCV baseline."
+  },
+  "documentation": "../STEP12_COOL_VALIDATION.md",
+  "public_repository_redaction": {
+    "applied": true,
+    "fields": [
+      "AWS account-specific bucket identifier",
+      "inspection UUID"
+    ],
+    "reason": "Keep public GitHub evidence reproducible without publishing account-specific resource identifiers."
+  }
+}

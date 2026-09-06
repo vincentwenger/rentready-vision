@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import PurePath
 from uuid import uuid4
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
-from ..aws import s3
+from ..aws import s3, sqs
 from ..config import get_settings
 from ..db import create_inspection, get_inspection, update_inspection
 from ..models import (
@@ -120,7 +121,24 @@ def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> d
         raise HTTPException(status_code=409, detail=f"Inspection cannot be processed from status {item['status']}")
 
     update_inspection(inspection_id, status="PROCESSING", error=None)
-    # Day 1-3 prototype only. Replace with SQS -> ECS/Fargate in the next milestone.
+    if settings.processing_queue_url:
+        sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "job_type": "process_inspection",
+                    "inspection_id": inspection_id,
+                }
+            ),
+        )
+        return {
+            "inspection_id": inspection_id,
+            "status": "PROCESSING",
+            "note": "Processing job queued for the COOL worker",
+        }
+
+    # Local fallback preserves the current single-process development workflow.
     background_tasks.add_task(run_processing_job, inspection_id)
     return {"inspection_id": inspection_id, "status": "PROCESSING", "note": "Prototype background processing started"}
 

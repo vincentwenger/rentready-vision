@@ -1,0 +1,14 @@
+# Install this only after activating /opt/cool/venvs/python_3.12.
+# Deliberately excludes every opencv-python/opencv-contrib-python distribution
+# so pip cannot shadow the AWS Marketplace COOL build under /opt/cool.
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+boto3==1.43.85
+botocore==1.43.85
+pydantic==2.13.5
+pydantic-settings==2.15.0
+numpy==2.5.2
+pytest==8.4.2
+httpx==0.28.1
+reportlab==4.4.9
+pypdf==6.10.0
