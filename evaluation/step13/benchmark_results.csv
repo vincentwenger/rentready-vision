@@ -1,0 +1,13 @@
+execution_order,phase,environment,run_index,success,wall_clock_seconds,sampled_frames,source_frames,sampled_frames_per_second,source_frames_per_second,avg_cpu_utilization_pct_instance,cpu_equivalent_cores,peak_memory_mib,retained_frame_count,scene_count,failures,ec2_hourly_usd,estimated_ec2_cost_usd,opencv_version,cv2_path,python_version,error
+1,warmup,stock,1,True,161.862258,1053,31576,6.505531,195.079449,32.459,5.1935,268.605,74,54,0,0.7181,0.03228702,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+2,warmup,cool,1,True,151.38783,1053,31576,6.955645,208.576872,36.536,5.8457,280.527,74,54,0,0.7181,0.03019767,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,
+3,measured,stock,1,True,162.032907,1053,31576,6.49868,194.873996,32.426,5.1881,267.387,74,54,0,0.7181,0.03232106,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+4,measured,cool,1,True,152.6273,1053,31576,6.899159,206.883041,36.431,5.829,281.387,74,54,0,0.7181,0.03044491,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,
+5,measured,cool,2,True,151.844346,1053,31576,6.934733,207.949792,36.482,5.8371,280.176,74,54,0,0.7181,0.03028873,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,
+6,measured,stock,2,True,162.006171,1053,31576,6.499752,194.906156,32.435,5.1897,268.27,74,54,0,0.7181,0.03231573,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+7,measured,stock,3,True,161.492992,1053,31576,6.520407,195.525513,32.53,5.2047,266.672,74,54,0,0.7181,0.03221337,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+8,measured,cool,3,True,149.697335,1053,31576,7.034193,210.932279,36.779,5.8847,276.473,74,54,0,0.7181,0.02986046,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,
+9,measured,cool,4,True,150.414092,1053,31576,7.000674,209.92714,36.57,5.8512,274.762,74,54,0,0.7181,0.03000343,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,
+10,measured,stock,4,True,161.145406,1053,31576,6.534471,195.947256,32.556,5.209,268.898,74,54,0,0.7181,0.03214403,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+11,measured,stock,5,True,161.918726,1053,31576,6.503263,195.011415,32.467,5.1947,269.207,74,54,0,0.7181,0.03229829,5.0.0,/home/ssm-user/stock-opencv/lib/python3.12/site-packages/cv2/__init__.py,3.12.3,
+12,measured,cool,5,True,148.894813,1053,31576,7.072107,212.069175,36.935,5.9096,280.832,74,54,0,0.7181,0.02970038,5.1.0-dev,/opt/cool/python_3.12/site-packages/cv2/__init__.py,3.12.3,

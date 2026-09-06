@@ -449,3 +449,10 @@ for that optional browser request.
 5. Agentic `inspect_interval()`.
 6. ROI crop/enhance tools.
 7. Agent traces.
+
+## Step 13 benchmark
+
+The controlled stock-OpenCV-vs-COOL performance harness is documented in
+[`STEP13_BENCHMARK.md`](STEP13_BENCHMARK.md). Run it on the same Graviton4
+`m8g.4xlarge` and EBS-cached input used by Step 12. Judge-facing outputs are
+written to `evaluation/step13/`.
