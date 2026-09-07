@@ -10,8 +10,8 @@ settings = get_settings()
 
 app = FastAPI(
     title="RentReady Vision API",
-    version="0.2.1",
-    description="Days 1-8 prototype: AWS walking skeleton plus auditable OpenCV evidence-quality processing.",
+    version="0.3.0",
+    description="RentReady Vision production path: S3 upload plus durable SQS execution on a Graviton4 OpenCV COOL worker.",
 )
 
 app.add_middleware(

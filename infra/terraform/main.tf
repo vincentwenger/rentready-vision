@@ -210,6 +210,17 @@ resource "aws_iam_role_policy" "cool_worker" {
           "logs:PutLogEvents"
         ]
         Resource = "${aws_cloudwatch_log_group.worker.arn}:*"
+      },
+      {
+        Sid      = "PublishProcessingMetrics"
+        Effect   = "Allow"
+        Action   = "cloudwatch:PutMetricData"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "RentReadyVision/Processing"
+          }
+        }
       }
       ], length(var.bedrock_model_arns) == 0 ? [] : [
       {
@@ -272,10 +283,17 @@ resource "aws_instance" "cool_worker" {
     s3_bucket       = local.s3_bucket_name
     ddb_table       = local.dynamodb_table_name
     queue_url       = aws_sqs_queue.processing.id
+    dlq_url         = aws_sqs_queue.processing_dlq.id
     cool_version    = var.cool_version
     cool_ami_id     = var.cool_ami_id
     instance_type   = var.instance_type
-    log_group_name  = aws_cloudwatch_log_group.worker.name
+    log_group_name                  = aws_cloudwatch_log_group.worker.name
+    metrics_namespace               = "RentReadyVision/Processing"
+    queue_visibility_timeout        = var.queue_visibility_timeout_seconds
+    queue_max_receive_count         = var.queue_max_receive_count
+    processing_lease_seconds        = var.queue_visibility_timeout_seconds + 300
+    repository_url                  = var.repository_url
+    git_ref                         = var.git_ref
   })
 
   metadata_options {

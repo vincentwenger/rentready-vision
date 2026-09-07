@@ -3,6 +3,11 @@ s3_bucket_name        = "rentready-vision-dev-REPLACE_WITH_ACCOUNT_ID"
 dynamodb_table_name   = "rentready-vision-dev"
 manage_data_resources = false
 
+# HTTPS clone URL for the tracked RentReady Vision repository.
+repository_url = "https://github.com/YOUR_ACCOUNT/rentready-vision.git"
+# Pin this to the Step-14 commit SHA for the final judge/demo deployment.
+git_ref = "main"
+
 # Copy this region-specific AMI ID only after accepting the official product:
 # https://aws.amazon.com/marketplace/pp/prodview-fdvbfiewzuehs
 cool_ami_id  = "ami-REPLACE_WITH_MARKETPLACE_AMI_ID"

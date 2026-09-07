@@ -355,7 +355,7 @@ terraform output
 cp .env.example .env
 ```
 
-If you used Terraform, copy its `s3_bucket` and `ddb_table` outputs into `.env`.
+If you used Terraform, copy its `s3_bucket`, `ddb_table`, and `processing_queue_url` outputs into `.env`. Set `GIT_COMMIT` in the API deployment to the exact deployed revision when the API is not running from a Git checkout.
 If you use the Windows launcher, it resolves the bucket placeholder automatically.
 
 ### 5. Run API
@@ -409,7 +409,7 @@ the manifest, API and browser; tune thresholds on real walkthroughs.
 - Every scene contains explicit timestamps and auditable boundary evidence.
 - Each scene adaptively contributes up to eight representatives and no run emits more than 120 frames by default.
 - Keyframes and `manifest.json` are stored in S3.
-- Failures become `FAILED` with an error message.
+- Transient SQS failures become `RETRY_PENDING`; terminal attempts become `FAILED` with an error and are preserved for DLQ redrive.
 - `/docs` can exercise the API.
 
 ## Troubleshooting
@@ -440,9 +440,15 @@ bucket naming convention. Attach it only to the IAM user or role that runs the a
 This did not affect processing. The starter now returns an empty 204 response
 for that optional browser request.
 
+## Step 14 production architecture
+
+Step 14 makes the SQS → Graviton4 COOL worker the real AWS execution path. The API now freezes the full `analyze_video` payload (inspection ID, S3 input key/ETag, processing parameters, deterministic job ID, Git commit, and runtime schema), while the long-running COOL worker owns visibility heartbeats, DynamoDB leases, retries/DLQ behavior, conditional completion, and CloudWatch telemetry.
+
+See [`STEP14_PRODUCTION_WORKER.md`](STEP14_PRODUCTION_WORKER.md) for the architecture, deployment procedure, state machine, and judge-facing verification checklist. Local in-process processing remains available only when `PROCESSING_QUEUE_URL` is unset.
+
 ## Next milestone
 
-1. Benchmark and validate the SQS → COOL Graviton4 durable processing path.
+1. Deploy the Step-14 commit and capture one live end-to-end SQS → COOL proof run.
 2. Threshold calibration on labeled real-world walkthrough frames.
 3. Room labels.
 4. Candidate issue detection.

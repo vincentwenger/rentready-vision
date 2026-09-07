@@ -1,8 +1,70 @@
 # Step 13 — Reproducible stock OpenCV vs COOL benchmark
 
-**Implementation status:** benchmark harness is ready.  The eligibility gate is
-completed only after the real Graviton4 measurements are run and the generated
-`evaluation/step13/benchmark_results.*` evidence is committed.
+**Status: COMPLETE — COOL eligibility gate #2 PASS.**
+
+Execution date: **September 6, 2026**.
+
+Step 13 ran the real deterministic RentReady Vision OpenCV workload on the same
+AWS Graviton4 `m8g.4xlarge` instance under two isolated environments:
+
+- **Stock OpenCV 5.0.0** (`opencv-python-headless==5.0.0.93`)
+- **COOL OpenCV 5.1.0-dev** from the Marketplace `/opt/cool` runtime
+
+Both environments used the same EBS-resident walkthrough, the same RentReady
+code and benchmark manifest, the same Python 3.12 / NumPy 2.5.1 dependency
+baseline, and the same processing parameters.
+
+## Final measured result
+
+The benchmark protocol completed **12 executions total**:
+
+- 1 stock warm-up
+- 1 COOL warm-up
+- 5 measured stock runs
+- 5 measured COOL runs
+
+| Metric | Stock OpenCV 5 | COOL | COOL change |
+|---|---:|---:|---:|
+| Wall clock mean (s) | 161.719 | 150.696 | **6.817% faster** |
+| Wall clock median (s) | 161.919 | 150.414 | faster |
+| Wall clock p95 (s) | 162.028 | 152.471 | faster |
+| Wall clock stddev (s) | 0.388 | 1.530 | — |
+| Sampled frames/s mean | 6.511 | 6.988 | **+7.324%** |
+| Source frames/s mean | 195.253 | 209.552 | higher |
+| Avg CPU utilization (% instance) | 32.483 | 36.639 | higher |
+| Peak memory mean (MiB) | 268.087 | 278.726 | higher |
+| EC2 cost / walkthrough mean (USD) | 0.032258 | 0.030060 | **-6.814%** |
+| Successful measured runs | 5/5 | 5/5 | PASS |
+| Retained frame count(s) | [74] | [74] | equivalent |
+| Scene count(s) | [54] | [54] | equivalent |
+
+The EC2 compute rate recorded for the benchmark was **$0.718100/hour**.
+
+### Output-equivalence result
+
+**PASS.** Every successful measured run was compared with the first measured
+stock run. The final evidence records:
+
+- scene count match: `true`
+- scene boundaries match: `true`
+- retained-frame count match: `true`
+- frame identities match: `true`
+- selection scores within tolerance: `true`
+- maximum selection-score delta: `0.0`
+- scene differences: `[]`
+- selection-score differences: `[]`
+
+This means COOL finished the same RentReady workload faster and at lower
+estimated EC2 compute cost **without changing the selected inspection evidence**.
+
+Judge-facing claim supported by this benchmark:
+
+> On the same AWS Graviton4 `m8g.4xlarge`, using the same EBS-resident
+> walkthrough, RentReady Vision processed its deterministic OpenCV workload
+> **6.817% faster with COOL**, increased sampled-frame throughput by **7.324%**,
+> and reduced estimated EC2 compute cost per walkthrough by **6.814%**, while
+> preserving exactly the same **74 retained evidence frames**, **54 scenes**,
+> frame identities, scene boundaries, and selection scores.
 
 ## What this benchmark measures
 
@@ -51,22 +113,26 @@ speedup, throughput change, and EC2 cost change.
     identities, counts, and selection scores must remain equivalent within the
     Step-12 tolerances.
 
-## Run it on the Step-12 EC2 instance
+## Benchmark input
 
-Use the same local EBS file from Step 12:
+The controlled benchmark used the same EBS-cached walkthrough from Step 12:
 
 ```text
 /home/ssm-user/rentready-step12/benchmark-cache/
 57bfbbfecb5c5a9d9229f683693b9100a5d7a1a98e634fd12687800ba4c69ef9.mov
 ```
 
-Before running, look up the current **Linux On-Demand hourly EC2 price for
-`m8g.4xlarge` in `us-west-2`** in the EC2 console (or AWS Price List API). Pass
-that exact number as `--ec2-hourly-usd`; the harness stores the rate and formula
-in the result rather than hiding a stale hard-coded price.
+Input SHA-256:
 
-Run from the repository root in the shell where the COOL environment variables
-are available:
+```text
+57bfbbfecb5c5a9d9229f683693b9100a5d7a1a98e634fd12687800ba4c69ef9
+```
+
+## Reproduction command
+
+Before reproducing the benchmark, look up the current Linux On-Demand hourly
+EC2 price for `m8g.4xlarge` in `us-west-2` and pass that rate with
+`--ec2-hourly-usd`.
 
 ```bash
 python3 scripts/run_step13_benchmark.py \
@@ -79,39 +145,54 @@ python3 scripts/run_step13_benchmark.py \
   --ec2-hourly-usd YOUR_CURRENT_US_WEST_2_M8G_4XLARGE_RATE
 ```
 
-The stock subprocess automatically removes inherited `PYTHONPATH`,
-`LD_LIBRARY_PATH`, and `COOL_VERSION` so it cannot accidentally import COOL.
-The COOL subprocess preserves the Marketplace AMI environment.
+The stock subprocess removes inherited `PYTHONPATH`, `LD_LIBRARY_PATH`, and
+`COOL_VERSION` so it cannot accidentally import COOL. The COOL subprocess uses
+the Marketplace `/opt/cool` Python/OpenCV runtime.
 
-## Generated evidence
+## Generated and committed evidence
 
-A successful run creates a timestamped directory:
-
-```text
-evaluation/step13/runs/<UTC_RUN_ID>/
-```
-
-with per-run raw JSON plus:
+The completed run is preserved under:
 
 ```text
-benchmark_results.csv
-benchmark_results.json
-output_equivalence.json
-comparison_table.md
+evaluation/step13/runs/20260906T165332Z/
 ```
 
-The four compact artifacts are also copied to `evaluation/step13/` so the final
-report and judges have stable paths.
+The repository contains:
+
+```text
+evaluation/step13/benchmark_results.csv
+evaluation/step13/benchmark_results.json
+evaluation/step13/output_equivalence.json
+evaluation/step13/comparison_table.md
+evaluation/step13/runs/20260906T165332Z/benchmark_results.csv
+evaluation/step13/runs/20260906T165332Z/benchmark_results.json
+evaluation/step13/runs/20260906T165332Z/output_equivalence.json
+evaluation/step13/runs/20260906T165332Z/comparison_table.md
+evaluation/step13/runs/20260906T165332Z/raw_runs/*.json
+```
+
+The timestamped `raw_runs/` directory contains all 12 execution records.
+
+Runtime-only bookkeeping files such as `latest_run.txt` and
+`step13_benchmark.log` are intentionally ignored by Git and are not part of the
+durable judge-facing evidence.
 
 ## COOL eligibility gate #2
 
-The runner marks `cool_eligibility_gate_2.passed = true` only when all are true:
+**PASS.**
 
-- protocol contains >=1 warm-up and >=5 measured runs per environment;
-- at least five stock and five COOL measured runs succeed;
-- no measured run fails;
-- all successful measured outputs are equivalent;
-- CSV/JSON/equivalence/table artifacts are generated.
+The completed benchmark satisfies every gate condition:
 
-A faster COOL result is therefore never accepted if it materially changes the
-RentReady evidence selected from the walkthrough.
+- at least one warm-up per environment;
+- at least five measured runs per environment;
+- 5/5 successful stock measured runs;
+- 5/5 successful COOL measured runs;
+- no measured failures;
+- output equivalence across successful measured executions;
+- committed CSV and JSON benchmark summaries;
+- committed compact comparison table;
+- committed output-equivalence evidence;
+- committed per-run raw JSON evidence.
+
+A faster COOL result is therefore not accepted unless the selected RentReady
+inspection evidence remains materially equivalent.

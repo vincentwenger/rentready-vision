@@ -5,7 +5,7 @@ install -d -o ubuntu -g ubuntu /opt/rentready-vision /var/lib/rentready-vision/r
 
 cat >/etc/profile.d/rentready-cool.sh <<'EOF'
 if [ -f /opt/cool/venvs/python_3.12/bin/activate ]; then
-  source /opt/cool/venvs/python_3.12/bin/activate
+  . /opt/cool/venvs/python_3.12/bin/activate
 fi
 EOF
 chmod 0644 /etc/profile.d/rentready-cool.sh
@@ -16,6 +16,13 @@ AWS_REGION=${aws_region}
 S3_BUCKET=${s3_bucket}
 DDB_TABLE=${ddb_table}
 PROCESSING_QUEUE_URL=${queue_url}
+PROCESSING_DLQ_URL=${dlq_url}
+QUEUE_VISIBILITY_TIMEOUT_SECONDS=${queue_visibility_timeout}
+QUEUE_MAX_RECEIVE_COUNT=${queue_max_receive_count}
+QUEUE_RETRY_BASE_SECONDS=60
+PROCESSING_LEASE_SECONDS=${processing_lease_seconds}
+COOL_REQUIRED=true
+CLOUDWATCH_METRICS_NAMESPACE=${metrics_namespace}
 RUNTIME_EVIDENCE_S3_PREFIX=s3://${s3_bucket}/runtime-evidence
 COOL_VERSION=${cool_version}
 COOL_AMI_ID=${cool_ami_id}
@@ -51,3 +58,26 @@ print(cv2.getBuildInformation())
 PY
 
 chown -R ubuntu:ubuntu /opt/rentready-vision /var/lib/rentready-vision
+
+
+# Step 14: deploy the tracked application and start the real long-running worker.
+if ! command -v git >/dev/null 2>&1; then
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y git
+fi
+
+APP_DIR=/opt/rentready-vision/app
+if [ ! -d "$APP_DIR/.git" ]; then
+  git clone "${repository_url}" "$APP_DIR"
+else
+  git -C "$APP_DIR" remote set-url origin "${repository_url}"
+  git -C "$APP_DIR" fetch --prune origin
+fi
+
+git -C "$APP_DIR" fetch --tags --force origin
+git -C "$APP_DIR" checkout --force "${git_ref}"
+GIT_COMMIT="$(git -C "$APP_DIR" rev-parse HEAD)"
+echo "GIT_COMMIT=$GIT_COMMIT" >>/etc/environment
+printf '%s\n' "$GIT_COMMIT" >/var/lib/rentready-vision/runtime-evidence/deployed-git-commit.txt
+chown -R ubuntu:ubuntu "$APP_DIR" /var/lib/rentready-vision
+bash "$APP_DIR/scripts/install_cool_worker.sh"

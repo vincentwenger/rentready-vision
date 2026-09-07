@@ -36,6 +36,14 @@
         "s3:PutObject"
       ],
       "Resource": "arn:aws:s3:::rentready-vision-dev-*/inspections/*"
+    },
+    {
+      "Sid": "RentReadyVisionProcessingProducer",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:SendMessage"
+      ],
+      "Resource": "arn:aws:sqs:us-west-2:*:rentready-vision-processing"
     }
   ]
 }

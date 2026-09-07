@@ -9,7 +9,15 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from ..aws import s3, sqs
 from ..config import get_settings
-from ..db import create_inspection, get_inspection, update_inspection
+from ..db import (
+    create_inspection,
+    get_inspection,
+    mark_enqueue_failed,
+    mark_inspection_queued,
+    mark_processing_job_enqueued,
+    prepare_processing_job,
+    update_inspection,
+)
 from ..models import (
     CreateInspectionRequest,
     CreateInspectionResponse,
@@ -21,6 +29,7 @@ from ..models import (
     UploadCompleteRequest,
     UploadUrlResponse,
 )
+from ..processing_jobs import build_processing_message, processing_parameters
 from ..services import load_manifest, run_processing_job
 
 router = APIRouter(prefix="/inspections", tags=["inspections"])
@@ -117,30 +126,88 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
 @router.post("/{inspection_id}/process", status_code=status.HTTP_202_ACCEPTED)
 def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> dict:
     item = _require_inspection(inspection_id)
-    if item["status"] not in {"UPLOADED", "FAILED", "COMPLETE"}:
+    if item["status"] not in {"UPLOADED", "FAILED", "COMPLETE", "QUEUED", "RETRY_PENDING", "PROCESSING"}:
         raise HTTPException(status_code=409, detail=f"Inspection cannot be processed from status {item['status']}")
 
-    update_inspection(inspection_id, status="PROCESSING", error=None)
+    source_key = item.get("original_s3_key")
+    if not source_key:
+        raise HTTPException(status_code=409, detail="Inspection has no uploaded S3 input key")
+
     if settings.processing_queue_url:
-        sqs.send_message(
-            QueueUrl=settings.processing_queue_url,
-            MessageBody=json.dumps(
-                {
-                    "schema_version": "1.0",
-                    "job_type": "process_inspection",
-                    "inspection_id": inspection_id,
-                }
-            ),
+        message = build_processing_message(
+            inspection_id=inspection_id,
+            s3_input_key=source_key,
+            source_etag=item.get("s3_etag"),
+            parameters=processing_parameters(settings),
+        )
+        job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+
+        if job_record.get("status") == "COMPLETE":
+            return {
+                "inspection_id": inspection_id,
+                "job_id": message["job_id"],
+                "status": "COMPLETE",
+                "backend": "graviton4_cool_sqs",
+                "note": "Identical deterministic job already completed; no duplicate work was queued.",
+            }
+        if not should_enqueue:
+            return {
+                "inspection_id": inspection_id,
+                "job_id": message["job_id"],
+                "status": job_record.get("status", item["status"]),
+                "backend": "graviton4_cool_sqs",
+                "note": "Identical deterministic job is already queued or processing.",
+            }
+
+        mark_inspection_queued(inspection_id, message, backend="graviton4_cool_sqs")
+        try:
+            response = sqs.send_message(
+                QueueUrl=settings.processing_queue_url,
+                MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+                MessageAttributes={
+                    "operation": {"DataType": "String", "StringValue": message["operation"]},
+                    "runtime_schema_version": {
+                        "DataType": "String",
+                        "StringValue": message["runtime_schema_version"],
+                    },
+                },
+            )
+        except Exception as exc:
+            error = f"SQS enqueue failed: {type(exc).__name__}: {exc}"
+            mark_enqueue_failed(inspection_id, message["job_id"], error)
+            raise HTTPException(status_code=503, detail=error) from exc
+
+        mark_processing_job_enqueued(
+            inspection_id,
+            message["job_id"],
+            response.get("MessageId"),
         )
         return {
             "inspection_id": inspection_id,
-            "status": "PROCESSING",
-            "note": "Processing job queued for the COOL worker",
+            "job_id": message["job_id"],
+            "status": "QUEUED",
+            "backend": "graviton4_cool_sqs",
+            "operation": message["operation"],
+            "runtime_schema_version": message["runtime_schema_version"],
+            "git_commit": message["git_commit"],
+            "note": "Processing job queued for the Graviton4 COOL worker.",
         }
 
-    # Local fallback preserves the current single-process development workflow.
+    # Local fallback preserves the developer workflow, but the judge/demo path
+    # is the SQS-backed Graviton4 COOL worker whenever PROCESSING_QUEUE_URL is set.
+    update_inspection(
+        inspection_id,
+        status="PROCESSING",
+        error=None,
+        processing_backend="local_fallback",
+    )
     background_tasks.add_task(run_processing_job, inspection_id)
-    return {"inspection_id": inspection_id, "status": "PROCESSING", "note": "Prototype background processing started"}
+    return {
+        "inspection_id": inspection_id,
+        "status": "PROCESSING",
+        "backend": "local_fallback",
+        "note": "Local developer fallback processing started.",
+    }
 
 
 @router.get("/{inspection_id}", response_model=InspectionResponse)
@@ -155,6 +222,11 @@ def get_status(inspection_id: str) -> dict:
         "inspection_id": inspection_id,
         "status": item["status"],
         "processing": item.get("processing"),
+        "job_id": item.get("active_job_id"),
+        "backend": item.get("processing_backend"),
+        "receive_count": item.get("processing_receive_count"),
+        "telemetry": item.get("processing_telemetry"),
+        "last_event": item.get("last_processing_event"),
         "error": item.get("error"),
         "updated_at": item["updated_at"],
     }

@@ -42,3 +42,15 @@ output "cool_version" {
 output "session_manager_command" {
   value = "aws ssm start-session --region ${var.aws_region} --target ${aws_instance.cool_worker.id}"
 }
+
+output "worker_git_ref" {
+  value = var.git_ref
+}
+
+output "cloudwatch_log_group" {
+  value = aws_cloudwatch_log_group.worker.name
+}
+
+output "cloudwatch_metrics_namespace" {
+  value = "RentReadyVision/Processing"
+}

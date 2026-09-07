@@ -1,0 +1,42 @@
+{
+  "step": 14,
+  "title": "Graviton4 + COOL production worker",
+  "implementation_status": "CODE_COMPLETE_LIVE_AWS_PROOF_PENDING_DEPLOYMENT",
+  "message_contract": {
+    "schema_version": "2.0",
+    "runtime_schema_version": "rentready-video-worker/1.0",
+    "operation": "analyze_video",
+    "includes": [
+      "job_id",
+      "inspection_id",
+      "s3_input_key",
+      "source_etag",
+      "processing_parameters",
+      "git_commit",
+      "runtime_schema_version"
+    ]
+  },
+  "durability": {
+    "sqs_visibility_heartbeat": true,
+    "dynamodb_claim_lease": true,
+    "deterministic_idempotent_job_id": true,
+    "retry_state": "RETRY_PENDING",
+    "dlq_redrive_policy": true,
+    "terminal_failure_is_not_deleted_by_worker": true
+  },
+  "cloudwatch_events": [
+    "OPENCV_STARTED",
+    "KEYFRAMES_SELECTED",
+    "COOL_RUNTIME_VERIFIED",
+    "PROCESSING_COMPLETE",
+    "PROCESSING_FAILED"
+  ],
+  "cloudwatch_metrics": [
+    "processing_seconds",
+    "frames_per_second",
+    "peak_memory_mb"
+  ],
+  "production_backend": "graviton4_cool_sqs",
+  "developer_fallback": "local_fallback",
+  "live_evidence_note": "Populate live evidence only after deploying this exact commit and completing a real SQS -> COOL walkthrough run."
+}

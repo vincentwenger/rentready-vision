@@ -1,0 +1,253 @@
+# Step 14 — Graviton4 + COOL production worker
+
+**Implementation date:** September 7, 2026  
+**Milestone:** Move RentReady Vision from a manual COOL benchmark host to the real durable AWS execution path.
+
+## Result
+
+Step 14 changes the normal AWS architecture from an in-process FastAPI background task to:
+
+```text
+Browser
+  -> FastAPI
+  -> private S3 upload
+  -> POST /inspections/{id}/process
+  -> SQS: rentready-vision-processing
+  -> EC2 Graviton4 worker on the official COOL AMI
+  -> OpenCV 5 / COOL processing
+  -> frames + manifest in S3
+  -> inspection/job state in DynamoDB
+  -> structured CloudWatch Logs + custom CloudWatch metrics
+```
+
+The old local background worker is intentionally retained only as a developer fallback. When `PROCESSING_QUEUE_URL` is configured, the API does not run OpenCV locally.
+
+## 1. Durable SQS job contract
+
+`POST /inspections/{id}/process` now freezes the complete execution payload into the SQS message. A representative message is:
+
+```json
+{
+  "schema_version": "2.0",
+  "runtime_schema_version": "rentready-video-worker/1.0",
+  "git_commit": "<exact API commit>",
+  "operation": "analyze_video",
+  "job_id": "rv-<deterministic sha256 prefix>",
+  "inspection_id": "<inspection uuid>",
+  "s3_input_key": "inspections/<id>/original/walkthrough.mov",
+  "source_etag": "<S3 ETag>",
+  "processing_parameters": {
+    "sample_every_seconds": 1.0,
+    "...": "the complete frozen OpenCV parameter set"
+  },
+  "enqueued_at": "<UTC timestamp>"
+}
+```
+
+The worker rejects an incomplete parameter set, an unsupported message/runtime schema, a payload whose deterministic `job_id` does not match its contents, or a Git revision that does not match the deployed worker revision.
+
+Before downloading the video, the worker also `HEAD`s the S3 object and verifies that the current ETag still matches the object identity captured when the API enqueued the job.
+
+## 2. Idempotency and DynamoDB ownership
+
+Each inspection can contain durable `JOB#<job_id>` records in the existing DynamoDB table. The `job_id` is deterministic over:
+
+- inspection ID;
+- S3 input key;
+- S3 ETag;
+- `operation=analyze_video`;
+- complete processing parameters;
+- Git commit;
+- runtime schema version.
+
+The same request therefore maps to the same logical job. An API retry, an ambiguous `SendMessage` result, or an SQS duplicate can safely produce multiple queue deliveries without producing multiple logical completions.
+
+The worker claims a job with a unique `claim_token`. Only the current claim can transition the job to `COMPLETE` or record its processing failure. A stale worker cannot finalize a job after its lease has been reclaimed.
+
+## 3. Visibility timeout + processing lease
+
+Two heartbeats run together during a long video:
+
+1. SQS message visibility is extended so a healthy long-running job is not redelivered while it is still executing.
+2. The DynamoDB `lease_expires_at` is extended under the current `claim_token`.
+
+Default production values:
+
+```text
+QUEUE_VISIBILITY_TIMEOUT_SECONDS=1800
+PROCESSING_LEASE_SECONDS=2100
+QUEUE_MAX_RECEIVE_COUNT=5
+QUEUE_RETRY_BASE_SECONDS=60
+```
+
+If the worker process dies, both heartbeats stop. The SQS delivery becomes visible again and the expired DynamoDB lease can be reclaimed by a healthy worker.
+
+## 4. Retries and DLQ
+
+Terraform provisions:
+
+- `rentready-vision-processing`;
+- `rentready-vision-processing-dlq`;
+- 20-second long polling;
+- SQS-managed encryption;
+- a redrive policy with configurable `maxReceiveCount` (default `5`);
+- a CloudWatch alarm when the DLQ contains a visible message.
+
+A processing exception is **not deleted** from SQS. The worker records `RETRY_PENDING`, applies bounded exponential retry visibility, and leaves SQS responsible for retry/redrive. On the terminal configured receive count, the durable job and inspection are marked `FAILED`, but the queue delivery is still not deleted so SQS can preserve it in the DLQ.
+
+An invalid message follows the same retry/failure path when its inspection/job identity can be resolved. It cannot leave a normal inspection silently stuck as successful.
+
+## 5. Failure-safe completion
+
+The processing function itself does not decide SQS retry policy. It returns successful S3 output to the worker, and the worker then conditionally finalizes the durable job using the current claim token.
+
+The worker deletes the SQS message only after durable completion. If that final SQS acknowledgement fails, the job remains `COMPLETE`; a later duplicate delivery detects the already-complete deterministic job, reconciles inspection metadata if needed, and acknowledges the duplicate without rerunning the logical job.
+
+A failed worker therefore cannot silently mark an inspection complete.
+
+## 6. COOL runtime is mandatory on the AWS path
+
+The EC2 worker calls runtime verification before video processing. The production worker requires:
+
+- Arm64/aarch64;
+- OpenCV 5.x;
+- `cv2` resolved under the configured `/opt/cool` prefix;
+- runtime classified as `COOL`;
+- EC2 instance type, AMI ID, and Region present.
+
+The verified runtime identity is stored in `manifest.json` with the immutable input key and processing parameters.
+
+Terraform user data sets `COOL_REQUIRED=true`, clones the configured tracked repository, checks out the configured Git ref, records the deployed commit in `/etc/environment`, runs `scripts/install_cool_worker.sh`, and starts `rentready-cool-worker.service` under systemd.
+
+For the final demo, pin `git_ref` to the exact Step-14 commit SHA instead of a moving branch.
+
+## 7. CloudWatch events and metrics
+
+The worker publishes structured JSON log events to:
+
+```text
+/rentready-vision/cool-worker
+```
+
+and custom metrics to:
+
+```text
+RentReadyVision/Processing
+```
+
+Required event/count metrics are implemented exactly as:
+
+- `OPENCV_STARTED`
+- `KEYFRAMES_SELECTED`
+- `COOL_RUNTIME_VERIFIED`
+- `PROCESSING_COMPLETE`
+- `PROCESSING_FAILED`
+
+Successful jobs also publish:
+
+- `processing_seconds` — wall-clock processing/download/output time measured by the worker;
+- `frames_per_second` — source video frames divided by processing seconds;
+- `peak_memory_mb` — peak sampled process RSS, including native OpenCV allocations on Linux.
+
+Metrics use low-cardinality `Environment` and `Operation=analyze_video` dimensions. Inspection/job IDs remain in structured logs rather than becoming CloudWatch metric dimensions.
+
+## 8. Terraform deployment
+
+Update `infra/terraform/terraform.tfvars` from the example and provide at minimum:
+
+```hcl
+aws_region      = "us-west-2"
+s3_bucket_name  = "<existing RentReady bucket>"
+dynamodb_table_name = "rentready-vision-dev"
+repository_url  = "https://github.com/<account>/rentready-vision.git"
+git_ref         = "<STEP14_COMMIT_SHA>"
+cool_ami_id     = "<official subscribed COOL AMI for this Region>"
+vpc_id          = "<vpc>"
+subnet_id       = "<subnet>"
+```
+
+Then:
+
+```bash
+cd infra/terraform
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan -out=step14.tfplan
+terraform apply step14.tfplan
+terraform output
+```
+
+Copy the `processing_queue_url` Terraform output into the API environment as `PROCESSING_QUEUE_URL`. Attach `processing_producer_policy_arn` to the API role.
+
+The worker role is separate: it consumes SQS, reads/writes RentReady S3 objects, updates DynamoDB, writes the worker log group, and publishes only the `RentReadyVision/Processing` metric namespace.
+
+## 9. Demo/judge verification
+
+After deployment, submit a real walkthrough through the existing browser. Expected API status progression is:
+
+```text
+UPLOADED -> QUEUED -> PROCESSING -> COMPLETE
+```
+
+A transient failure can show:
+
+```text
+PROCESSING -> RETRY_PENDING -> PROCESSING
+```
+
+A terminal failure shows `FAILED` and remains eligible for the SQS redrive policy/DLQ.
+
+For a successful AWS run, capture these four proof points:
+
+1. Inspection status JSON showing `backend=graviton4_cool_sqs`, `job_id`, `COMPLETE`, and telemetry.
+2. `manifest.json` runtime block showing `runtime=COOL`, Arm64, the COOL `cv2` path, AMI ID, instance type, Git commit, input S3 key, and parameters.
+3. CloudWatch Logs entries for all five required Step-14 events.
+4. CloudWatch custom metrics for `processing_seconds`, `frames_per_second`, and `peak_memory_mb`.
+
+Do not claim a live Step-14 AWS execution until those artifacts come from an actual queued walkthrough. The repository implementation is complete; the live proof is generated only after the updated commit is deployed to AWS and a real inspection is run.
+
+## 10. Files added/changed for Step 14
+
+Core execution:
+
+- `app/processing_jobs.py`
+- `app/telemetry.py`
+- `app/services.py`
+- `app/db.py`
+- `app/routers/inspections.py`
+- `app/models.py`
+- `scripts/cool_worker.py`
+
+Deployment/configuration:
+
+- `app/config.py`
+- `.env.example`
+- `infra/terraform/main.tf`
+- `infra/terraform/variables.tf`
+- `infra/terraform/outputs.tf`
+- `infra/terraform/user_data.sh.tftpl`
+- `infra/terraform/terraform.tfvars.example`
+- `scripts/rentready_vision_iam_policy.json`
+
+Validation/documentation:
+
+- `tests/test_step14_worker.py`
+- `STEP14_PRODUCTION_WORKER.md`
+- `evaluation/step14/implementation_manifest.json`
+
+## 11. Read-only live verifier
+
+After the updated API/worker are deployed, run:
+
+```bash
+python scripts/verify_step14_aws.py
+```
+
+This checks the processing queue visibility/long-poll/redrive configuration and the CloudWatch surfaces. After a real browser walkthrough completes, run:
+
+```bash
+python scripts/verify_step14_aws.py --inspection-id <INSPECTION_ID>
+```
+
+The report is written to `evaluation/step14/live_aws_verification.json` and verifies the durable job, production backend, S3 manifest, COOL/Arm64/OpenCV 5 identity, Git commit, and positive performance telemetry without mutating AWS resources.

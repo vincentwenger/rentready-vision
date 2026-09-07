@@ -7,6 +7,8 @@ class InspectionStatus(StrEnum):
     CREATED = "CREATED"
     UPLOAD_PENDING = "UPLOAD_PENDING"
     UPLOADED = "UPLOADED"
+    QUEUED = "QUEUED"
+    RETRY_PENDING = "RETRY_PENDING"
     PROCESSING = "PROCESSING"
     COMPLETE = "COMPLETE"
     FAILED = "FAILED"
@@ -54,6 +56,11 @@ class InspectionResponse(BaseModel):
     manifest_s3_key: str | None = None
     video: dict[str, Any] | None = None
     processing: dict[str, Any] | None = None
+    active_job_id: str | None = None
+    processing_backend: str | None = None
+    processing_telemetry: dict[str, Any] | None = None
+    processing_receive_count: int | None = None
+    last_processing_event: str | None = None
     error: str | None = None
     created_at: str
     updated_at: str

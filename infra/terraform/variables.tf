@@ -36,6 +36,22 @@ variable "frontend_origins" {
   default = ["http://localhost:8000", "http://localhost:5173"]
 }
 
+
+variable "repository_url" {
+  description = "Git repository cloned onto the COOL worker during bootstrap."
+  type        = string
+  validation {
+    condition     = can(regex("^https://", var.repository_url))
+    error_message = "repository_url must be an HTTPS Git clone URL accessible from the worker."
+  }
+}
+
+variable "git_ref" {
+  description = "Branch, tag, or commit deployed to the worker. Pin to a commit SHA for the final demo."
+  type        = string
+  default     = "main"
+}
+
 variable "cool_ami_id" {
   description = "Region-specific AMI ID shown by the subscribed OpenCV COOL 3.1 Marketplace product."
   type        = string

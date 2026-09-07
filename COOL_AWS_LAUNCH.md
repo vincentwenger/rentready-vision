@@ -109,29 +109,26 @@ It also writes the selected launch identity to:
 /var/lib/rentready-vision/runtime-evidence/launch.json
 ```
 
-## 5. Put the tracked project on the worker
+## 5. Deploy the tracked project on the worker
 
-Clone the project repository into a stable directory so `git_commit` is real
-and reproducible. For example:
+Step 14 makes deployment part of Terraform bootstrap. Set `repository_url` and
+`git_ref` in `terraform.tfvars`; for the final demo, pin `git_ref` to the exact
+Step-14 commit SHA. EC2 user data clones the repository into
+`/opt/rentready-vision/app`, records the resolved commit as `GIT_COMMIT`, and
+runs `scripts/install_cool_worker.sh`.
+
+The installer uses `/opt/cool/venvs/python_3.12`, rejects any pip OpenCV wheel
+in `requirements-cool.txt`, installs only the non-OpenCV dependencies, runs
+strict COOL verification, uploads runtime evidence, and enables the
+`rentready-cool-worker.service` systemd service.
+
+For recovery/manual maintenance only:
 
 ```bash
-sudo git clone YOUR_REPOSITORY_URL /opt/rentready-vision/app
-sudo chown -R ubuntu:ubuntu /opt/rentready-vision/app
 cd /opt/rentready-vision/app
 git rev-parse HEAD
-```
-
-Do not install `requirements.txt` on the COOL worker because it contains the
-stock PyPI OpenCV baseline. Install the worker with:
-
-```bash
 sudo bash scripts/install_cool_worker.sh
 ```
-
-The installer activates the Marketplace Python 3.12 runtime, rejects any
-OpenCV wheel in `requirements-cool.txt`, installs the remaining dependencies,
-runs strict runtime verification, uploads evidence to the configured RentReady
-S3 prefix, and starts the SQS worker as a systemd service.
 
 ## 6. Verify the actual runtime
 
@@ -168,10 +165,17 @@ Set the API environment to the Terraform `processing_queue_url` value:
 PROCESSING_QUEUE_URL=https://sqs.REGION.amazonaws.com/ACCOUNT/rentready-vision-processing
 ```
 
-`POST /inspections/{id}/process` then sends an SQS message. The COOL EC2 worker
-downloads the video, runs the existing OpenCV evidence pipeline, uploads frames
-and the manifest, and updates DynamoDB. A failed job is left on the queue for
-retry and reaches the DLQ after the configured receive count.
+`POST /inspections/{id}/process` then sends the Step-14 durable SQS message with
+`operation=analyze_video`, a deterministic `job_id`, the inspection ID, exact S3
+input key/ETag, the full frozen processing parameter set, Git commit, and runtime
+schema version. The COOL EC2 worker verifies the message, S3 input identity, Git
+revision, Arm64/OpenCV 5/COOL runtime, then runs the existing evidence pipeline,
+uploads frames/manifest, and conditionally completes the DynamoDB job.
+
+The worker renews both SQS visibility and a DynamoDB ownership lease. Failures
+are not deleted: they retry with bounded backoff and SQS redrives terminal
+deliveries to the DLQ. Structured CloudWatch events and the required Step-14
+performance metrics are described in `STEP14_PRODUCTION_WORKER.md`.
 
 Attach the Terraform `processing_producer_policy_arn` output to the API's own
 IAM role. It grants only `sqs:SendMessage` on this processing queue. This is

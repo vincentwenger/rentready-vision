@@ -8,6 +8,15 @@ class Settings(BaseSettings):
     s3_bucket: str
     ddb_table: str = "rentready-vision-dev"
     processing_queue_url: str | None = None
+    processing_dlq_url: str | None = None
+    queue_visibility_timeout_seconds: int = 1800
+    queue_max_receive_count: int = 5
+    queue_retry_base_seconds: int = 60
+    processing_lease_seconds: int = 2100
+    cool_required: bool = False
+    cool_expected_cv2_prefix: str = "/opt/cool"
+    cool_log_group: str | None = "/rentready-vision/cool-worker"
+    cloudwatch_metrics_namespace: str = "RentReadyVision/Processing"
     presigned_url_ttl_seconds: int = 900
     max_upload_bytes: int = 1024 * 1024 * 1024
     cors_origins: str = "http://localhost:8000,http://localhost:5173"
