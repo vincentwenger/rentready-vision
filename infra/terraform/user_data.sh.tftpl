@@ -4,6 +4,8 @@ set -euo pipefail
 install -d -o ubuntu -g ubuntu /opt/rentready-vision /var/lib/rentready-vision/runtime-evidence
 
 cat >/etc/profile.d/rentready-cool.sh <<'EOF'
+export PYTHONPATH=/opt/cool/python_3.12/site-packages
+export LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib
 if [ -f /opt/cool/venvs/python_3.12/bin/activate ]; then
   . /opt/cool/venvs/python_3.12/bin/activate
 fi
@@ -17,6 +19,8 @@ S3_BUCKET=${s3_bucket}
 DDB_TABLE=${ddb_table}
 PROCESSING_QUEUE_URL=${queue_url}
 PROCESSING_DLQ_URL=${dlq_url}
+PYTHONPATH=/opt/cool/python_3.12/site-packages
+LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib
 QUEUE_VISIBILITY_TIMEOUT_SECONDS=${queue_visibility_timeout}
 QUEUE_MAX_RECEIVE_COUNT=${queue_max_receive_count}
 QUEUE_RETRY_BASE_SECONDS=60
@@ -48,7 +52,7 @@ if [ ! -x /opt/cool/venvs/python_3.12/bin/python ]; then
   exit 1
 fi
 
-/opt/cool/venvs/python_3.12/bin/python - <<'PY' >/var/lib/rentready-vision/runtime-evidence/initial-cv2.txt
+env PYTHONPATH=/opt/cool/python_3.12/site-packages LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib /opt/cool/venvs/python_3.12/bin/python - <<'PY' >/var/lib/rentready-vision/runtime-evidence/initial-cv2.txt
 import cv2
 import platform
 print(f"opencv_version={cv2.__version__}")

@@ -94,6 +94,7 @@ resource "aws_dynamodb_table" "app" {
 
 resource "aws_sqs_queue" "processing_dlq" {
   name                      = local.dlq_name
+  max_message_size          = 1048576
   message_retention_seconds = 1209600
   sqs_managed_sse_enabled   = true
   tags                      = local.common_tags
@@ -101,6 +102,7 @@ resource "aws_sqs_queue" "processing_dlq" {
 
 resource "aws_sqs_queue" "processing" {
   name                       = local.queue_name
+  max_message_size           = 1048576
   visibility_timeout_seconds = var.queue_visibility_timeout_seconds
   message_retention_seconds  = 345600
   receive_wait_time_seconds  = 20
