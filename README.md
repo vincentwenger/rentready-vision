@@ -61,13 +61,15 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Return an intentionally empty `/issues` result until intelligent inspection is added.
 - Generate short-lived GET URLs for evidence frames.
 
-## Prototype limitation
+## Local fallback versus production AWS path
 
-`POST /inspections/{id}/process` uses FastAPI `BackgroundTasks`. This keeps the Days 1–8 prototype easy to run locally. It is **not durable production job processing**. A later milestone replaces only that implementation with:
+The original Days 1–8 prototype used FastAPI `BackgroundTasks` for convenient local development. That implementation remains available only as a developer fallback when `PROCESSING_QUEUE_URL` is unset.
+
+The validated production/judge path is now:
 
 `API → SQS → official OpenCV COOL EC2 worker on AWS Graviton4`
 
-while preserving the public API.
+The public inspection API is preserved while the SQS worker provides durable job ownership, retries/DLQ behavior, runtime verification, S3/DynamoDB persistence, and CloudWatch telemetry.
 
 ## Architecture
 
@@ -440,21 +442,30 @@ bucket naming convention. Attach it only to the IAM user or role that runs the a
 This did not affect processing. The starter now returns an empty 204 response
 for that optional browser request.
 
-## Step 14 production architecture
+## Step 14 production architecture — LIVE AWS PASS
 
-Step 14 makes the SQS → Graviton4 COOL worker the real AWS execution path. The API now freezes the full `analyze_video` payload (inspection ID, S3 input key/ETag, processing parameters, deterministic job ID, Git commit, and runtime schema), while the long-running COOL worker owns visibility heartbeats, DynamoDB leases, retries/DLQ behavior, conditional completion, and CloudWatch telemetry.
+Step 14 makes the SQS → Graviton4 COOL worker the real AWS execution path. The API freezes the full `analyze_video` payload (inspection ID, S3 input key/ETag, processing parameters, deterministic job ID, Git commit, and runtime schema), while the long-running COOL worker owns visibility heartbeats, DynamoDB leases, retries/DLQ behavior, conditional completion, and CloudWatch telemetry.
 
-See [`STEP14_PRODUCTION_WORKER.md`](STEP14_PRODUCTION_WORKER.md) for the architecture, deployment procedure, state machine, and judge-facing verification checklist. Local in-process processing remains available only when `PROCESSING_QUEUE_URL` is unset.
+On September 7, 2026, a real browser walkthrough completed end to end through `graviton4_cool_sqs`. The read-only verifier returned `passed=true`, `live_inspection_verified=true`, and `errors=[]`. The validated worker was an `m8g.4xlarge` Graviton4 instance running COOL `3.1` / OpenCV `5.1.0-dev` on `aarch64`; measured processing was `8.686 s`, `46.628 source frames/s`, and `417.488 MB` peak memory.
 
-## Next milestone
+See [`STEP14_PRODUCTION_WORKER.md`](STEP14_PRODUCTION_WORKER.md), [`STEP14_DEPLOYMENT_NOTES.md`](STEP14_DEPLOYMENT_NOTES.md), and [`evaluation/step14/`](evaluation/step14/) for the architecture, deployment audit trail, and machine-readable live proof. Local in-process processing remains available only when `PROCESSING_QUEUE_URL` is unset.
 
-1. Deploy the Step-14 commit and capture one live end-to-end SQS → COOL proof run.
-2. Threshold calibration on labeled real-world walkthrough frames.
-3. Room labels.
-4. Candidate issue detection.
-5. Agentic `inspect_interval()`.
-6. ROI crop/enhance tools.
-7. Agent traces.
+## Step 15 dual-path infrastructure checkpoint — PASS
+
+Step 15 consolidates the Step 12–14 proof into one six-item infrastructure gate. The repository verifier reports `passed=true`, `checks_passed=6`, `checks_total=6`, and `errors=[]`: OpenCV 5 is explicitly proven, the official COOL runtime is active on Arm64 Graviton4, the real Step-8 workload runs correctly under COOL, the stock-vs-COOL benchmark is reproducible, a real web inspection traverses SQS/COOL and returns evidence, and runtime plus CloudWatch metadata are persisted for judging.
+
+Run `python scripts/verify_step15_checkpoint.py` and see [`STEP15_DUAL_PATH_CHECKPOINT.md`](STEP15_DUAL_PATH_CHECKPOINT.md) plus [`evaluation/step15/`](evaluation/step15/). The roadmap checkpoint was labeled September 5; the committed live AWS evidence used to close it was captured September 7, 2026.
+
+## Next milestone — Agentic Vision
+
+Keep the validated Step-14 Graviton4 + COOL worker and extend it into the visual-tool runtime used by Agentic Vision:
+
+1. Room labels / room understanding.
+2. Candidate issue detection.
+3. Agentic `inspect_interval()`.
+4. ROI crop/enhance and evidence-comparison tools.
+5. Agent traces with the existing S3/DynamoDB/CloudWatch audit trail.
+6. Threshold calibration on labeled real-world walkthrough evidence as the detector set expands.
 
 ## Step 13 benchmark
 

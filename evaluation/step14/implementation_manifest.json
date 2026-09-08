@@ -1,7 +1,7 @@
 {
   "step": 14,
   "title": "Graviton4 + COOL production worker",
-  "implementation_status": "CODE_COMPLETE_LIVE_AWS_PROOF_PENDING_DEPLOYMENT",
+  "implementation_status": "LIVE_AWS_VALIDATION_PASS",
   "message_contract": {
     "schema_version": "2.0",
     "runtime_schema_version": "rentready-video-worker/1.0",
@@ -38,5 +38,13 @@
   ],
   "production_backend": "graviton4_cool_sqs",
   "developer_fallback": "local_fallback",
-  "live_evidence_note": "Populate live evidence only after deploying this exact commit and completing a real SQS -> COOL walkthrough run."
+  "live_evidence_note": "Real browser/API -> SQS -> Graviton4 COOL -> S3/DynamoDB -> CloudWatch run verified on 2026-09-07. See live_aws_verification.json.",
+  "validated_git_commit": "d70edee8d9eea9f2c74734cbe7469567066c6e42",
+  "live_inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "live_job_id": "rv-63452de436adcef8a2e67596067bf480",
+  "live_telemetry": {
+    "processing_seconds": 8.686,
+    "frames_per_second": 46.628,
+    "peak_memory_mb": 417.488
+  }
 }

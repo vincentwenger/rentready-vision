@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "step": 15,
+  "title": "Dual-path infrastructure checkpoint",
+  "verified_at_utc": "2026-09-08T14:46:15.992472+00:00",
+  "passed": true,
+  "checks_passed": 6,
+  "checks_total": 6,
+  "checks": [
+    {
+      "id": "opencv5_runtime_proven",
+      "title": "OpenCV 5 runtime is explicitly proven",
+      "passed": true,
+      "evidence": {
+        "stock_step12_opencv_version": "5.0.0",
+        "cool_step12_opencv_version": "5.1.0-dev",
+        "live_step14_opencv_version": "5.1.0-dev"
+      }
+    },
+    {
+      "id": "official_cool_graviton4_proven",
+      "title": "Official COOL build is proven active on Arm64 Graviton4",
+      "passed": true,
+      "evidence": {
+        "runtime": "COOL",
+        "cool_version": "3.1",
+        "architecture": "aarch64",
+        "instance_type": "m8g.4xlarge",
+        "ami_id": "ami-08dacb72c289c8261",
+        "cv2_path": "/opt/cool/python_3.12/site-packages/cv2/__init__.py"
+      }
+    },
+    {
+      "id": "real_step8_under_cool",
+      "title": "Real Step-8 core workload runs under COOL on AWS",
+      "passed": true,
+      "evidence": {
+        "input_sha256": "57bfbbfecb5c5a9d9229f683693b9100a5d7a1a98e634fd12687800ba4c69ef9",
+        "source_frames": 31576,
+        "sampled_frames": 1053,
+        "cool_scene_count": 54,
+        "cool_selected_keyframes": 74,
+        "equivalent_to_stock": true
+      }
+    },
+    {
+      "id": "reproducible_stock_vs_cool_benchmark",
+      "title": "Reproducible stock-vs-COOL benchmark exists",
+      "passed": true,
+      "evidence": {
+        "benchmark_id": "rentready-step13-stock-vs-cool",
+        "run_id": "20260906T165332Z",
+        "measured_runs_per_environment": 5,
+        "output_equivalence_passed": true,
+        "wall_clock_speedup_percent": 6.817,
+        "ec2_cost_change_percent": -6.814
+      }
+    },
+    {
+      "id": "web_enqueue_and_cool_evidence_return",
+      "title": "Web application can enqueue an inspection and receive COOL-generated evidence back from AWS",
+      "passed": true,
+      "evidence": {
+        "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+        "job_id": "rv-63452de436adcef8a2e67596067bf480",
+        "status": "COMPLETE",
+        "processing_backend": "graviton4_cool_sqs",
+        "sqs_receive_count": 1,
+        "manifest_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/manifest.json"
+      }
+    },
+    {
+      "id": "runtime_metadata_and_cloudwatch_persisted",
+      "title": "Runtime metadata and CloudWatch evidence are persisted for judging",
+      "passed": true,
+      "evidence": {
+        "runtime_metadata_complete": true,
+        "git_commit": "d70edee8d9eea9f2c74734cbe7469567066c6e42",
+        "cloudwatch_log_group": "/rentready-vision/cool-worker",
+        "cloudwatch_metrics_namespace": "RentReadyVision/Processing",
+        "required_success_events_and_metrics_seen": true
+      }
+    }
+  ],
+  "errors": [],
+  "source_evidence": [
+    "evaluation/step12_cool_validation.json",
+    "evaluation/step13/benchmark_results.json",
+    "evaluation/step14/live_aws_verification.json"
+  ],
+  "conclusion": "PASS: RentReady Vision has a credible, judge-verifiable COOL path. The same Graviton4 COOL worker is ready to become the visual-tool runtime for Agentic Vision."
+}

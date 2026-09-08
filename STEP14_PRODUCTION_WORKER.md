@@ -22,6 +22,34 @@ Browser
 
 The old local background worker is intentionally retained only as a developer fallback. When `PROCESSING_QUEUE_URL` is configured, the API does not run OpenCV locally.
 
+
+## Live AWS validation — PASS
+
+**Validated:** September 7, 2026  
+**Verifier:** `scripts/verify_step14_aws.py`  
+**Result:** `passed=true`, `live_inspection_verified=true`, `errors=[]`
+
+A real browser walkthrough completed through the production backend:
+
+```text
+Browser/API -> S3 -> SQS -> Graviton4 COOL worker -> S3/DynamoDB -> CloudWatch
+```
+
+Live proof:
+
+- Inspection: `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`
+- Job: `rv-63452de436adcef8a2e67596067bf480`
+- Backend/status: `graviton4_cool_sqs` / `COMPLETE`
+- Worker: `i-09f7fe6ae97e1aa2e`, `m8g.4xlarge` (Graviton4), `aarch64`
+- AMI / COOL: `ami-08dacb72c289c8261` / COOL `3.1`
+- OpenCV: `5.1.0-dev` from `/opt/cool/python_3.12/site-packages/cv2/__init__.py`
+- Git commit: `d70edee8d9eea9f2c74734cbe7469567066c6e42`
+- SQS delivery count: `1`
+- Telemetry: `8.686 s`, `46.628 frames/s`, `417.488 MB` peak memory
+- CloudWatch observed: `OPENCV_STARTED`, `KEYFRAMES_SELECTED`, `COOL_RUNTIME_VERIFIED`, `PROCESSING_COMPLETE`, `processing_seconds`, `frames_per_second`, `peak_memory_mb`
+
+`PROCESSING_FAILED` was not observed because the validation job succeeded; no artificial failure was introduced solely to manufacture that metric. See `evaluation/step14/live_aws_verification.json` and `STEP14_DEPLOYMENT_NOTES.md`.
+
 ## 1. Durable SQS job contract
 
 `POST /inspections/{id}/process` now freezes the complete execution payload into the SQS message. A representative message is:
@@ -205,7 +233,7 @@ For a successful AWS run, capture these four proof points:
 3. CloudWatch Logs entries for all five required Step-14 events.
 4. CloudWatch custom metrics for `processing_seconds`, `frames_per_second`, and `peak_memory_mb`.
 
-Do not claim a live Step-14 AWS execution until those artifacts come from an actual queued walkthrough. The repository implementation is complete; the live proof is generated only after the updated commit is deployed to AWS and a real inspection is run.
+The live Step-14 AWS execution is now proven by inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`. The read-only verifier passed with no errors; the machine-readable proof is stored under `evaluation/step14/`.
 
 ## 10. Files added/changed for Step 14
 

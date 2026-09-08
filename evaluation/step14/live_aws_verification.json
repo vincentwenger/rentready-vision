@@ -1,0 +1,80 @@
+{
+  "step": 14,
+  "captured_at_utc": "2026-09-07T17:15:39.185409+00:00",
+  "passed": true,
+  "live_inspection_verified": true,
+  "verifier": "scripts/verify_step14_aws.py",
+  "inspection": {
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id": "rv-63452de436adcef8a2e67596067bf480",
+    "status": "COMPLETE",
+    "processing_backend": "graviton4_cool_sqs",
+    "operation": "analyze_video",
+    "message_schema_version": "2.0",
+    "runtime_schema_version": "rentready-video-worker/1.0",
+    "sqs_receive_count": 1,
+    "manifest_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/manifest.json",
+    "input_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/original/walkthrough.mov"
+  },
+  "runtime": {
+    "runtime": "COOL",
+    "cool_version": "3.1",
+    "opencv_version": "5.1.0-dev",
+    "cv2_path": "/opt/cool/python_3.12/site-packages/cv2/__init__.py",
+    "cv2_binary_file": "/opt/cool/python_3.12/site-packages/cv2/python-3.12/cv2.cpython-312-aarch64-linux-gnu.so",
+    "architecture": "aarch64",
+    "python_version": "3.12.3",
+    "python_executable": "/opt/cool/venvs/python_3.12/bin/python",
+    "instance_id": "i-09f7fe6ae97e1aa2e",
+    "instance_type": "m8g.4xlarge",
+    "ami_id": "ami-08dacb72c289c8261",
+    "region": "us-west-2",
+    "availability_zone": "us-west-2a",
+    "git_commit": "d70edee8d9eea9f2c74734cbe7469567066c6e42",
+    "runtime_verification_passed": true,
+    "runtime_verification_errors": [],
+    "git_dirty_observed": true,
+    "git_dirty_note": "Non-blocking observation from runtime evidence. Exact deployed HEAD matched the pinned commit and the live verifier passed. The repository historically tracks generated Python cache artifacts, which can make a running checkout appear dirty."
+  },
+  "video": {
+    "filename": "walkthrough.mov",
+    "duration_seconds": 13.5,
+    "source_frames": 405,
+    "sampled_frames": 14,
+    "representative_frames": 3,
+    "scene_count": 1,
+    "note": "Short motion-heavy validation clip; 13 sampled frames were flagged for fast motion. This affects evidence quality, not Step-14 infrastructure validity."
+  },
+  "telemetry": {
+    "processing_seconds": 8.686,
+    "frames_per_second": 46.628,
+    "peak_memory_mb": 417.488
+  },
+  "queue": {
+    "queue_arn": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing",
+    "visibility_timeout_seconds": 1800,
+    "receive_message_wait_time_seconds": 20,
+    "max_receive_count": 5,
+    "dead_letter_queue_arn": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing-dlq",
+    "max_message_size_bytes": 1048576
+  },
+  "cloudwatch": {
+    "log_group": "/rentready-vision/cool-worker",
+    "metrics_namespace": "RentReadyVision/Processing",
+    "metrics_seen": {
+      "OPENCV_STARTED": true,
+      "KEYFRAMES_SELECTED": true,
+      "COOL_RUNTIME_VERIFIED": true,
+      "PROCESSING_COMPLETE": true,
+      "PROCESSING_FAILED": false,
+      "processing_seconds": true,
+      "frames_per_second": true,
+      "peak_memory_mb": true
+    },
+    "processing_failed_metric_note": "False because the successful validation run did not fail; no artificial failure was introduced solely to create this metric."
+  },
+  "errors": [],
+  "conclusion": "PASS: Browser/API -> S3 -> SQS -> Graviton4 COOL worker -> S3/DynamoDB -> CloudWatch was verified with a real queued walkthrough.",
+  "capture_type": "curated_summary_from_successful_verifier_run",
+  "source_note": "The full verifier was executed locally and returned passed=true, live_inspection_verified=true, errors=[]. This repository copy preserves the critical machine-readable proof without embedding the very large OpenCV build-information string."
+}
