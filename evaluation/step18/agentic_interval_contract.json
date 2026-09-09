@@ -1,0 +1,48 @@
+{
+  "step": 18,
+  "name": "Agentic Vision targeted temporal reinspection",
+  "tool": {
+    "name": "inspect_interval",
+    "parameters": [
+      "video_id",
+      "timestamp",
+      "seconds_before",
+      "seconds_after",
+      "sample_fps"
+    ],
+    "canonical_example": {
+      "seconds_before": 2,
+      "seconds_after": 3,
+      "sample_fps": 6,
+      "requested_frame_count": 30
+    }
+  },
+  "trigger": {
+    "source": "Step-17 candidate_findings",
+    "default_confidence_band": [0.45, 0.8],
+    "decision": "Need additional temporal evidence"
+  },
+  "aws_execution": {
+    "queue": "same production processing SQS queue",
+    "worker": "same Graviton4 COOL worker",
+    "require_cool": true
+  },
+  "evidence": [
+    "agent decision",
+    "tool call arguments",
+    "runtime=COOL",
+    "OpenCV/runtime identity",
+    "returned interval frames",
+    "confidence_before",
+    "confidence_after",
+    "confidence_delta",
+    "Bedrock reassessment request IDs",
+    "final action",
+    "human approval state"
+  ],
+  "actions": [
+    "ACCEPT_FINDING",
+    "DISMISS_FINDING",
+    "REQUEST_HUMAN_APPROVAL"
+  ]
+}

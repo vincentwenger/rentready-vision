@@ -44,6 +44,19 @@
         "sqs:SendMessage"
       ],
       "Resource": "arn:aws:sqs:us-west-2:*:rentready-vision-processing"
+    },
+    {
+      "Sid": "RentReadyVisionBedrockIssueDetection",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:us-west-2:*:inference-profile/us.amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0"
+      ]
     }
   ]
 }

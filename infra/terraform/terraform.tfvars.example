@@ -22,7 +22,7 @@ subnet_id = "subnet-REPLACE_ME"
 # no inbound rules and Terraform creates no SSH key.
 associate_public_ip_address = false
 
-# The current app configuration uses the US Nova Lite inference profile. AWS
+# The Step-16 app configuration uses the US Nova 2 Lite inference profile. AWS
 # requires the profile ARN plus every destination foundation-model ARN returned
 # by GetInferenceProfile. Add only those exact ARNs; do not use Resource="*".
 bedrock_model_arns = []

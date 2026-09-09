@@ -104,3 +104,16 @@ selection-score delta `0.0`. **COOL eligibility gate #1 PASS.**
 
 See `STEP12_COOL_VALIDATION.md` for the full execution record.
 
+## Step 16 Nova 2 Lite live-AWS compatibility correction (September 8, 2026)
+
+The first live Step-16 Bedrock call reached Nova 2 Lite but failed with
+`ValidationException: This model doesn't support the strict field. Remove strict and try again.`
+The optional `toolSpec.strict` property was removed from `app/vision/issue_detector.py`.
+The single named tool remains forced through `toolChoice`, and the returned payload remains
+constrained by the fixed JSON schema plus application-side taxonomy, confidence, severity,
+and evidence-frame validation. `tests/test_step16_issue_detector.py` now explicitly verifies
+that the unsupported field is absent.
+
+After this correction, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed the live run successfully.
+The persisted verifier returned `passed=true`, `errors=[]`, one detected issue, and Bedrock
+request ID `bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96`. See `evaluation/step16/live/`.

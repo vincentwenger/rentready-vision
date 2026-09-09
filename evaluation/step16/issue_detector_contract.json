@@ -1,0 +1,115 @@
+{
+  "taxonomy": {
+    "version": "rentready-issues/1.0",
+    "named_category_count": 13,
+    "groups": {
+      "walls": [
+        "wall_hole",
+        "wall_crack",
+        "paint_damage",
+        "wall_stain",
+        "trim_damage"
+      ],
+      "flooring": [
+        "floor_damage",
+        "floor_stain",
+        "broken_tile"
+      ],
+      "fixtures": [
+        "fixture_damage",
+        "missing_hardware"
+      ],
+      "general": [
+        "visible_staining",
+        "cleanliness",
+        "visible_damage"
+      ]
+    },
+    "escape_hatch": "other"
+  },
+  "tool_name": "report_visible_property_issues",
+  "tool_schema": {
+    "type": "object",
+    "properties": {
+      "issues": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "wall_hole",
+                "wall_crack",
+                "paint_damage",
+                "wall_stain",
+                "trim_damage",
+                "floor_damage",
+                "floor_stain",
+                "broken_tile",
+                "fixture_damage",
+                "missing_hardware",
+                "visible_staining",
+                "cleanliness",
+                "visible_damage",
+                "other"
+              ]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 180
+            },
+            "location": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            },
+            "evidence_frame_indices": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "other_label": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          "required": [
+            "category",
+            "confidence",
+            "severity",
+            "summary",
+            "location",
+            "evidence_frame_indices"
+          ]
+        }
+      }
+    },
+    "required": [
+      "issues"
+    ]
+  },
+  "policy": {
+    "specific_category_precedence": true,
+    "uncertain_evidence_is_omitted": true,
+    "hidden_defects_are_not_inferred": true,
+    "other_requires_label": true
+  }
+}

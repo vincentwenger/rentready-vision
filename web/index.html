@@ -22,6 +22,7 @@
     .step.active { color: #1d4ed8; font-weight: 700; }
     .step.done { color: #166534; }
     .step.future { color: #9a6a13; }
+    .step.warn { color: #9a3412; font-weight: 700; }
     #error { display: none; margin-top: 16px; padding: 12px; white-space: pre-wrap; color: #991b1b; background: #fef2f2; border-radius: 10px; }
     #summary { color: #475569; }
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin: 18px 0; }
@@ -42,6 +43,14 @@
     .runtime-grid dt { color: #64748b; font-weight: 650; }
     .runtime-grid dd { margin: 0; color: #172033; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .runtime-note { color: #475569; font-size: .9rem; }
+    .issue-list { display: grid; gap: 10px; margin: 12px 0 24px; }
+    .issue-row { padding: 13px 14px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
+    .issue-row strong { color: #172033; }
+    .issue-meta { margin-top: 5px; color: #64748b; font-size: .84rem; }
+    .issue-note { color: #475569; font-size: .9rem; }
+    .issue-warning { padding: 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; }
+    .agent-box { margin: 12px 0 24px; padding: 16px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
+    .agent-flow { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86rem; color: #334155; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
     @media (max-width: 600px) { .methods { columns: 1; } }
     [hidden] { display: none !important; }
   </style>
@@ -70,7 +79,8 @@
       <li class="step" id="step-upload"><span class="mark">○</span><span>Video uploaded</span></li>
       <li class="step" id="step-read"><span class="mark">○</span><span>Reading video</span></li>
       <li class="step" id="step-extract"><span class="mark">○</span><span>Extracting useful frames</span></li>
-      <li class="step future" id="step-inspect"><span class="mark">○</span><span>Inspecting property — next milestone</span></li>
+      <li class="step" id="step-inspect"><span class="mark">○</span><span>Detecting visible property issues</span></li>
+      <li class="step" id="step-agent"><span class="mark">○</span><span>Agent deciding whether to inspect again</span></li>
       <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
     </ul>
   </section>
@@ -89,6 +99,12 @@
     <h3>Runtime</h3>
     <p class="runtime-note">Exact runtime identity captured with this evidence result.</p>
     <dl class="runtime-grid" id="runtime"></dl>
+    <h3>Detected visible issues</h3>
+    <p class="issue-note" id="issue-note"></p>
+    <div class="issue-list" id="issues"></div>
+    <h3>Agentic Vision follow-up</h3>
+    <p class="issue-note" id="agent-note"></p>
+    <div class="agent-box" id="agent-trace"></div>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -120,9 +136,89 @@ async function api(path, options = {}) {
 
 function setStep(name, state) {
   const element = document.getElementById(`step-${name}`);
-  element.classList.remove("active", "done");
+  element.classList.remove("active", "done", "warn");
   if (state) element.classList.add(state);
-  element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : "○";
+  element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : state === "warn" ? "!" : "○";
+}
+
+function renderIssues(response, warning = null) {
+  const list = document.getElementById("issues");
+  const note = document.getElementById("issue-note");
+  list.replaceChildren();
+  if (warning) {
+    note.textContent = "OpenCV evidence processing completed, but Step 17 structured finding detection could not run.";
+    const row = document.createElement("div");
+    row.className = "issue-warning";
+    row.textContent = warning;
+    list.append(row);
+    return;
+  }
+
+  const findings = response?.candidate_findings ?? response?.issues ?? [];
+  const aboveThreshold = response?.issues?.length ?? 0;
+  const namedCount = response?.taxonomy?.named_category_count ?? 13;
+  note.textContent = `Step 17 · structured JSON + normalized bbox · ${namedCount} named categories + other · ${findings.length} candidate finding(s), ${aboveThreshold} above the issue threshold.`;
+  if (!findings.length) {
+    const row = document.createElement("div");
+    row.className = "issue-row";
+    row.textContent = "No visible issue met the detector confidence threshold in the selected evidence frames.";
+    list.append(row);
+    return;
+  }
+
+  findings.forEach(issue => {
+    const row = document.createElement("div");
+    row.className = "issue-row";
+    const title = document.createElement("strong");
+    const label = issue.category === "other" && issue.other_label ? `${issue.category}: ${issue.other_label}` : issue.category;
+    title.textContent = `${label.replaceAll("_", " ")} · ${String(issue.severity_candidate ?? "review").replaceAll("_", " ")}`;
+    const summary = document.createElement("div");
+    summary.textContent = `${issue.description} — ${String(issue.room ?? "unknown").replaceAll("_", " ")}`;
+    const meta = document.createElement("div");
+    meta.className = "issue-meta";
+    const bbox = issue.bbox ?? {};
+    meta.textContent = `Confidence ${(Number(issue.confidence) * 100).toFixed(0)}% · ${Number(issue.timestamp).toFixed(3)}s · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`;
+    row.append(title, summary, meta);
+    list.append(row);
+  });
+}
+
+function renderAgentic(response, warning = null) {
+  const note = document.getElementById("agent-note");
+  const box = document.getElementById("agent-trace");
+  box.replaceChildren();
+  const text = document.createElement("div");
+  text.className = "agent-flow";
+  if (warning) {
+    note.textContent = "Step 18 Agentic Vision follow-up was not completed.";
+    text.textContent = warning;
+    box.append(text);
+    return;
+  }
+  if (!response || response.status === "NO_ACTION") {
+    note.textContent = "Step 18 checked the Step-17 candidates and found no candidate in the configured uncertainty band.";
+    text.textContent = "PERCEPTION → no uncertain candidate → NO_TARGETED_REINSPECTION";
+    box.append(text);
+    return;
+  }
+  const trace = response.trace ?? {};
+  const call = trace.agent_decision?.tool_call ?? response.tool_call ?? {};
+  const args = call.arguments ?? {};
+  const runtime = trace.runtime?.runtime ?? "pending";
+  const before = trace.confidence_before ?? response.confidence_before;
+  const after = trace.confidence_after ?? response.confidence_after;
+  const action = trace.action ?? response.action ?? "pending";
+  const frameCount = trace.interval_result?.returned_frame_count;
+  note.textContent = "Step 18 · visual uncertainty caused a second targeted OpenCV workload on the production COOL/Graviton4 path.";
+  text.textContent = [
+    `PERCEPTION  confidence=${before ?? "n/a"}`,
+    `DECISION    Need additional temporal evidence`,
+    `CALL        inspect_interval(video_id=${args.video_id ?? "n/a"}, timestamp=${args.timestamp ?? "n/a"}, before=${args.seconds_before ?? "n/a"}, after=${args.seconds_after ?? "n/a"}, fps=${args.sample_fps ?? "n/a"})`,
+    `OPENCV      runtime=${runtime}${frameCount == null ? "" : ` · returned_frames=${frameCount}`}`,
+    `REASSESS    confidence_before=${before ?? "n/a"} → confidence_after=${after ?? "n/a"}`,
+    `ACTION      ${action}`
+  ].join("\n");
+  box.append(text);
 }
 
 function renderRuntime(processing) {
@@ -272,7 +368,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  ["upload", "read", "extract", "report"].forEach(name => setStep(name, null));
+  ["upload", "read", "extract", "inspect", "agent", "report"].forEach(name => setStep(name, null));
 
   try {
     setStep("upload", "active");
@@ -317,9 +413,52 @@ runButton.onclick = async () => {
     }
 
     setStep("extract", "done");
-    setStep("report", "active");
     const frames = await api(`/inspections/${id}/frames`);
+
+    setStep("inspect", "active");
+    let issueResponse = null;
+    let issueWarning = null;
+    try {
+      issueResponse = await api(`/inspections/${id}/issues/detect`, {method: "POST"});
+      setStep("inspect", "done");
+    } catch (issueError) {
+      issueWarning = issueError instanceof Error ? issueError.message : String(issueError);
+      setStep("inspect", "warn");
+    }
+
+    let agentResponse = null;
+    let agentWarning = null;
+    if (issueResponse) {
+      setStep("agent", "active");
+      try {
+        const started = await api(`/inspections/${id}/agent/run`, {
+          method: "POST",
+          body: JSON.stringify({})
+        });
+        if (started.status === "NO_ACTION" || started.status === "COMPLETE") {
+          agentResponse = started.status === "COMPLETE" ? await api(`/inspections/${id}/agent`) : started;
+        } else {
+          for (;;) {
+            const status = await api(`/inspections/${id}/agent`);
+            if (status.status === "FAILED") throw new Error(status.error || "Agentic Vision follow-up failed.");
+            if (status.status === "COMPLETE") { agentResponse = status; break; }
+            await sleep(1200);
+          }
+        }
+        setStep("agent", "done");
+      } catch (agentError) {
+        agentWarning = agentError instanceof Error ? agentError.message : String(agentError);
+        setStep("agent", "warn");
+      }
+    } else {
+      setStep("agent", "warn");
+      agentWarning = "Step 18 could not run because Step 17 did not complete.";
+    }
+
+    setStep("report", "active");
     await renderResults(id, frames);
+    renderIssues(issueResponse, issueWarning);
+    renderAgentic(agentResponse, agentWarning);
     setStep("report", "done");
   } catch (error) {
     errorEl.textContent = error instanceof Error ? error.message : String(error);

@@ -13,6 +13,14 @@ from .config import Settings
 MESSAGE_SCHEMA_VERSION = "2.0"
 RUNTIME_SCHEMA_VERSION = "rentready-video-worker/1.0"
 OPERATION_ANALYZE_VIDEO = "analyze_video"
+OPERATION_INSPECT_INTERVAL = "inspect_interval"
+INTERVAL_TOOL_PARAMETER_NAMES = (
+    "video_id",
+    "timestamp",
+    "seconds_before",
+    "seconds_after",
+    "sample_fps",
+)
 
 # These names intentionally match app.vision.video_processor.process_video().
 PROCESSING_PARAMETER_NAMES = (
@@ -113,13 +121,16 @@ def deterministic_job_id(
     parameters: dict[str, Any],
     git_commit: str,
     runtime_schema_version: str = RUNTIME_SCHEMA_VERSION,
+    operation: str = OPERATION_ANALYZE_VIDEO,
+    agent_context: dict[str, Any] | None = None,
 ) -> str:
     identity = {
         "inspection_id": inspection_id,
         "s3_input_key": s3_input_key,
         "source_etag": source_etag or "",
-        "operation": OPERATION_ANALYZE_VIDEO,
+        "operation": operation,
         "processing_parameters": parameters,
+        "agent_context": agent_context or {},
         "git_commit": git_commit,
         "runtime_schema_version": runtime_schema_version,
     }
@@ -157,6 +168,51 @@ def build_processing_message(
     }
 
 
+def build_interval_inspection_message(
+    *,
+    inspection_id: str,
+    s3_input_key: str,
+    source_etag: str | None,
+    video_id: str,
+    timestamp: float,
+    seconds_before: float,
+    seconds_after: float,
+    sample_fps: float,
+    agent_context: dict[str, Any],
+    git_commit: str | None = None,
+) -> dict[str, Any]:
+    resolved_git_commit = git_commit or current_git_commit()
+    parameters = {
+        "video_id": str(video_id),
+        "timestamp": float(timestamp),
+        "seconds_before": float(seconds_before),
+        "seconds_after": float(seconds_after),
+        "sample_fps": float(sample_fps),
+    }
+    job_id = deterministic_job_id(
+        inspection_id=inspection_id,
+        s3_input_key=s3_input_key,
+        source_etag=source_etag,
+        parameters=parameters,
+        git_commit=resolved_git_commit,
+        operation=OPERATION_INSPECT_INTERVAL,
+        agent_context=agent_context,
+    )
+    return {
+        "schema_version": MESSAGE_SCHEMA_VERSION,
+        "runtime_schema_version": RUNTIME_SCHEMA_VERSION,
+        "git_commit": resolved_git_commit,
+        "operation": OPERATION_INSPECT_INTERVAL,
+        "job_id": job_id,
+        "inspection_id": inspection_id,
+        "s3_input_key": s3_input_key,
+        "source_etag": source_etag,
+        "processing_parameters": parameters,
+        "agent_context": agent_context,
+        "enqueued_at": utc_now(),
+    }
+
+
 def validate_processing_message(body: dict[str, Any], settings: Settings) -> dict[str, Any]:
     required = {
         "schema_version",
@@ -182,18 +238,42 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
             "Unsupported runtime schema "
             f"{body['runtime_schema_version']!r}; expected {RUNTIME_SCHEMA_VERSION!r}"
         )
-    if body["operation"] != OPERATION_ANALYZE_VIDEO:
-        raise ValueError(f"Unsupported operation: {body['operation']!r}")
+    operation = str(body["operation"])
     supplied_names = set(body["processing_parameters"])
-    expected_names = set(PROCESSING_PARAMETER_NAMES)
-    if supplied_names != expected_names:
-        missing_parameters = sorted(expected_names - supplied_names)
-        extra_parameters = sorted(supplied_names - expected_names)
-        raise ValueError(
-            "Processing message must contain the complete frozen parameter set; "
-            f"missing={missing_parameters}, extra={extra_parameters}"
-        )
-    params = normalize_processing_parameters(body["processing_parameters"], settings)
+    if operation == OPERATION_ANALYZE_VIDEO:
+        expected_names = set(PROCESSING_PARAMETER_NAMES)
+        if supplied_names != expected_names:
+            missing_parameters = sorted(expected_names - supplied_names)
+            extra_parameters = sorted(supplied_names - expected_names)
+            raise ValueError(
+                "Processing message must contain the complete frozen parameter set; "
+                f"missing={missing_parameters}, extra={extra_parameters}"
+            )
+        params = normalize_processing_parameters(body["processing_parameters"], settings)
+    elif operation == OPERATION_INSPECT_INTERVAL:
+        expected_names = set(INTERVAL_TOOL_PARAMETER_NAMES)
+        if supplied_names != expected_names:
+            raise ValueError(
+                "inspect_interval message has incorrect tool parameters; "
+                f"missing={sorted(expected_names-supplied_names)}, extra={sorted(supplied_names-expected_names)}"
+            )
+        params = {
+            "video_id": str(body["processing_parameters"]["video_id"]),
+            "timestamp": float(body["processing_parameters"]["timestamp"]),
+            "seconds_before": float(body["processing_parameters"]["seconds_before"]),
+            "seconds_after": float(body["processing_parameters"]["seconds_after"]),
+            "sample_fps": float(body["processing_parameters"]["sample_fps"]),
+        }
+        if params["timestamp"] < 0 or params["seconds_before"] < 0 or params["seconds_after"] < 0:
+            raise ValueError("inspect_interval temporal parameters must be non-negative")
+        if params["seconds_before"] + params["seconds_after"] <= 0:
+            raise ValueError("inspect_interval duration must be positive")
+        if not (0 < params["sample_fps"] <= 30):
+            raise ValueError("inspect_interval sample_fps must be >0 and <=30")
+        if not isinstance(body.get("agent_context"), dict):
+            raise ValueError("inspect_interval requires agent_context")
+    else:
+        raise ValueError(f"Unsupported operation: {operation!r}")
     expected_id = deterministic_job_id(
         inspection_id=str(body["inspection_id"]),
         s3_input_key=str(body["s3_input_key"]),
@@ -201,6 +281,8 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
         parameters=params,
         git_commit=str(body["git_commit"]),
         runtime_schema_version=str(body["runtime_schema_version"]),
+        operation=operation,
+        agent_context=body.get("agent_context") if operation == OPERATION_INSPECT_INTERVAL else None,
     )
     if str(body["job_id"]) != expected_id:
         raise ValueError("Processing message job_id does not match its deterministic payload identity")

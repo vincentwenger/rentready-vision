@@ -1,0 +1,14 @@
+{
+  "room": "bathroom",
+  "category": "visible_staining",
+  "description": "Dark discoloration visible near vanity base",
+  "timestamp": 271.4,
+  "confidence": 0.63,
+  "severity_candidate": "review",
+  "bbox": {
+    "x": 0.11,
+    "y": 0.64,
+    "width": 0.24,
+    "height": 0.21
+  }
+}

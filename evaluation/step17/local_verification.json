@@ -1,0 +1,28 @@
+{
+  "step": 17,
+  "verification_scope": "local_structured_json_contract",
+  "live_aws_validated": true,
+  "passed": true,
+  "checks_passed": 15,
+  "checks_total": 15,
+  "checks": {
+    "structured_finding_version": true,
+    "report_schema_version": true,
+    "findings_array_required": true,
+    "finding_fields_exactly_required": true,
+    "room_enum": true,
+    "category_enum": true,
+    "timestamp_nonnegative": true,
+    "confidence_unit_interval": true,
+    "bbox_fields_required": true,
+    "bbox_normalized_top_left": true,
+    "timestamp_bound_to_keyframe": true,
+    "bbox_required": true,
+    "step17_documented": true,
+    "opencv_bbox_helper_present": true,
+    "api_exposes_candidate_findings": true
+  },
+  "errors": [],
+  "live_aws_evidence": "evaluation/step17/live/verification.json",
+  "note": "A pass proves the local Step-17 schema, bbox semantics, timestamp binding, and API wiring. Separate live AWS acceptance evidence is present and PASS."
+}

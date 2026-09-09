@@ -2,6 +2,8 @@ from enum import StrEnum
 from typing import Any
 from pydantic import BaseModel, Field
 
+from .vision.issue_taxonomy import TAXONOMY_VERSION
+
 
 class InspectionStatus(StrEnum):
     CREATED = "CREATED"
@@ -103,5 +105,33 @@ class FramesResponse(BaseModel):
 
 class IssuesResponse(BaseModel):
     inspection_id: str
+    status: str = "NOT_RUN"
+    taxonomy_version: str = TAXONOMY_VERSION
+    structured_finding_version: str | None = None
+    detector: dict[str, Any] | None = None
+    taxonomy: dict[str, Any] | None = None
+    rooms: list[str] = Field(default_factory=list)
+    candidate_findings: list[dict[str, Any]] = Field(default_factory=list)
     issues: list[dict[str, Any]] = Field(default_factory=list)
-    note: str = "Issue detection starts after the Days 1-3 walking skeleton."
+    report_s3_key: str | None = None
+    note: str = (
+        "Step 17 returns structured candidate findings with room, category, description, "
+        "video timestamp, confidence, preliminary severity, and normalized bounding box."
+    )
+
+
+class AgenticRunRequest(BaseModel):
+    seconds_before: float | None = Field(default=None, ge=0, le=30)
+    seconds_after: float | None = Field(default=None, ge=0, le=30)
+    sample_fps: float | None = Field(default=None, gt=0, le=30)
+
+
+class AgenticRunResponse(BaseModel):
+    inspection_id: str
+    status: str
+    decision: str
+    job_id: str | None = None
+    backend: str | None = None
+    candidate: dict[str, Any] | None = None
+    tool_call: dict[str, Any] | None = None
+    note: str | None = None

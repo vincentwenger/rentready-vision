@@ -1,0 +1,67 @@
+{
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "status": "COMPLETE",
+  "taxonomy_version": "rentready-issues/1.0",
+  "detector": {
+    "taxonomy_version": "rentready-issues/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "confidence_threshold": 0.65,
+    "batch_size": 8,
+    "max_keyframes": 120,
+    "keyframes_considered": 3,
+    "batch_count": 1
+  },
+  "taxonomy": {
+    "version": "rentready-issues/1.0",
+    "named_category_count": 13,
+    "groups": {
+      "walls": [
+        "wall_hole",
+        "wall_crack",
+        "paint_damage",
+        "wall_stain",
+        "trim_damage"
+      ],
+      "flooring": [
+        "floor_damage",
+        "floor_stain",
+        "broken_tile"
+      ],
+      "fixtures": [
+        "fixture_damage",
+        "missing_hardware"
+      ],
+      "general": [
+        "visible_staining",
+        "cleanliness",
+        "visible_damage"
+      ]
+    },
+    "escape_hatch": "other"
+  },
+  "issues": [
+    {
+      "category": "cleanliness",
+      "group": "general",
+      "confidence": 0.85,
+      "severity": "low",
+      "summary": "visible clutter and toys on floor",
+      "location": "living room floor",
+      "other_label": null,
+      "evidence_frame_indices": [
+        2
+      ],
+      "evidence": [
+        {
+          "frame_index": 2,
+          "timestamp_seconds": 13.0,
+          "scene_index": 0,
+          "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg"
+        }
+      ],
+      "issue_id": "issue-825daf154f52f47e"
+    }
+  ],
+  "report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step16-visible-issues.json",
+  "note": "Step 16 uses a fixed visible-issue taxonomy; `other` is the controlled escape hatch for clearly visible issues outside the named categories."
+}

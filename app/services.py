@@ -3,16 +3,21 @@ from __future__ import annotations
 import json
 import time
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .aws import s3
+from .aws import bedrock_runtime, s3
 from .config import get_settings
 from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
 from .runtime_evidence import collect_runtime_evidence
 from .telemetry import CloudWatchTelemetry, PeakMemorySampler
+from .agentic_vision import AGENTIC_TRACE_VERSION, action_from_confidence, reassess_interval_batches
+from .vision.issue_detector import REPORT_SCHEMA_VERSION, STRUCTURED_FINDING_VERSION, detect_visible_issues
+from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
+from .vision.interval_inspector import inspect_interval
 
 settings = get_settings()
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,6 +181,156 @@ def execute_processing_job(
     }
 
 
+def execute_interval_inspection_job(
+    *,
+    inspection_id: str,
+    source_key: str,
+    parameters: dict[str, Any],
+    agent_context: dict[str, Any],
+    job_id: str,
+    require_cool: bool,
+    expected_source_etag: str | None = None,
+    telemetry: CloudWatchTelemetry | None = None,
+) -> dict[str, Any]:
+    """Execute the Step-18 inspect_interval agent tool on the COOL worker."""
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
+    observed_etag = str(source_head.get("ETag", "")).strip('"')
+    if expected_source_etag and observed_etag != expected_source_etag:
+        raise RuntimeError(
+            "S3 input changed after agent tool enqueue: "
+            f"expected ETag {expected_source_etag!r}, observed {observed_etag!r}"
+        )
+
+    runtime = _verify_runtime(
+        input_s3_key=source_key,
+        parameters={"tool": "inspect_interval", **parameters},
+        require_cool=require_cool,
+    )
+    confidence_before = float(agent_context.get("confidence_before"))
+    if telemetry:
+        telemetry.event(
+            "AGENT_TOOL_STARTED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="inspect_interval",
+            runtime=runtime.get("runtime"),
+            confidence_before=confidence_before,
+            timestamp=parameters.get("timestamp"),
+            sample_fps=parameters.get("sample_fps"),
+        )
+
+    started = time.perf_counter()
+    with PeakMemorySampler() as memory:
+        with tempfile.TemporaryDirectory(prefix=f"rentready-agent-{inspection_id}-") as tmp:
+            tmp_path = Path(tmp)
+            suffix = Path(source_key).suffix or ".mp4"
+            input_path = tmp_path / f"walkthrough{suffix}"
+            frame_dir = tmp_path / "interval"
+            frame_dir.mkdir()
+            s3.download_file(settings.s3_bucket, source_key, str(input_path))
+
+            interval = inspect_interval(
+                input_path,
+                frame_dir,
+                timestamp=float(parameters["timestamp"]),
+                seconds_before=float(parameters["seconds_before"]),
+                seconds_after=float(parameters["seconds_after"]),
+                sample_fps=float(parameters["sample_fps"]),
+            )
+            prefix = f"inspections/{inspection_id}/agentic/{job_id}/interval"
+            public_frames: list[dict[str, Any]] = []
+            for frame in interval["frames"]:
+                local_path = Path(frame["local_path"])
+                key = f"{prefix}/{local_path.name}"
+                s3.upload_file(
+                    str(local_path), settings.s3_bucket, key,
+                    ExtraArgs={"ContentType": "image/jpeg"},
+                )
+                public = {k: v for k, v in frame.items() if k != "local_path"}
+                public["s3_key"] = key
+                public_frames.append(public)
+            interval["frames"] = public_frames
+
+            if telemetry:
+                telemetry.event(
+                    "AGENT_TOOL_OPENCV_COMPLETE",
+                    inspection_id=inspection_id,
+                    job_id=job_id,
+                    tool="inspect_interval",
+                    runtime=runtime.get("runtime"),
+                    returned_frame_count=len(public_frames),
+                )
+
+            reassessment = reassess_interval_batches(
+                bedrock_client=bedrock_runtime,
+                bucket=settings.s3_bucket,
+                frames=public_frames,
+                candidate=agent_context,
+                model_id=settings.issue_detection_model_id,
+                max_tokens=min(1000, settings.issue_detection_max_tokens),
+                batch_size=15,
+            )
+
+    confidence_after = float(reassessment["confidence_after"])
+    action = action_from_confidence(
+        confidence_after,
+        accept_threshold=settings.agentic_accept_threshold,
+        dismiss_threshold=settings.agentic_dismiss_threshold,
+    )
+    elapsed = max(time.perf_counter() - started, 1e-9)
+    result = {
+        "schema_version": AGENTIC_TRACE_VERSION,
+        "inspection_id": inspection_id,
+        "job_id": job_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "agent_decision": {
+            "reason": "Need additional temporal evidence for an uncertain visual candidate.",
+            "tool_call": {
+                "name": "inspect_interval",
+                "arguments": {k: parameters[k] for k in ("video_id", "timestamp", "seconds_before", "seconds_after", "sample_fps")},
+            },
+        },
+        "candidate": agent_context,
+        "runtime": runtime,
+        "interval_result": interval,
+        "confidence_before": round(confidence_before, 4),
+        "confidence_after": round(confidence_after, 4),
+        "confidence_delta": round(confidence_after - confidence_before, 4),
+        "reassessment": reassessment,
+        "action": action,
+        "human_control": {
+            "required": action == "REQUEST_HUMAN_APPROVAL",
+            "reason": "Confidence remains in the configured uncertain band." if action == "REQUEST_HUMAN_APPROVAL" else None,
+        },
+        "telemetry": {
+            "processing_seconds": round(elapsed, 3),
+            "peak_memory_mb": round(memory.peak_memory_mb, 3),
+            "returned_frame_count": len(public_frames),
+        },
+    }
+    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step18-agentic-trace.json"
+    s3.put_object(
+        Bucket=settings.s3_bucket,
+        Key=result_key,
+        Body=json.dumps(result, indent=2).encode("utf-8"),
+        ContentType="application/json",
+    )
+    if telemetry:
+        telemetry.event(
+            "AGENT_ACTION_DECIDED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="inspect_interval",
+            runtime=runtime.get("runtime"),
+            confidence_before=round(confidence_before, 4),
+            confidence_after=round(confidence_after, 4),
+            confidence_delta=round(confidence_after - confidence_before, 4),
+            action=action,
+            result_s3_key=result_key,
+        )
+    return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
+
+
 def run_processing_job(inspection_id: str) -> None:
     """Local developer fallback used when PROCESSING_QUEUE_URL is unset."""
     inspection = get_inspection(inspection_id)
@@ -223,3 +378,116 @@ def load_manifest(inspection_id: str) -> dict:
         raise FileNotFoundError("Manifest is not available yet")
     obj = s3.get_object(Bucket=settings.s3_bucket, Key=manifest_key)
     return json.loads(obj["Body"].read())
+
+
+def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> dict[str, Any]:
+    """Run the Step-17 structured candidate detector and persist a judge-readable S3 report.
+
+    This is intentionally a second stage after the frozen OpenCV evidence pipeline, so
+    Bedrock latency and model behavior do not alter the Step-12/13 benchmark or the
+    Step-14 COOL processing measurements.
+    """
+    if not settings.issue_detection_enabled:
+        raise RuntimeError("Issue detection is disabled by ISSUE_DETECTION_ENABLED=false")
+
+    inspection = get_inspection(inspection_id)
+    if not inspection:
+        raise KeyError(inspection_id)
+    if inspection.get("status") != "COMPLETE":
+        raise RuntimeError(
+            f"Inspection must be COMPLETE before issue detection; got {inspection.get('status')!r}"
+        )
+
+    existing_key = inspection.get("issue_report_s3_key")
+    if existing_key and not force:
+        obj = s3.get_object(Bucket=settings.s3_bucket, Key=existing_key)
+        existing_report = json.loads(obj["Body"].read())
+        # Do not silently reuse the older Step-16 schema after Step 17 is deployed.
+        if existing_report.get("schema_version") == REPORT_SCHEMA_VERSION:
+            return existing_report
+
+    update_inspection(
+        inspection_id,
+        issue_detection_status="PROCESSING",
+        issue_detection_error=None,
+        issue_detection_model_id=settings.issue_detection_model_id,
+        issue_taxonomy_version=TAXONOMY_VERSION,
+        structured_finding_version=STRUCTURED_FINDING_VERSION,
+        issue_report_schema_version=REPORT_SCHEMA_VERSION,
+    )
+    try:
+        manifest = load_manifest(inspection_id)
+        report = detect_visible_issues(
+            bedrock_client=bedrock_runtime,
+            bucket=settings.s3_bucket,
+            keyframes=manifest.get("keyframes", []),
+            model_id=settings.issue_detection_model_id,
+            confidence_threshold=settings.issue_detection_confidence_threshold,
+            batch_size=settings.issue_detection_batch_size,
+            max_keyframes=settings.issue_detection_max_keyframes,
+            max_tokens=settings.issue_detection_max_tokens,
+        )
+        report["inspection_id"] = inspection_id
+        report["source_manifest_s3_key"] = inspection.get("manifest_s3_key")
+        report_key = f"inspections/{inspection_id}/issues/step17-structured-findings.json"
+        s3.put_object(
+            Bucket=settings.s3_bucket,
+            Key=report_key,
+            Body=json.dumps(report, indent=2).encode("utf-8"),
+            ContentType="application/json",
+        )
+        update_inspection(
+            inspection_id,
+            issue_detection_status="COMPLETE",
+            issue_detection_error=None,
+            issue_report_s3_key=report_key,
+            issue_count=len(report.get("issues", [])),
+            candidate_finding_count=len(report.get("candidate_findings", [])),
+            issue_detection_model_id=settings.issue_detection_model_id,
+            issue_taxonomy_version=TAXONOMY_VERSION,
+            structured_finding_version=STRUCTURED_FINDING_VERSION,
+            issue_report_schema_version=REPORT_SCHEMA_VERSION,
+            issue_detection_completed_at=report.get("generated_at"),
+        )
+        return report
+    except Exception as exc:
+        update_inspection(
+            inspection_id,
+            issue_detection_status="FAILED",
+            issue_detection_error=f"{type(exc).__name__}: {exc}",
+        )
+        raise
+
+
+def load_issues_report(inspection_id: str) -> dict[str, Any]:
+    inspection = get_inspection(inspection_id)
+    if not inspection:
+        raise KeyError(inspection_id)
+    report_key = inspection.get("issue_report_s3_key")
+    if not report_key:
+        return {
+            "inspection_id": inspection_id,
+            "status": inspection.get("issue_detection_status") or "NOT_RUN",
+            "taxonomy_version": TAXONOMY_VERSION,
+            "structured_finding_version": STRUCTURED_FINDING_VERSION,
+            "taxonomy": taxonomy_payload(),
+            "detector": None,
+            "rooms": [],
+            "candidate_findings": [],
+            "issues": [],
+            "report_s3_key": None,
+        }
+    obj = s3.get_object(Bucket=settings.s3_bucket, Key=report_key)
+    report = json.loads(obj["Body"].read())
+    return {
+        "inspection_id": inspection_id,
+        "status": inspection.get("issue_detection_status") or "COMPLETE",
+        "taxonomy_version": report.get("detector", {}).get("taxonomy_version", TAXONOMY_VERSION),
+        "structured_finding_version": report.get("structured_finding_version", STRUCTURED_FINDING_VERSION),
+        "taxonomy": report.get("taxonomy") or taxonomy_payload(),
+        "detector": report.get("detector"),
+        "rooms": report.get("rooms", []),
+        "candidate_findings": report.get("candidate_findings", []),
+        "issues": report.get("issues", []),
+        "report_s3_key": report_key,
+    }

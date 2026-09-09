@@ -503,3 +503,62 @@ def fail_processing_attempt(
         processing_receive_count=receive_count,
         last_processing_event="PROCESSING_FAILED",
     )
+
+
+def complete_agent_tool_job(
+    inspection_id: str,
+    job_id: str,
+    *,
+    claim_token: str,
+    result_s3_key: str,
+    result: dict[str, Any],
+    telemetry: dict[str, Any],
+) -> bool:
+    """Complete a Step-18 agent tool without replacing the primary video manifest."""
+    now = utc_now()
+    try:
+        table.update_item(
+            Key={"PK": inspection_pk(inspection_id), "SK": processing_job_sk(job_id)},
+            UpdateExpression=(
+                "SET #status = :complete, #result_key = :result_key, #completed = :now, "
+                "#updated = :now, #telemetry = :telemetry, #agent_result = :agent_result "
+                "REMOVE #lease"
+            ),
+            ConditionExpression="#status = :processing AND #claim = :claim",
+            ExpressionAttributeNames={
+                "#status": "status",
+                "#result_key": "result_s3_key",
+                "#completed": "completed_at",
+                "#updated": "updated_at",
+                "#telemetry": "telemetry",
+                "#agent_result": "agent_result",
+                "#lease": "lease_expires_at",
+                "#claim": "claim_token",
+            },
+            ExpressionAttributeValues={
+                ":complete": "COMPLETE",
+                ":processing": "PROCESSING",
+                ":claim": claim_token,
+                ":result_key": result_s3_key,
+                ":now": now,
+                ":telemetry": _ddb_safe(telemetry),
+                ":agent_result": _ddb_safe(result),
+            },
+        )
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
+            return False
+        raise
+
+    update_inspection(
+        inspection_id,
+        agentic_status="COMPLETE",
+        active_agent_job_id=job_id,
+        agentic_trace_s3_key=result_s3_key,
+        agentic_confidence_before=result.get("confidence_before"),
+        agentic_confidence_after=result.get("confidence_after"),
+        agentic_action=result.get("action"),
+        agentic_completed_at=now,
+        last_agentic_event="AGENT_ACTION_DECIDED",
+    )
+    return True

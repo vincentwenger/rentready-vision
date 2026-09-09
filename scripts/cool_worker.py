@@ -20,14 +20,20 @@ from app.aws import sqs  # noqa: E402
 from app.config import get_settings  # noqa: E402
 from app.db import (  # noqa: E402
     claim_processing_job,
+    complete_agent_tool_job,
     complete_processing_job,
     extend_processing_lease,
     fail_processing_attempt,
     get_processing_job,
     reconcile_completed_job,
+    update_inspection,
 )
-from app.processing_jobs import current_git_commit, validate_processing_message  # noqa: E402
-from app.services import execute_processing_job  # noqa: E402
+from app.processing_jobs import (  # noqa: E402
+    OPERATION_INSPECT_INTERVAL,
+    current_git_commit,
+    validate_processing_message,
+)
+from app.services import execute_interval_inspection_job, execute_processing_job  # noqa: E402
 from app.telemetry import CloudWatchTelemetry  # noqa: E402
 
 logging.basicConfig(
@@ -72,6 +78,104 @@ def _heartbeat(
 
 def _retry_delay(receive_count: int, base_seconds: int, visibility_timeout: int) -> int:
     return max(0, min(visibility_timeout, base_seconds * (2 ** max(0, receive_count - 1))))
+
+
+def _handle_agent_tool_message(
+    *,
+    queue_url: str,
+    message: dict[str, Any],
+    body: dict[str, Any],
+    telemetry: CloudWatchTelemetry,
+    receive_count: int,
+    worker_id: str,
+) -> None:
+    settings = get_settings()
+    inspection_id = str(body["inspection_id"])
+    job_id = str(body["job_id"])
+    receipt_handle = str(message["ReceiptHandle"])
+    claim_token = str(uuid4())
+    claimed, existing = claim_processing_job(
+        inspection_id, job_id, claim_token=claim_token,
+        lease_seconds=settings.processing_lease_seconds,
+        receive_count=receive_count, worker_id=worker_id,
+    )
+    if not claimed:
+        status = existing.get("status") if existing else "MISSING"
+        if status in {"COMPLETE", "PROCESSING", "QUEUED", "PENDING_ENQUEUE"}:
+            sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+            LOGGER.info("Acknowledged duplicate agent tool job_id=%s status=%s", job_id, status)
+            return
+        if status == "FAILED":
+            LOGGER.error("Leaving terminally failed agent tool for SQS redrive: %s", job_id)
+            return
+        raise RuntimeError(f"Could not claim agent tool job {job_id}; durable status={status}")
+
+    update_inspection(
+        inspection_id,
+        agentic_status="PROCESSING",
+        active_agent_job_id=job_id,
+        last_agentic_event="AGENT_TOOL_STARTED",
+    )
+    heartbeat_stop = threading.Event()
+    heartbeat = threading.Thread(
+        target=_heartbeat,
+        kwargs={
+            "queue_url": queue_url, "receipt_handle": receipt_handle,
+            "visibility_timeout": settings.queue_visibility_timeout_seconds,
+            "inspection_id": inspection_id, "job_id": job_id,
+            "claim_token": claim_token, "lease_seconds": settings.processing_lease_seconds,
+            "heartbeat_stop": heartbeat_stop,
+        },
+        daemon=True,
+    )
+    heartbeat.start()
+    try:
+        result = execute_interval_inspection_job(
+            inspection_id=inspection_id,
+            source_key=str(body["s3_input_key"]),
+            parameters=body["processing_parameters"],
+            agent_context=body["agent_context"],
+            job_id=job_id,
+            require_cool=True,
+            expected_source_etag=body.get("source_etag"),
+            telemetry=telemetry,
+        )
+        committed = complete_agent_tool_job(
+            inspection_id, job_id, claim_token=claim_token,
+            result_s3_key=result["result_s3_key"],
+            result=result["result"], telemetry=result["telemetry"],
+        )
+        if not committed:
+            raise RuntimeError("Agent tool finished but worker no longer owns the durable job lease")
+        sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+    except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
+        terminal = receive_count >= settings.queue_max_receive_count
+        fail_processing_attempt(
+            inspection_id, job_id, claim_token=claim_token, error=error,
+            terminal=terminal, receive_count=receive_count,
+        )
+        update_inspection(
+            inspection_id, agentic_status="FAILED" if terminal else "RETRY_PENDING",
+            agentic_error=error, last_agentic_event="AGENT_TOOL_FAILED",
+        )
+        telemetry.event(
+            "AGENT_TOOL_FAILED", inspection_id=inspection_id, job_id=job_id,
+            error=error, receive_count=receive_count, terminal=terminal,
+        )
+        delay = 0 if terminal else _retry_delay(
+            receive_count, settings.queue_retry_base_seconds, settings.queue_visibility_timeout_seconds
+        )
+        try:
+            sqs.change_message_visibility(
+                QueueUrl=queue_url, ReceiptHandle=receipt_handle, VisibilityTimeout=delay
+            )
+        except Exception:
+            LOGGER.exception("Could not set retry visibility for agent tool %s", job_id)
+        raise
+    finally:
+        heartbeat_stop.set()
+        heartbeat.join(timeout=2)
 
 
 def _handle_message(
@@ -144,6 +248,12 @@ def _handle_message(
         except Exception:
             LOGGER.exception("Could not set retry visibility for invalid job %s", job_id)
         raise
+
+    if body["operation"] == OPERATION_INSPECT_INTERVAL:
+        return _handle_agent_tool_message(
+            queue_url=queue_url, message=message, body=body, telemetry=telemetry,
+            receive_count=receive_count, worker_id=worker_id,
+        )
 
     # body is now schema-valid and bound to the exact deployed Git revision.
     inspection_id = str(body["inspection_id"])

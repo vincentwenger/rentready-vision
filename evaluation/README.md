@@ -1,5 +1,29 @@
 # Evaluation evidence and benchmark contracts
 
+## Current Step-17 status
+
+**Structured candidate JSON is LIVE AWS PASS (September 8, 2026).**
+
+Step 17 extends the live Bedrock issue detector with the canonical candidate fields `room`,
+`category`, `description`, `timestamp`, `confidence`, `severity_candidate`, and normalized
+`bbox`. Local contract verification passes 15/15 checks, and the separate live AWS verifier
+passes against inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` with a real Bedrock request
+ID and `errors=[]`.
+
+Evidence is organized under:
+
+- `step17/structured_finding_contract.json` — machine-readable schema/behavior contract;
+- `step17/local_verification.json` — 15/15 local contract verification;
+- `step17/test_summary.json` — targeted/project test summary plus live acceptance metadata;
+- `step17/live/detect_response.json` — captured successful structured result;
+- `step17/live/verification.json` — official live AWS verifier result (`passed=true`);
+- `step17/live/README.md` — human-readable acceptance record and reproduction commands.
+
+The authoritative full report remains persisted in S3 at
+`inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json`.
+
+---
+
 ## Current Step-12 status
 
 **COOL eligibility gate #1 is complete and PASS.**

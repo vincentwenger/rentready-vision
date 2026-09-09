@@ -1,0 +1,33 @@
+{
+  "step": 16,
+  "date": "2026-09-08",
+  "step16_targeted_tests": {
+    "command": "pytest -q tests/test_step16_issue_detector.py tests/test_api.py",
+    "passed": 12,
+    "failed": 0
+  },
+  "project_tests_excluding_sandbox_opencv_version_checks": {
+    "command": "pytest -q -k 'not test_runtime_evidence_records_exact_opencv_identity and not test_process_video'",
+    "passed": 50,
+    "failed": 0,
+    "deselected": 2
+  },
+  "full_suite_sandbox_result": {
+    "passed": 50,
+    "failed": 2,
+    "failure_reason": "The sandbox runtime has OpenCV 4.13.0 while the repository intentionally asserts OpenCV 5.x. The same two tests fail on the untouched v15.zip in this sandbox, proving this is not a Step-16 regression."
+  },
+  "live_aws_bedrock_validated": true,
+  "live_aws_verification": {
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "passed": true,
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "keyframes_considered": 3,
+    "batch_count": 1,
+    "bedrock_request_ids": [
+      "bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96"
+    ],
+    "issue_count": 1,
+    "errors": []
+  }
+}

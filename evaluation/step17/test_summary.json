@@ -1,0 +1,33 @@
+{
+  "step": 17,
+  "date": "2026-09-08",
+  "targeted_tests": {
+    "command": "pytest -q tests/test_step17_structured_findings.py tests/test_api.py",
+    "passed": 13,
+    "failed": 0
+  },
+  "project_tests_excluding_runtime_opencv_version_checks": {
+    "command": "pytest -q -k 'not runtime_evidence_records_exact_opencv_identity and not process_video'",
+    "passed": 54,
+    "deselected": 2,
+    "failed": 0
+  },
+  "full_suite_environment_note": {
+    "observed_passed": 54,
+    "observed_failed": 2,
+    "reason": "The sandbox runtime has OpenCV 4.13.0; two pre-existing tests correctly require OpenCV 5.x. Project requirements pin opencv-python-headless==5.0.0.93 and the validated COOL runtime is OpenCV 5.0.0."
+  },
+  "live_aws_acceptance": {
+    "date": "2026-09-08",
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "passed": true,
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "bedrock_request_ids": [
+      "1a9170ad-069c-4688-8c29-2be4f63f290d"
+    ],
+    "candidate_finding_count": 1,
+    "report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json",
+    "verification_file": "evaluation/step17/live/verification.json",
+    "errors": []
+  }
+}

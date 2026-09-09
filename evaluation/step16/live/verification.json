@@ -1,0 +1,17 @@
+{
+  "step": 16,
+  "verification_scope": "live_aws_persisted_issue_report",
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "passed": true,
+  "bucket": "rentready-vision-dev-081087819788",
+  "issue_report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step16-visible-issues.json",
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "taxonomy_version": "rentready-issues/1.0",
+  "keyframes_considered": 3,
+  "batch_count": 1,
+  "bedrock_request_ids": [
+    "bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96"
+  ],
+  "issue_count": 1,
+  "errors": []
+}

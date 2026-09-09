@@ -1,0 +1,22 @@
+{
+  "step": 16,
+  "verification_scope": "local_contract_only",
+  "live_aws_validated": false,
+  "passed": true,
+  "checks_passed": 10,
+  "checks_total": 10,
+  "checks": {
+    "taxonomy_version": true,
+    "thirteen_named_categories": true,
+    "other_escape_hatch": true,
+    "tool_enum_exact": true,
+    "uncertain_evidence_omitted": true,
+    "hidden_defects_not_inferred": true,
+    "step16_documented": true,
+    "contract_persisted": true,
+    "api_detect_route_present": true,
+    "bedrock_permission_present": true
+  },
+  "errors": [],
+  "note": "A passing result proves the Step-16 taxonomy and implementation contract are present. It does not prove a live Bedrock invocation; capture that separately on AWS."
+}

@@ -1,0 +1,11 @@
+{
+  "step": 18,
+  "focused_test_command": "pytest -q tests/test_step18_agentic_interval.py",
+  "focused_tests_passed": 6,
+  "focused_tests_failed": 0,
+  "suite_command_without_sandbox_version_checks": "pytest -q --deselect tests/test_runtime_evidence.py::test_runtime_evidence_records_exact_opencv_identity --deselect tests/test_video_processor.py::test_process_video",
+  "suite_tests_passed": 60,
+  "suite_tests_deselected": 2,
+  "deselected_reason": "The assembly sandbox provides cv2 4.13.0; these two existing tests correctly require OpenCV 5.x. The project pins opencv-python-headless==5.0.0.93 and the AWS COOL worker separately verifies OpenCV 5.",
+  "live_aws_validated": false
+}

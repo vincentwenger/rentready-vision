@@ -1,0 +1,27 @@
+{
+  "step": 18,
+  "verification_scope": "local_agentic_interval_contract",
+  "passed": true,
+  "checks_passed": 14,
+  "checks_total": 14,
+  "checks": {
+    "trace_schema_version": true,
+    "operation_named_inspect_interval": true,
+    "tool_signature_fields": true,
+    "opencv_tool_implemented": true,
+    "cool_worker_dispatches_tool": true,
+    "runtime_cool_logged": true,
+    "confidence_before_logged": true,
+    "confidence_after_logged": true,
+    "human_approval_action_present": true,
+    "api_agent_run_present": true,
+    "api_agent_status_present": true,
+    "browser_demo_shows_agent_loop": true,
+    "step18_documented": true,
+    "step18_tests_present": true
+  },
+  "errors": [],
+  "inspect_interval_signature": "(video_path: 'str | Path', output_dir: 'str | Path', *, timestamp: 'float', seconds_before: 'float', seconds_after: 'float', sample_fps: 'float') -> 'dict[str, Any]'",
+  "live_aws_validated": false,
+  "note": "Local pass proves code wiring only. A real SQS -> Graviton4 COOL run is required for Agentic Vision award evidence."
+}

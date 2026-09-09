@@ -16,3 +16,11 @@ s3 = session.client(
 dynamodb = session.resource("dynamodb")
 table = dynamodb.Table(settings.ddb_table)
 sqs = session.client("sqs")
+bedrock_runtime = session.client(
+    "bedrock-runtime",
+    config=Config(
+        connect_timeout=30,
+        read_timeout=3600,
+        retries={"max_attempts": 2, "mode": "standard"},
+    ),
+)

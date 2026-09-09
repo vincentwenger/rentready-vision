@@ -1,0 +1,49 @@
+{
+  "schema_version": "rentready-issue-report/2.0",
+  "structured_finding_version": "rentready-structured-finding/1.0",
+  "candidate_findings": [
+    {
+      "room": "living_room",
+      "category": "cleanliness",
+      "description": "visible clutter and toys on the floor",
+      "timestamp": 13.0,
+      "confidence": 0.8,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.0,
+        "y": 0.5,
+        "width": 1.0,
+        "height": 0.5
+      }
+    }
+  ],
+  "issues": [
+    {
+      "room": "living_room",
+      "category": "cleanliness",
+      "description": "visible clutter and toys on the floor",
+      "timestamp": 13.0,
+      "confidence": 0.8,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.0,
+        "y": 0.5,
+        "width": 1.0,
+        "height": 0.5
+      },
+      "group": "general",
+      "other_label": null,
+      "evidence_frame_index": 2,
+      "evidence": {
+        "frame_index": 2,
+        "timestamp_seconds": 13.0,
+        "scene_index": 0,
+        "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg"
+      },
+      "issue_id": "issue-5443f379d4abd19c"
+    }
+  ],
+  "bedrock_request_ids": [
+    "1a9170ad-069c-4688-8c29-2be4f63f290d"
+  ]
+}

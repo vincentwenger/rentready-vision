@@ -19,6 +19,8 @@ from ..db import (
     update_inspection,
 )
 from ..models import (
+    AgenticRunRequest,
+    AgenticRunResponse,
     CreateInspectionRequest,
     CreateInspectionResponse,
     CreateUploadUrlRequest,
@@ -29,8 +31,18 @@ from ..models import (
     UploadCompleteRequest,
     UploadUrlResponse,
 )
-from ..processing_jobs import build_processing_message, processing_parameters
-from ..services import load_manifest, run_processing_job
+from ..processing_jobs import (
+    build_interval_inspection_message,
+    build_processing_message,
+    processing_parameters,
+)
+from ..agentic_vision import choose_uncertain_candidate
+from ..services import (
+    detect_issues_for_inspection,
+    load_issues_report,
+    load_manifest,
+    run_processing_job,
+)
 
 router = APIRouter(prefix="/inspections", tags=["inspections"])
 settings = get_settings()
@@ -249,10 +261,37 @@ def get_frames(inspection_id: str) -> FramesResponse:
     )
 
 
+@router.post("/{inspection_id}/issues/detect", response_model=IssuesResponse)
+def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Inspection must be COMPLETE before issue detection; got {item.get('status')}",
+        )
+    try:
+        report = detect_issues_for_inspection(inspection_id, force=force)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return IssuesResponse(
+        inspection_id=inspection_id,
+        status="COMPLETE",
+        taxonomy_version=report.get("detector", {}).get("taxonomy_version", "rentready-issues/1.0"),
+        structured_finding_version=report.get("structured_finding_version"),
+        detector=report.get("detector"),
+        taxonomy=report.get("taxonomy"),
+        rooms=report.get("rooms", []),
+        candidate_findings=report.get("candidate_findings", []),
+        issues=report.get("issues", []),
+        report_s3_key=f"inspections/{inspection_id}/issues/step17-structured-findings.json",
+    )
+
+
 @router.get("/{inspection_id}/issues", response_model=IssuesResponse)
 def get_issues(inspection_id: str) -> IssuesResponse:
     _require_inspection(inspection_id)
-    return IssuesResponse(inspection_id=inspection_id)
+    report = load_issues_report(inspection_id)
+    return IssuesResponse(**report)
 
 
 @router.get("/{inspection_id}/frames/{frame_index}/url")
@@ -268,3 +307,145 @@ def get_frame_url(inspection_id: str, frame_index: int) -> dict:
         ExpiresIn=settings.presigned_url_ttl_seconds,
     )
     return {"url": url, "expires_in_seconds": settings.presigned_url_ttl_seconds}
+
+
+@router.post("/{inspection_id}/agent/run", response_model=AgenticRunResponse, status_code=status.HTTP_202_ACCEPTED)
+def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> AgenticRunResponse:
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(status_code=409, detail="Inspection must be COMPLETE before Agentic Vision")
+    if not settings.processing_queue_url:
+        raise HTTPException(
+            status_code=409,
+            detail="Agentic Vision judge path requires PROCESSING_QUEUE_URL so inspect_interval runs on COOL/Graviton4",
+        )
+
+    issue_report = load_issues_report(inspection_id)
+    candidate = choose_uncertain_candidate(
+        issue_report.get("candidate_findings", []),
+        minimum_confidence=settings.agentic_reinspect_min_confidence,
+        maximum_confidence=settings.agentic_reinspect_max_confidence,
+    )
+    if candidate is None:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="NO_ACTION",
+            decision="NO_TARGETED_REINSPECTION",
+            note="No Step-17 candidate falls inside the configured uncertainty band.",
+        )
+
+    seconds_before = payload.seconds_before if payload.seconds_before is not None else settings.agentic_default_seconds_before
+    seconds_after = payload.seconds_after if payload.seconds_after is not None else settings.agentic_default_seconds_after
+    sample_fps = payload.sample_fps if payload.sample_fps is not None else settings.agentic_default_sample_fps
+    if seconds_before + seconds_after <= 0:
+        raise HTTPException(status_code=400, detail="Agentic inspection interval must have positive duration")
+
+    source_key = item.get("original_s3_key")
+    if not source_key:
+        raise HTTPException(status_code=409, detail="Inspection has no original video")
+    confidence_before = float(candidate.get("confidence"))
+    agent_context = {
+        "issue_id": candidate.get("issue_id"),
+        "room": candidate.get("room"),
+        "category": candidate.get("category"),
+        "description": candidate.get("description"),
+        "timestamp": float(candidate.get("timestamp")),
+        "confidence": confidence_before,
+        "confidence_before": confidence_before,
+        "severity_candidate": candidate.get("severity_candidate"),
+        "bbox": candidate.get("bbox"),
+        "decision_reason": "Need additional temporal evidence for uncertain visual finding.",
+    }
+    message = build_interval_inspection_message(
+        inspection_id=inspection_id,
+        s3_input_key=source_key,
+        source_etag=item.get("s3_etag"),
+        video_id=inspection_id,
+        timestamp=float(candidate.get("timestamp")),
+        seconds_before=float(seconds_before),
+        seconds_after=float(seconds_after),
+        sample_fps=float(sample_fps),
+        agent_context=agent_context,
+    )
+    job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+    tool_call = {
+        "name": "inspect_interval",
+        "arguments": {
+            "video_id": inspection_id,
+            "timestamp": float(candidate.get("timestamp")),
+            "seconds_before": float(seconds_before),
+            "seconds_after": float(seconds_after),
+            "sample_fps": float(sample_fps),
+        },
+    }
+    if job_record.get("status") == "COMPLETE":
+        return AgenticRunResponse(
+            inspection_id=inspection_id, status="COMPLETE", decision="CALL_TOOL",
+            job_id=message["job_id"], backend="graviton4_cool_sqs", candidate=candidate,
+            tool_call=tool_call, note="Identical targeted COOL/OpenCV follow-up already completed.",
+        )
+    if not should_enqueue:
+        return AgenticRunResponse(
+            inspection_id=inspection_id, status=str(job_record.get("status") or "QUEUED"),
+            decision="CALL_TOOL", job_id=message["job_id"], backend="graviton4_cool_sqs",
+            candidate=candidate, tool_call=tool_call,
+            note="Identical targeted follow-up is already queued or processing.",
+        )
+
+    update_inspection(
+        inspection_id,
+        agentic_status="QUEUED",
+        agentic_error=None,
+        active_agent_job_id=message["job_id"],
+        agentic_confidence_before=confidence_before,
+        agentic_decision="CALL_TOOL",
+        agentic_tool_call=tool_call,
+        last_agentic_event="AGENT_DECISION",
+    )
+    try:
+        response = sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+            MessageAttributes={
+                "operation": {"DataType": "String", "StringValue": message["operation"]},
+                "runtime_schema_version": {"DataType": "String", "StringValue": message["runtime_schema_version"]},
+            },
+        )
+    except Exception as exc:
+        error = f"Agent tool enqueue failed: {type(exc).__name__}: {exc}"
+        mark_enqueue_failed(inspection_id, message["job_id"], error)
+        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        raise HTTPException(status_code=503, detail=error) from exc
+
+    mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
+    return AgenticRunResponse(
+        inspection_id=inspection_id, status="QUEUED", decision="CALL_TOOL",
+        job_id=message["job_id"], backend="graviton4_cool_sqs", candidate=candidate,
+        tool_call=tool_call,
+        note="Step-17 visual uncertainty caused a second targeted COOL/OpenCV workload.",
+    )
+
+
+@router.get("/{inspection_id}/agent")
+def get_agentic_vision_status(inspection_id: str) -> dict:
+    item = _require_inspection(inspection_id)
+    result = {
+        "inspection_id": inspection_id,
+        "status": item.get("agentic_status") or "NOT_RUN",
+        "job_id": item.get("active_agent_job_id"),
+        "decision": item.get("agentic_decision"),
+        "tool_call": item.get("agentic_tool_call"),
+        "confidence_before": item.get("agentic_confidence_before"),
+        "confidence_after": item.get("agentic_confidence_after"),
+        "action": item.get("agentic_action"),
+        "trace_s3_key": item.get("agentic_trace_s3_key"),
+        "error": item.get("agentic_error"),
+    }
+    trace_key = item.get("agentic_trace_s3_key")
+    if trace_key:
+        try:
+            obj = s3.get_object(Bucket=settings.s3_bucket, Key=trace_key)
+            result["trace"] = json.loads(obj["Body"].read())
+        except Exception:
+            result["trace"] = None
+    return result

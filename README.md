@@ -58,7 +58,8 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Upload selected keyframes to S3.
 - Store processing summary in DynamoDB.
 - Retrieve inspection status, scenes and keyframes and display the frames in the browser.
-- Return an intentionally empty `/issues` result until intelligent inspection is added.
+- Run the Step-17 schema-constrained candidate-finding detector over selected keyframes, including normalized bounding boxes for OpenCV follow-up, and persist auditable issue evidence.
+- Run Step-18 Agentic Vision follow-up: uncertain Step-17 evidence causes a targeted `inspect_interval()` SQS tool call on the same COOL/Graviton4 worker, followed by confidence revision and an accept/dismiss/human-approval action.
 - Generate short-lived GET URLs for evidence frames.
 
 ## Local fallback versus production AWS path
@@ -302,7 +303,8 @@ the competition submission.
 - `GET /inspections/{id}/status`
 - `GET /inspections/{id}/frames`
 - `GET /inspections/{id}/frames/{frame_index}/url`
-- `GET /inspections/{id}/issues` (empty in the Days 1-3 skeleton)
+- `POST /inspections/{id}/issues/detect`
+- `GET /inspections/{id}/issues`
 
 ## Setup
 
@@ -456,16 +458,25 @@ Step 15 consolidates the Step 12–14 proof into one six-item infrastructure gat
 
 Run `python scripts/verify_step15_checkpoint.py` and see [`STEP15_DUAL_PATH_CHECKPOINT.md`](STEP15_DUAL_PATH_CHECKPOINT.md) plus [`evaluation/step15/`](evaluation/step15/). The roadmap checkpoint was labeled September 5; the committed live AWS evidence used to close it was captured September 7, 2026.
 
-## Next milestone — Agentic Vision
+## Step 16 first issue detector — LIVE AWS PASS
 
-Keep the validated Step-14 Graviton4 + COOL worker and extend it into the visual-tool runtime used by Agentic Vision:
+Step 16 replaces the old empty `/issues` placeholder with a narrow visual candidate detector. It uses **13 named categories plus `other`**, submits only the OpenCV-selected keyframes to Amazon Bedrock, forces the named `report_visible_property_issues` tool against the fixed taxonomy, filters low-confidence claims, validates every evidence frame index, and persists the full invocation trace plus normalized issues to S3. The browser demo runs this detector after OpenCV evidence extraction without changing the validated Step-12/13 benchmark path.
 
-1. Room labels / room understanding.
-2. Candidate issue detection.
-3. Agentic `inspect_interval()`.
-4. ROI crop/enhance and evidence-comparison tools.
-5. Agent traces with the existing S3/DynamoDB/CloudWatch audit trail.
-6. Threshold calibration on labeled real-world walkthrough evidence as the detector set expands.
+On **September 8, 2026**, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed a real forced Bedrock run with `us.amazon.nova-2-lite-v1:0`. Three keyframes were considered in one batch, one normalized `cleanliness` issue was produced, and `scripts/verify_step16_aws.py` returned `passed=true` with `errors=[]`. The persisted proof includes Bedrock request ID `bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96` and the S3 issue report `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step16-visible-issues.json`.
+
+The live run also exposed one Nova 2 Lite compatibility correction: the model rejects the optional Bedrock `toolSpec.strict` field. The detector now omits that field while still forcing the named tool and enforcing taxonomy/evidence validity in application code. A regression test protects this behavior.
+
+See [`STEP16_ISSUE_DETECTOR.md`](STEP16_ISSUE_DETECTOR.md), [`evaluation/step16/`](evaluation/step16/), and [`evaluation/step16/live/`](evaluation/step16/live/) for the contract, local verification, compatibility note, and live AWS evidence.
+
+## Step 18 Agentic Vision — Tool 1 implemented; live AWS acceptance pending
+
+Step 18 now implements the first real Agentic Vision loop. An uncertain Step-17 candidate causes the application to enqueue `inspect_interval(video_id, timestamp, seconds_before, seconds_after, sample_fps)` on the **same SQS → Graviton4 COOL worker**. The canonical 2-second-before + 3-second-after window at 6 fps requests 30 OpenCV frames. Those frames are persisted, reassessed in Bedrock-safe batches, and converted into a new `confidence_after` plus a subsequent `ACCEPT_FINDING`, `DISMISS_FINDING`, or `REQUEST_HUMAN_APPROVAL` action.
+
+The S3 trace records the original agent decision, tool arguments, COOL runtime identity, frame evidence, `confidence_before`, `confidence_after`, delta, Bedrock request IDs, and final action. Local Step-18 tests pass; this bundle intentionally does **not** claim live AWS completion until the updated worker is deployed and `scripts/verify_step18_aws.py` passes on a real inspection.
+
+See [`STEP18_AGENTIC_VISION.md`](STEP18_AGENTIC_VISION.md) and [`evaluation/step18/`](evaluation/step18/).
+
+Next Agentic Vision tools after Tool 1: ROI crop/enhance using the Step-17 bbox, explicit evidence comparison, and expanded human-control/failure-case evaluation.
 
 ## Step 13 benchmark
 
@@ -473,3 +484,12 @@ The controlled stock-OpenCV-vs-COOL performance harness is documented in
 [`STEP13_BENCHMARK.md`](STEP13_BENCHMARK.md). Run it on the same Graviton4
 `m8g.4xlarge` and EBS-cached input used by Step 12. Judge-facing outputs are
 written to `evaluation/step13/`.
+
+
+## Step 17 structured candidate JSON — LIVE AWS PASS
+
+Step 17 extends the live-tested Step-16 Bedrock detector so every accepted AI candidate is machine-readable and directly actionable by later Agentic Vision tools. Each canonical candidate now includes `room`, `category`, `description`, exact video `timestamp`, `confidence`, `severity_candidate`, and a normalized top-left-origin `bbox` (`x`, `y`, `width`, `height`). The room vocabulary is fixed to Kitchen, Bathroom, Living room, Bedroom, Garage, Exterior, Hallway, and Unknown (normalized to snake case).
+
+The application preserves every structurally valid candidate in `candidate_findings`, including uncertain findings below the legacy 0.65 issue threshold, so Step 18 can decide whether to inspect them again. It rejects timestamps that do not match a submitted OpenCV keyframe and invalid/out-of-image boxes. `normalized_bbox_to_pixels(...)` converts a validated bbox into an OpenCV crop rectangle. New reports are written to `inspections/{inspection_id}/issues/step17-structured-findings.json`; candidates at or above the configured threshold are additionally promoted into enriched `issues` with frame/S3 traceability.
+
+Local verification on **September 8, 2026** passed all 15 Step-17 contract checks. The same day, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed the real AWS acceptance run against `us.amazon.nova-2-lite-v1:0`: three persisted keyframes were considered in one Bedrock batch, one structured `cleanliness` candidate was returned at timestamp `13.0` with confidence `0.8` and a normalized bbox, and the candidate was promoted to an enriched issue linked to source frame `2`. Bedrock request ID `1a9170ad-069c-4688-8c29-2be4f63f290d` proves the live invocation. The report is persisted at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json`, and `scripts/verify_step17_aws.py` returned `passed=true` with `errors=[]`. Step 17 is therefore **LIVE AWS PASS**. See `STEP17_STRUCTURED_JSON.md`, `evaluation/step17/structured_finding_contract.json`, `evaluation/step17/local_verification.json`, and `evaluation/step17/live/` for the contract and evidence.
