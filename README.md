@@ -468,16 +468,19 @@ The live run also exposed one Nova 2 Lite compatibility correction: the model re
 
 See [`STEP16_ISSUE_DETECTOR.md`](STEP16_ISSUE_DETECTOR.md), [`evaluation/step16/`](evaluation/step16/), and [`evaluation/step16/live/`](evaluation/step16/live/) for the contract, local verification, compatibility note, and live AWS evidence.
 
-## Step 18 Agentic Vision — Tool 1 implemented; live AWS acceptance pending
+## Step 18 Agentic Vision — LIVE AWS PASS
 
-Step 18 now implements the first real Agentic Vision loop. An uncertain Step-17 candidate causes the application to enqueue `inspect_interval(video_id, timestamp, seconds_before, seconds_after, sample_fps)` on the **same SQS → Graviton4 COOL worker**. The canonical 2-second-before + 3-second-after window at 6 fps requests 30 OpenCV frames. Those frames are persisted, reassessed in Bedrock-safe batches, and converted into a new `confidence_after` plus a subsequent `ACCEPT_FINDING`, `DISMISS_FINDING`, or `REQUEST_HUMAN_APPROVAL` action.
+Step 18 implements the first real Agentic Vision loop. An uncertain Step-17 candidate causes the application to enqueue `inspect_interval(video_id, timestamp, seconds_before, seconds_after, sample_fps)` on the **same SQS → Graviton4 COOL worker**. The canonical 2-second-before + 3-second-after window at 6 fps requests up to 30 OpenCV frames when the full interval exists; intervals that reach a source-video boundary are safely clipped to the available duration.
 
-The S3 trace records the original agent decision, tool arguments, COOL runtime identity, frame evidence, `confidence_before`, `confidence_after`, delta, Bedrock request IDs, and final action. Local Step-18 tests pass; this bundle intentionally does **not** claim live AWS completion until the updated worker is deployed and `scripts/verify_step18_aws.py` passes on a real inspection.
+Live AWS validation completed on **September 9, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, Step-18 job `rv-da3386e4a5680c8aa90281f850edc791`. A Step-17 `cleanliness` candidate at timestamp `13.0` with confidence `0.8` caused the agent to call `inspect_interval`. The workload executed on **OpenCV COOL 3.1 / OpenCV 5.1.0-dev on aarch64 Graviton4 (`m8g.4xlarge`)**. Because the 13.5-second source video ended before the requested 16.0-second interval endpoint, the effective interval was clipped to 11.0–13.5 seconds and produced 15 valid OpenCV frames at 6 fps.
 
-See [`STEP18_AGENTIC_VISION.md`](STEP18_AGENTIC_VISION.md) and [`evaluation/step18/`](evaluation/step18/).
+The 15 frames were persisted to S3 and reassessed with Amazon Nova 2 Lite. Bedrock request ID `38a229fd-05df-480e-a01e-1685846c49d1` returned evidence that the clutter/toys were visible in multiple frames, increasing confidence from **0.8 to 0.9**. The agent then produced the final action **`ACCEPT_FINDING`**.
+
+The Step-18 trace persists the original agent decision, tool arguments, COOL runtime identity, frame evidence, `confidence_before`, `confidence_after`, confidence delta, Bedrock request IDs, and final action. CloudWatch contains the required `AGENT_TOOL_STARTED`, `AGENT_TOOL_OPENCV_COMPLETE`, and `AGENT_ACTION_DECIDED` events for the live job. `scripts/verify_step18_aws.py` cross-checked DynamoDB, S3, COOL runtime evidence, Bedrock evidence, and CloudWatch and returned **`passed=true` with `errors=[]`**.
+
+See [`STEP18_AGENTIC_VISION.md`](STEP18_AGENTIC_VISION.md), [`evaluation/step18/`](evaluation/step18/), and [`evaluation/step18/live/verification.json`](evaluation/step18/live/verification.json) for the implementation, local checks, and live AWS acceptance evidence.
 
 Next Agentic Vision tools after Tool 1: ROI crop/enhance using the Step-17 bbox, explicit evidence comparison, and expanded human-control/failure-case evaluation.
-
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in
