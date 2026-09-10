@@ -1,7 +1,7 @@
 # Step 18 — Agentic Vision: targeted `inspect_interval()`
 
 **Roadmap window:** September 9–15, 2026  
-**Status in this bundle:** implemented locally; live AWS acceptance still required after deployment.
+**Status in this bundle:** LIVE AWS PASS — local tests and real Graviton4 COOL acceptance completed.
 
 ## Why this step matters
 
@@ -141,9 +141,9 @@ The focused Step-18 tests (6 passing in this bundle) cover:
 - persisted service trace with COOL runtime, confidence delta, and final action
 - browser demo wiring for the visible agent loop
 
-## Live AWS acceptance procedure
+## Live AWS acceptance — PASS
 
-After deploying this revision to the existing COOL/Graviton4 worker and API:
+Live AWS acceptance completed on **September 9, 2026** using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and Step-18 job `rv-da3386e4a5680c8aa90281f850edc791`. The acceptance run used the following procedure:
 
 1. Use an inspection whose Step-17 report contains at least one candidate in the uncertainty band. If necessary, run a representative walkthrough that naturally produces one; do not fabricate live judging evidence.
 2. Call:
@@ -169,7 +169,7 @@ python scripts/verify_step18_aws.py \
   --output evaluation/step18/live/verification.json
 ```
 
-A live PASS must prove all of the following:
+The live run proved all of the following:
 
 - agent decision persisted
 - later tool call is `inspect_interval`
@@ -182,6 +182,22 @@ A live PASS must prove all of the following:
 - Bedrock temporal reassessment request IDs were persisted
 - the interval JPEG count is cross-checked against the actual S3 prefix
 - CloudWatch Logs contain `AGENT_TOOL_STARTED`, `AGENT_TOOL_OPENCV_COMPLETE`, and `AGENT_ACTION_DECIDED` for the exact Step-18 job
+
+### Observed live result
+
+- Inspection: `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`
+- Step-18 job: `rv-da3386e4a5680c8aa90281f850edc791`
+- Runtime: COOL `3.1` / OpenCV `5.1.0-dev` / `aarch64` / Graviton4 `m8g.4xlarge`
+- Requested interval: `11.0–16.0 s` at `6 fps`, up to 30 frames
+- Effective interval: `11.0–13.5 s` because the source video ended at 13.5 seconds
+- Returned OpenCV frames: `15`
+- Confidence: `0.8 → 0.9`
+- Final action: `ACCEPT_FINDING`
+- Bedrock request ID: `38a229fd-05df-480e-a01e-1685846c49d1`
+- Live verifier: `passed=true`, `errors=[]`
+- Evidence: `evaluation/step18/live/verification.json`
+
+The historical trace correctly records Git commit `64edbe5c9e0d94a9a7a49504d5ba4583b628a9e2`, the revision that actually executed the successful live AWS run.
 
 ## Files added or changed
 
