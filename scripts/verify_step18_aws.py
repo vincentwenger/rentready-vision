@@ -233,8 +233,31 @@ def main() -> int:
         requested = int(request.get("requested_frame_count") or 0)
         if returned <= 0:
             errors.append("inspect_interval returned no frames")
-        if requested == 30 and returned != 30:
-            errors.append(f"Canonical 30-frame request returned {returned} frames")
+        interval_window = interval.get("interval") or {}
+        requested_start = float(interval_window.get("requested_start_seconds", 0.0))
+        requested_end = float(interval_window.get("requested_end_seconds", 0.0))
+        effective_start = float(interval_window.get("effective_start_seconds", requested_start))
+        effective_end = float(interval_window.get("effective_end_seconds", requested_end))
+        sample_fps = float(request.get("sample_fps") or 0.0)
+
+        interval_was_clipped = (
+            abs(effective_start - requested_start) > 1e-6
+            or abs(effective_end - requested_end) > 1e-6
+        )
+
+        expected_returned = requested
+        if interval_was_clipped and sample_fps > 0:
+            effective_duration = max(0.0, effective_end - effective_start)
+            expected_returned = max(
+                1,
+                min(requested, int(round(effective_duration * sample_fps))),
+            )
+
+        if requested == 30 and returned != expected_returned:
+            errors.append(
+                f"Canonical interval expected {expected_returned} frames after clipping, "
+                f"but returned {returned}"
+            )
         if trace.get("confidence_before") is None or trace.get("confidence_after") is None:
             errors.append("confidence_before/confidence_after are not both persisted")
         if trace.get("action") not in {"ACCEPT_FINDING", "DISMISS_FINDING", "REQUEST_HUMAN_APPROVAL"}:

@@ -553,6 +553,7 @@ def complete_agent_tool_job(
     update_inspection(
         inspection_id,
         agentic_status="COMPLETE",
+        agentic_error=None,
         active_agent_job_id=job_id,
         agentic_trace_s3_key=result_s3_key,
         agentic_confidence_before=result.get("confidence_before"),

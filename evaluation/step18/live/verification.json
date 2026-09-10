@@ -1,0 +1,167 @@
+{
+  "step": 18,
+  "verification_scope": "live_aws_agentic_interval_s3_cloudwatch",
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "job_id": "rv-da3386e4a5680c8aa90281f850edc791",
+  "passed": true,
+  "bucket": "rentready-vision-dev-081087819788",
+  "trace_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/step18-agentic-trace.json",
+  "runtime": "COOL",
+  "architecture": "aarch64",
+  "opencv_version": "5.1.0-dev",
+  "returned_frame_count": 15,
+  "confidence_before": 0.8,
+  "confidence_after": 0.9,
+  "confidence_delta": 0.1,
+  "action": "ACCEPT_FINDING",
+  "bedrock_request_ids": [
+    "38a229fd-05df-480e-a01e-1685846c49d1"
+  ],
+  "s3_evidence": {
+    "frame_prefix": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/",
+    "trace_frame_keys": 15,
+    "s3_jpeg_count": 15,
+    "sample_keys": [
+      "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/interval_000_000011.000.jpg",
+      "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/interval_001_000011.167.jpg",
+      "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/interval_002_000011.333.jpg",
+      "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/interval_003_000011.500.jpg",
+      "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/interval/interval_004_000011.667.jpg"
+    ]
+  },
+  "cloudwatch_evidence": {
+    "log_group": "/rentready-vision/cool-worker",
+    "window_start": "2026-09-09T23:52:24.240000+00:00",
+    "window_end": "2026-09-10T00:32:24.240000+00:00",
+    "required_events": [
+      "AGENT_TOOL_STARTED",
+      "AGENT_TOOL_OPENCV_COMPLETE",
+      "AGENT_ACTION_DECIDED"
+    ],
+    "events_seen": [
+      "AGENT_ACTION_DECIDED",
+      "AGENT_TOOL_OPENCV_COMPLETE",
+      "AGENT_TOOL_STARTED"
+    ],
+    "events": [
+      {
+        "event": "AGENT_TOOL_STARTED",
+        "timestamp": 13.0,
+        "runtime": "COOL",
+        "confidence_before": 0.8,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": null,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896017556049959702912257201825043612071238117284380672"
+      },
+      {
+        "event": "AGENT_TOOL_OPENCV_COMPLETE",
+        "timestamp": "2026-09-10T00:15:03.276154+00:00",
+        "runtime": "COOL",
+        "confidence_before": null,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": 15,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896017622706887101320289775442824568979088184119787520"
+      },
+      {
+        "event": "AGENT_TOOL_STARTED",
+        "timestamp": 13.0,
+        "runtime": "COOL",
+        "confidence_before": 0.8,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": null,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896018965613161466437354185283322371818530347247534080"
+      },
+      {
+        "event": "AGENT_TOOL_OPENCV_COMPLETE",
+        "timestamp": "2026-09-10T00:16:06.168095+00:00",
+        "runtime": "COOL",
+        "confidence_before": null,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": 15,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896019025245354127308240468938946291025504140897353728"
+      },
+      {
+        "event": "AGENT_TOOL_STARTED",
+        "timestamp": 13.0,
+        "runtime": "COOL",
+        "confidence_before": 0.8,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": null,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896021706419347856247999674885910757742843858215370752"
+      },
+      {
+        "event": "AGENT_TOOL_OPENCV_COMPLETE",
+        "timestamp": "2026-09-10T00:18:09.226611+00:00",
+        "runtime": "COOL",
+        "confidence_before": null,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": 15,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896021769530456768089663168810635977157256737076609024"
+      },
+      {
+        "event": "AGENT_TOOL_STARTED",
+        "timestamp": 13.0,
+        "runtime": "COOL",
+        "confidence_before": 0.8,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": null,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896027128912445114564608702675215240761917467633188864"
+      },
+      {
+        "event": "AGENT_TOOL_OPENCV_COMPLETE",
+        "timestamp": "2026-09-10T00:22:12.211845+00:00",
+        "runtime": "COOL",
+        "confidence_before": null,
+        "confidence_after": null,
+        "confidence_delta": null,
+        "returned_frame_count": 15,
+        "action": null,
+        "result_s3_key": null,
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896027188277028833053127508616893627248684570869039104"
+      },
+      {
+        "event": "AGENT_ACTION_DECIDED",
+        "timestamp": "2026-09-10T00:22:24.314925+00:00",
+        "runtime": "COOL",
+        "confidence_before": 0.8,
+        "confidence_after": 0.9,
+        "confidence_delta": 0.1,
+        "returned_frame_count": null,
+        "action": "ACCEPT_FINDING",
+        "result_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-da3386e4a5680c8aa90281f850edc791/step18-agentic-trace.json",
+        "log_stream": "ip-172-31-46-18/20260910T001130Z",
+        "event_id": "39896027458205248716067790028436679506937276907279745024"
+      }
+    ]
+  },
+  "errors": []
+}
