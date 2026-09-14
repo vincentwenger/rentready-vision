@@ -1,0 +1,52 @@
+{
+  "step": 19,
+  "verification_scope": "local_crop_region_agent_tool_contract",
+  "passed": true,
+  "checks_passed": 14,
+  "checks_total": 14,
+  "checks": {
+    "operation_named_crop_region": true,
+    "tool_input_contract": true,
+    "queue_parameter_contract": true,
+    "tool_versioned": true,
+    "opencv_roi_and_resize_implemented": true,
+    "target_long_edge_1024": true,
+    "original_frame_preserved": true,
+    "padding_metadata_persisted": true,
+    "message_is_valid": true,
+    "cool_worker_dispatches_crop": true,
+    "service_persists_derived_evidence": true,
+    "api_crop_route_present": true,
+    "step19_documented": true,
+    "step19_tests_present": true
+  },
+  "errors": [],
+  "crop_region_signature": "(frame: 'np.ndarray', bounding_box: 'dict[str, Any]', padding: 'float') -> 'tuple[np.ndarray, dict[str, Any]]'",
+  "example_output": {
+    "source_dimensions": {
+      "width": 200,
+      "height": 100,
+      "preserved_original": true
+    },
+    "bbox_pixels": {
+      "x": 50,
+      "y": 20,
+      "width": 100,
+      "height": 40
+    },
+    "padded_bbox_pixels": {
+      "x": 40,
+      "y": 16,
+      "width": 120,
+      "height": 48
+    },
+    "output": {
+      "width": 1024,
+      "height": 410,
+      "scale": 8.533333,
+      "long_edge": 1024
+    }
+  },
+  "live_aws_validated": false,
+  "note": "Local PASS proves Tool 2 code, immutable message validation, worker dispatch, evidence-preserving crop behavior, and API wiring. A live SQS -> Graviton4 COOL run is still required for AWS acceptance evidence."
+}

@@ -29,11 +29,16 @@ from app.db import (  # noqa: E402
     update_inspection,
 )
 from app.processing_jobs import (  # noqa: E402
+    OPERATION_CROP_REGION,
     OPERATION_INSPECT_INTERVAL,
     current_git_commit,
     validate_processing_message,
 )
-from app.services import execute_interval_inspection_job, execute_processing_job  # noqa: E402
+from app.services import (  # noqa: E402
+    execute_crop_region_job,
+    execute_interval_inspection_job,
+    execute_processing_job,
+)
 from app.telemetry import CloudWatchTelemetry  # noqa: E402
 
 logging.basicConfig(
@@ -130,16 +135,30 @@ def _handle_agent_tool_message(
     )
     heartbeat.start()
     try:
-        result = execute_interval_inspection_job(
-            inspection_id=inspection_id,
-            source_key=str(body["s3_input_key"]),
-            parameters=body["processing_parameters"],
-            agent_context=body["agent_context"],
-            job_id=job_id,
-            require_cool=True,
-            expected_source_etag=body.get("source_etag"),
-            telemetry=telemetry,
-        )
+        if body["operation"] == OPERATION_INSPECT_INTERVAL:
+            result = execute_interval_inspection_job(
+                inspection_id=inspection_id,
+                source_key=str(body["s3_input_key"]),
+                parameters=body["processing_parameters"],
+                agent_context=body["agent_context"],
+                job_id=job_id,
+                require_cool=True,
+                expected_source_etag=body.get("source_etag"),
+                telemetry=telemetry,
+            )
+        elif body["operation"] == OPERATION_CROP_REGION:
+            result = execute_crop_region_job(
+                inspection_id=inspection_id,
+                source_key=str(body["s3_input_key"]),
+                parameters=body["processing_parameters"],
+                agent_context=body["agent_context"],
+                job_id=job_id,
+                require_cool=True,
+                expected_source_etag=body.get("source_etag"),
+                telemetry=telemetry,
+            )
+        else:
+            raise ValueError(f"Unsupported agent tool operation: {body['operation']!r}")
         committed = complete_agent_tool_job(
             inspection_id, job_id, claim_token=claim_token,
             result_s3_key=result["result_s3_key"],
@@ -249,7 +268,7 @@ def _handle_message(
             LOGGER.exception("Could not set retry visibility for invalid job %s", job_id)
         raise
 
-    if body["operation"] == OPERATION_INSPECT_INTERVAL:
+    if body["operation"] in {OPERATION_INSPECT_INTERVAL, OPERATION_CROP_REGION}:
         return _handle_agent_tool_message(
             queue_url=queue_url, message=message, body=body, telemetry=telemetry,
             receive_count=receive_count, worker_id=worker_id,

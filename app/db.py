@@ -560,6 +560,6 @@ def complete_agent_tool_job(
         agentic_confidence_after=result.get("confidence_after"),
         agentic_action=result.get("action"),
         agentic_completed_at=now,
-        last_agentic_event="AGENT_ACTION_DECIDED",
+        last_agentic_event=result.get("completion_event") or "AGENT_ACTION_DECIDED",
     )
     return True

@@ -14,12 +14,18 @@ MESSAGE_SCHEMA_VERSION = "2.0"
 RUNTIME_SCHEMA_VERSION = "rentready-video-worker/1.0"
 OPERATION_ANALYZE_VIDEO = "analyze_video"
 OPERATION_INSPECT_INTERVAL = "inspect_interval"
+OPERATION_CROP_REGION = "crop_region"
 INTERVAL_TOOL_PARAMETER_NAMES = (
     "video_id",
     "timestamp",
     "seconds_before",
     "seconds_after",
     "sample_fps",
+)
+CROP_TOOL_PARAMETER_NAMES = (
+    "frame_s3_key",
+    "bounding_box",
+    "padding",
 )
 
 # These names intentionally match app.vision.video_processor.process_video().
@@ -213,6 +219,51 @@ def build_interval_inspection_message(
     }
 
 
+
+def build_crop_region_message(
+    *,
+    inspection_id: str,
+    frame_s3_key: str,
+    source_etag: str | None,
+    bounding_box: dict[str, Any],
+    padding: float,
+    agent_context: dict[str, Any],
+    git_commit: str | None = None,
+) -> dict[str, Any]:
+    resolved_git_commit = git_commit or current_git_commit()
+    parameters = {
+        "frame_s3_key": str(frame_s3_key),
+        "bounding_box": {
+            "x": float(bounding_box["x"]),
+            "y": float(bounding_box["y"]),
+            "width": float(bounding_box["width"]),
+            "height": float(bounding_box["height"]),
+        },
+        "padding": float(padding),
+    }
+    job_id = deterministic_job_id(
+        inspection_id=inspection_id,
+        s3_input_key=frame_s3_key,
+        source_etag=source_etag,
+        parameters=parameters,
+        git_commit=resolved_git_commit,
+        operation=OPERATION_CROP_REGION,
+        agent_context=agent_context,
+    )
+    return {
+        "schema_version": MESSAGE_SCHEMA_VERSION,
+        "runtime_schema_version": RUNTIME_SCHEMA_VERSION,
+        "git_commit": resolved_git_commit,
+        "operation": OPERATION_CROP_REGION,
+        "job_id": job_id,
+        "inspection_id": inspection_id,
+        "s3_input_key": frame_s3_key,
+        "source_etag": source_etag,
+        "processing_parameters": parameters,
+        "agent_context": agent_context,
+        "enqueued_at": utc_now(),
+    }
+
 def validate_processing_message(body: dict[str, Any], settings: Settings) -> dict[str, Any]:
     required = {
         "schema_version",
@@ -272,6 +323,34 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
             raise ValueError("inspect_interval sample_fps must be >0 and <=30")
         if not isinstance(body.get("agent_context"), dict):
             raise ValueError("inspect_interval requires agent_context")
+    elif operation == OPERATION_CROP_REGION:
+        expected_names = set(CROP_TOOL_PARAMETER_NAMES)
+        if supplied_names != expected_names:
+            raise ValueError(
+                "crop_region message has incorrect tool parameters; "
+                f"missing={sorted(expected_names-supplied_names)}, extra={sorted(supplied_names-expected_names)}"
+            )
+        raw_bbox = body["processing_parameters"].get("bounding_box")
+        if not isinstance(raw_bbox, dict) or set(raw_bbox) != {"x", "y", "width", "height"}:
+            raise ValueError("crop_region bounding_box must contain x, y, width, height")
+        bbox = {name: float(raw_bbox[name]) for name in ("x", "y", "width", "height")}
+        if bbox["x"] < 0 or bbox["y"] < 0 or bbox["width"] <= 0 or bbox["height"] <= 0:
+            raise ValueError("crop_region bounding_box must be positive and inside normalized coordinates")
+        if bbox["x"] + bbox["width"] > 1.0 + 1e-9 or bbox["y"] + bbox["height"] > 1.0 + 1e-9:
+            raise ValueError("crop_region bounding_box must stay inside the normalized frame")
+        padding = float(body["processing_parameters"]["padding"])
+        if padding < 0 or padding > 2.0:
+            raise ValueError("crop_region padding must be between 0 and 2")
+        frame_s3_key = str(body["processing_parameters"]["frame_s3_key"]).strip()
+        if not frame_s3_key:
+            raise ValueError("crop_region frame_s3_key is required")
+        params = {
+            "frame_s3_key": frame_s3_key,
+            "bounding_box": bbox,
+            "padding": padding,
+        }
+        if not isinstance(body.get("agent_context"), dict):
+            raise ValueError("crop_region requires agent_context")
     else:
         raise ValueError(f"Unsupported operation: {operation!r}")
     expected_id = deterministic_job_id(
@@ -282,7 +361,7 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
         git_commit=str(body["git_commit"]),
         runtime_schema_version=str(body["runtime_schema_version"]),
         operation=operation,
-        agent_context=body.get("agent_context") if operation == OPERATION_INSPECT_INTERVAL else None,
+        agent_context=body.get("agent_context") if operation in {OPERATION_INSPECT_INTERVAL, OPERATION_CROP_REGION} else None,
     )
     if str(body["job_id"]) != expected_id:
         raise ValueError("Processing message job_id does not match its deterministic payload identity")

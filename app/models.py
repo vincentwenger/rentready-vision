@@ -126,6 +126,10 @@ class AgenticRunRequest(BaseModel):
     sample_fps: float | None = Field(default=None, gt=0, le=30)
 
 
+class CropRegionRunRequest(BaseModel):
+    padding: float = Field(default=0.15, ge=0, le=2.0)
+
+
 class AgenticRunResponse(BaseModel):
     inspection_id: str
     status: str

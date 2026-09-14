@@ -24,6 +24,7 @@ from ..models import (
     CreateInspectionRequest,
     CreateInspectionResponse,
     CreateUploadUrlRequest,
+    CropRegionRunRequest,
     FramesResponse,
     InspectionResponse,
     InspectionStatus,
@@ -32,6 +33,7 @@ from ..models import (
     UploadUrlResponse,
 )
 from ..processing_jobs import (
+    build_crop_region_message,
     build_interval_inspection_message,
     build_processing_message,
     processing_parameters,
@@ -423,6 +425,140 @@ def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> Agenti
         job_id=message["job_id"], backend="graviton4_cool_sqs", candidate=candidate,
         tool_call=tool_call,
         note="Step-17 visual uncertainty caused a second targeted COOL/OpenCV workload.",
+    )
+
+
+@router.post("/{inspection_id}/agent/crop", response_model=AgenticRunResponse, status_code=status.HTTP_202_ACCEPTED)
+def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> AgenticRunResponse:
+    """Run Agent Tool 2 against the uncertain Step-17 candidate's original keyframe."""
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(status_code=409, detail="Inspection must be COMPLETE before crop_region")
+    if not settings.processing_queue_url:
+        raise HTTPException(
+            status_code=409,
+            detail="crop_region judge path requires PROCESSING_QUEUE_URL so it runs on COOL/Graviton4",
+        )
+
+    issue_report = load_issues_report(inspection_id)
+    candidate = choose_uncertain_candidate(
+        issue_report.get("candidate_findings", []),
+        minimum_confidence=settings.agentic_reinspect_min_confidence,
+        maximum_confidence=settings.agentic_reinspect_max_confidence,
+    )
+    if candidate is None:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="NO_ACTION",
+            decision="NO_CROP_TARGET",
+            note="No Step-17 candidate falls inside the configured uncertainty band.",
+        )
+
+    manifest = load_manifest(inspection_id)
+    candidate_timestamp = round(float(candidate.get("timestamp")), 3)
+    matching_frames = [
+        frame for frame in manifest.get("keyframes", [])
+        if round(float(frame.get("timestamp_seconds") or 0.0), 3) == candidate_timestamp
+    ]
+    if not matching_frames:
+        raise HTTPException(
+            status_code=409,
+            detail=f"No preserved OpenCV keyframe matches candidate timestamp {candidate_timestamp}",
+        )
+    frame = matching_frames[0]
+    frame_s3_key = str(frame["s3_key"])
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=frame_s3_key)
+    source_etag = str(source_head.get("ETag", "")).strip('"') or None
+
+    confidence_before = float(candidate.get("confidence"))
+    agent_context = {
+        "room": candidate.get("room"),
+        "category": candidate.get("category"),
+        "description": candidate.get("description"),
+        "timestamp": candidate_timestamp,
+        "confidence": confidence_before,
+        "confidence_before": confidence_before,
+        "severity_candidate": candidate.get("severity_candidate"),
+        "bbox": candidate.get("bbox"),
+        "evidence_frame_index": frame.get("index"),
+        "evidence_frame_s3_key": frame_s3_key,
+        "decision_reason": "Need a larger spatial view of the candidate region while preserving the original frame.",
+    }
+    message = build_crop_region_message(
+        inspection_id=inspection_id,
+        frame_s3_key=frame_s3_key,
+        source_etag=source_etag,
+        bounding_box=candidate["bbox"],
+        padding=float(payload.padding),
+        agent_context=agent_context,
+    )
+    job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+    tool_call = {
+        "name": "crop_region",
+        "arguments": {
+            "frame": frame_s3_key,
+            "bounding_box": candidate["bbox"],
+            "padding": float(payload.padding),
+        },
+    }
+    if job_record.get("status") == "COMPLETE":
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="COMPLETE",
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical crop_region evidence already exists.",
+        )
+    if not should_enqueue:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status=str(job_record.get("status") or "QUEUED"),
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical crop_region request is already queued or processing.",
+        )
+
+    update_inspection(
+        inspection_id,
+        agentic_status="QUEUED",
+        agentic_error=None,
+        active_agent_job_id=message["job_id"],
+        agentic_confidence_before=confidence_before,
+        agentic_decision="CALL_TOOL",
+        agentic_tool_call=tool_call,
+        last_agentic_event="AGENT_DECISION",
+    )
+    try:
+        response = sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+            MessageAttributes={
+                "operation": {"DataType": "String", "StringValue": message["operation"]},
+                "runtime_schema_version": {"DataType": "String", "StringValue": message["runtime_schema_version"]},
+            },
+        )
+    except Exception as exc:
+        error = f"crop_region enqueue failed: {type(exc).__name__}: {exc}"
+        mark_enqueue_failed(inspection_id, message["job_id"], error)
+        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        raise HTTPException(status_code=503, detail=error) from exc
+
+    mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
+    return AgenticRunResponse(
+        inspection_id=inspection_id,
+        status="QUEUED",
+        decision="CALL_TOOL",
+        job_id=message["job_id"],
+        backend="graviton4_cool_sqs",
+        candidate=candidate,
+        tool_call=tool_call,
+        note="Step-19 Agent Tool 2 queued a padded 1024px OpenCV crop from the preserved keyframe.",
     )
 
 
