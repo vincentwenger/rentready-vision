@@ -1,7 +1,7 @@
 # Step 19 — Agent Tool 2: `crop_region()`
 
 **Roadmap step:** 19  
-**Status in this bundle:** LOCAL PASS — implementation, tests, queue/worker wiring, API route, and local verifier complete. Live AWS/COOL acceptance has not yet been run for Step 19.
+**Status in this bundle:** LIVE AWS PASS — implementation, tests, SQS/COOL worker execution, S3 evidence persistence, CloudWatch telemetry, and live AWS verification complete.
 
 ## Goal
 
@@ -166,25 +166,43 @@ The Step-19 focused tests cover:
 - deterministic/validated `crop_region` SQS messages;
 - service-level S3 evidence behavior proving the derived crop uses a separate key and trace.
 
-## AWS acceptance still required
+## Live AWS validation
 
-This bundle does **not** claim a Step-19 live AWS pass yet. The next acceptance step is to deploy this revision to the existing COOL/Graviton4 worker, queue `POST /inspections/<id>/agent/crop`, and verify:
+Step 19 was validated through the production-style AWS path on September 14, 2026.
 
-- runtime is `COOL` on `aarch64`/Graviton4;
-- OpenCV 5 identity is present;
-- the source keyframe ETag is unchanged;
-- one crop artifact exists under the Step-19 crop prefix;
-- its longest edge is 1024 px;
-- the persisted padded bbox matches the tool request;
-- CloudWatch contains `AGENT_TOOL_STARTED`, `AGENT_TOOL_OPENCV_COMPLETE`, and `AGENT_TOOL_COMPLETE` for the Step-19 job.
+Validated execution:
 
-After the live run, execute:
+- inspection: `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`
+- job: `rv-5129d358aa8dd1d4a5321499ab5f1136`
+- EC2 instance type: `m8g.4xlarge`
+- architecture: `aarch64`
+- COOL version: `3.1`
+- OpenCV version: `5.1.0-dev`
+- padding: `0.15`
+- persisted crop dimensions: `1002 × 1024`
+- longest edge: `1024`
+- original source-frame evidence preserved
+- crop artifact persisted to S3
+- Step-19 trace persisted to S3
+- CloudWatch events verified:
+  - `AGENT_TOOL_STARTED`
+  - `AGENT_TOOL_OPENCV_COMPLETE`
+  - `AGENT_TOOL_COMPLETE`
 
-```bash
-python scripts/verify_step19_aws.py \
-  --inspection-id <inspection_id> \
-  --output evaluation/step19/live/verification.json
+Focused validation results:
+
+- Step 19 COOL tests: `6 passed`
+- Step 18 + Step 19 regression tests: `12 passed`
+- local Step-19 contract verifier: `14/14 passed`
+- live AWS verifier: `passed: true`
+
+Live verification evidence:
+
+```text
+evaluation/step19/live_aws_verification.json
 ```
+
+Final status: **LIVE AWS PASS**.
 
 ## Files added or changed
 
@@ -199,5 +217,5 @@ python scripts/verify_step19_aws.py \
 - `scripts/verify_step19_aws.py`
 - `tests/test_step19_crop_region.py`
 - `evaluation/step19/local_verification.json`
+- `evaluation/step19/live_aws_verification.json`
 - `STEP19_CROP_REGION.md`
-- `README.md`
