@@ -53,6 +53,8 @@
     .agent-flow { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86rem; color: #334155; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
     .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 12px 0 24px; }
     .comparison img { aspect-ratio: auto; object-fit: contain; }
+    .other-angles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 12px 0 24px; }
+    .other-angles img { aspect-ratio: 16/9; object-fit: contain; }
     .derived-label { color: #9a3412; font-weight: 700; }
     @media (max-width: 600px) { .methods { columns: 1; } .comparison { grid-template-columns: 1fr; } }
     [hidden] { display: none !important; }
@@ -85,6 +87,7 @@
       <li class="step" id="step-inspect"><span class="mark">○</span><span>Detecting visible property issues</span></li>
       <li class="step" id="step-agent"><span class="mark">○</span><span>Agent deciding whether to inspect again</span></li>
       <li class="step" id="step-enhance"><span class="mark">○</span><span>Creating a labeled enhanced inspection view</span></li>
+      <li class="step" id="step-angle"><span class="mark">○</span><span>Searching nearby frames for other camera viewpoints</span></li>
       <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
     </ul>
   </section>
@@ -112,6 +115,9 @@
     <h3>Evidence comparison</h3>
     <p class="issue-note" id="enhancement-note"></p>
     <div class="comparison" id="enhancement-comparison" hidden></div>
+    <h3>Multi-view evidence</h3>
+    <p class="issue-note" id="other-angle-note"></p>
+    <div class="other-angles" id="other-angle-views" aria-label="Frame A, Frame B and Frame C multi-view evidence" hidden></div>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -228,7 +234,7 @@ function renderAgentic(response, warning = null) {
   box.append(text);
 }
 
-async function renderEnhancement(id, response, warning = null) {
+async function renderEnhancement(id, response, warning = null, suppliedViews = null) {
   const note = document.getElementById("enhancement-note");
   const comparison = document.getElementById("enhancement-comparison");
   comparison.replaceChildren();
@@ -241,7 +247,7 @@ async function renderEnhancement(id, response, warning = null) {
     note.textContent = "Step 20 found no uncertain candidate requiring enhancement.";
     return;
   }
-  const views = await api(`/inspections/${id}/agent/views`);
+  const views = suppliedViews ?? await api(`/inspections/${id}/agent/views`);
   const parameters = views.parameters ?? {};
   note.textContent = `The original evidence is unchanged. The enhanced view is a labeled derivative only · contrast ${parameters.contrast ?? "n/a"} · brightness normalization ${parameters.brightness_normalization ? "on" : "off"} · sharpening ${parameters.sharpening ?? "n/a"}.`;
 
@@ -261,6 +267,39 @@ async function renderEnhancement(id, response, warning = null) {
     comparison.append(figure);
   });
   comparison.hidden = false;
+}
+
+async function renderOtherAngles(id, response, warning = null, suppliedViews = null) {
+  const note = document.getElementById("other-angle-note");
+  const grid = document.getElementById("other-angle-views");
+  grid.replaceChildren();
+  grid.hidden = true;
+  if (warning) {
+    note.textContent = `Step 21 other-angle search was not completed: ${warning}`;
+    return;
+  }
+  if (!response || response.status === "NO_ACTION") {
+    note.textContent = "Step 21 found no uncertain candidate requiring another viewpoint.";
+    return;
+  }
+  const result = suppliedViews ?? await api(`/inspections/${id}/agent/other-angle/views`);
+  const assessment = result.multi_view_assessment ?? {};
+  note.textContent = result.multi_view_confirmed
+    ? `Visible in multiple viewpoints · confidence ${result.confidence_before ?? "n/a"} → ${result.confidence_after ?? "n/a"}. ${assessment.evidence_summary ?? ""}`
+    : `Multiple viewpoints did not conclusively confirm the visible issue · action ${result.action ?? "review"}. ${assessment.evidence_summary ?? ""}`;
+  (result.views ?? []).forEach(view => {
+    const figure = document.createElement("figure");
+    const img = document.createElement("img");
+    img.src = view.url;
+    img.alt = `${view.label} at ${view.timestamp_label}`;
+    img.loading = "lazy";
+    const caption = document.createElement("figcaption");
+    const score = view.viewpoint_change?.score;
+    caption.textContent = `${view.label}     ${view.timestamp_label}\n${view.relation === "REFERENCE" ? "Reference" : `Other view · viewpoint score ${score ?? "n/a"}`}`;
+    figure.append(img, caption);
+    grid.append(figure);
+  });
+  grid.hidden = false;
 }
 
 function renderRuntime(processing) {
@@ -410,7 +449,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  ["upload", "read", "extract", "inspect", "agent", "enhance", "report"].forEach(name => setStep(name, null));
+  ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "report"].forEach(name => setStep(name, null));
 
   try {
     setStep("upload", "active");
@@ -499,6 +538,7 @@ runButton.onclick = async () => {
 
     let enhancementResponse = null;
     let enhancementWarning = null;
+    let enhancementViews = null;
     if (issueResponse) {
       setStep("enhance", "active");
       try {
@@ -520,6 +560,9 @@ runButton.onclick = async () => {
             await sleep(1200);
           }
         }
+        if (enhancementResponse && enhancementResponse.status !== "NO_ACTION") {
+          enhancementViews = await api(`/inspections/${id}/agent/views`);
+        }
         setStep("enhance", "done");
       } catch (enhancementError) {
         enhancementWarning = enhancementError instanceof Error ? enhancementError.message : String(enhancementError);
@@ -530,11 +573,51 @@ runButton.onclick = async () => {
       setStep("enhance", "warn");
     }
 
+    let otherAngleResponse = null;
+    let otherAngleWarning = null;
+    let otherAngleViews = null;
+    if (issueResponse) {
+      setStep("angle", "active");
+      try {
+        const started = await api(`/inspections/${id}/agent/other-angle`, {
+          method: "POST",
+          body: JSON.stringify({
+            search_seconds_before: 4,
+            search_seconds_after: 4,
+            sample_every_seconds: 0.5,
+            max_results: 3,
+            min_viewpoint_change: 0.06
+          })
+        });
+        if (started.status === "NO_ACTION" || started.status === "COMPLETE") {
+          otherAngleResponse = started.status === "COMPLETE" ? await api(`/inspections/${id}/agent`) : started;
+        } else {
+          for (;;) {
+            const status = await api(`/inspections/${id}/agent`);
+            if (status.status === "FAILED") throw new Error(status.error || "inspect_other_angle failed.");
+            if (status.status === "COMPLETE") { otherAngleResponse = status; break; }
+            await sleep(1200);
+          }
+        }
+        if (otherAngleResponse && otherAngleResponse.status !== "NO_ACTION") {
+          otherAngleViews = await api(`/inspections/${id}/agent/other-angle/views`);
+        }
+        setStep("angle", "done");
+      } catch (otherAngleError) {
+        otherAngleWarning = otherAngleError instanceof Error ? otherAngleError.message : String(otherAngleError);
+        setStep("angle", "warn");
+      }
+    } else {
+      otherAngleWarning = "Step 21 could not run because Step 17 did not complete.";
+      setStep("angle", "warn");
+    }
+
     setStep("report", "active");
     await renderResults(id, frames);
     renderIssues(issueResponse, issueWarning);
     renderAgentic(agentResponse, agentWarning);
-    await renderEnhancement(id, enhancementResponse, enhancementWarning);
+    await renderEnhancement(id, enhancementResponse, enhancementWarning, enhancementViews);
+    await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);
     setStep("report", "done");
   } catch (error) {
     errorEl.textContent = error instanceof Error ? error.message : String(error);

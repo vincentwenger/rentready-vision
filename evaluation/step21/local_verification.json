@@ -1,0 +1,74 @@
+{
+  "step": 21,
+  "verification_scope": "local_other_angle_agent_tool_contract",
+  "passed": true,
+  "checks_passed": 20,
+  "checks_total": 20,
+  "checks": {
+    "operation_named_inspect_other_angle": true,
+    "tool_signature_exposes_search_controls": true,
+    "queue_parameter_contract_complete": true,
+    "tool_versioned": true,
+    "message_is_valid": true,
+    "opencv_geometric_matching_present": true,
+    "ransac_used": true,
+    "viewpoint_change_scored": true,
+    "three_views_selected": true,
+    "frame_labels_present": true,
+    "timestamps_sorted": true,
+    "evidence_artifacts_created": true,
+    "ai_requires_same_object": true,
+    "ai_decides_multiple_viewpoints": true,
+    "cool_worker_dispatches_tool": true,
+    "service_persists_separate_artifacts": true,
+    "api_routes_present": true,
+    "browser_displays_multiview_evidence": true,
+    "step21_documented": true,
+    "step21_tests_present": true
+  },
+  "errors": [],
+  "inspect_other_angle_signature": "(video_path: 'str | Path', output_dir: 'str | Path', *, timestamp: 'float', bounding_box: 'dict[str, Any]', search_seconds_before: 'float' = 4.0, search_seconds_after: 'float' = 4.0, sample_every_seconds: 'float' = 0.5, max_results: 'int' = 3, min_viewpoint_change: 'float' = 0.06) -> 'dict[str, Any]'",
+  "example": {
+    "selected_frame_count": 3,
+    "frames": [
+      {
+        "label": "Frame A",
+        "timestamp_label": "00:00",
+        "relation": "OTHER_VIEW",
+        "viewpoint_change": {
+          "score": 0.0581,
+          "translation_fraction_of_diagonal": 0.0186,
+          "absolute_log_area_change": 0.0128,
+          "edge_shape_change": 0.0068
+        },
+        "inlier_count": 1098
+      },
+      {
+        "label": "Frame B",
+        "timestamp_label": "00:02",
+        "relation": "REFERENCE",
+        "viewpoint_change": {
+          "score": 0.0,
+          "translation_fraction_of_diagonal": 0.0,
+          "absolute_log_area_change": 0.0,
+          "edge_shape_change": 0.0
+        },
+        "inlier_count": 2008
+      },
+      {
+        "label": "Frame C",
+        "timestamp_label": "00:04",
+        "relation": "OTHER_VIEW",
+        "viewpoint_change": {
+          "score": 0.0571,
+          "translation_fraction_of_diagonal": 0.0187,
+          "absolute_log_area_change": 0.0119,
+          "edge_shape_change": 0.0058
+        },
+        "inlier_count": 1115
+      }
+    ]
+  },
+  "live_aws_validated": false,
+  "note": "Local PASS proves geometric candidate continuity, changed-view ranking, deterministic queue validation, COOL worker dispatch, separate evidence persistence, AI multi-view judgment, and browser rendering. A live SQS-to-COOL run remains required for AWS acceptance."
+}

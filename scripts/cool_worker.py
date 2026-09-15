@@ -31,6 +31,7 @@ from app.db import (  # noqa: E402
 from app.processing_jobs import (  # noqa: E402
     OPERATION_CROP_REGION,
     OPERATION_ENHANCE_REGION,
+    OPERATION_INSPECT_OTHER_ANGLE,
     OPERATION_INSPECT_INTERVAL,
     current_git_commit,
     validate_processing_message,
@@ -38,6 +39,7 @@ from app.processing_jobs import (  # noqa: E402
 from app.services import (  # noqa: E402
     execute_crop_region_job,
     execute_enhance_region_job,
+    execute_other_angle_job,
     execute_interval_inspection_job,
     execute_processing_job,
 )
@@ -170,6 +172,17 @@ def _handle_agent_tool_message(
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
             )
+        elif body["operation"] == OPERATION_INSPECT_OTHER_ANGLE:
+            result = execute_other_angle_job(
+                inspection_id=inspection_id,
+                source_key=str(body["s3_input_key"]),
+                parameters=body["processing_parameters"],
+                agent_context=body["agent_context"],
+                job_id=job_id,
+                require_cool=True,
+                expected_source_etag=body.get("source_etag"),
+                telemetry=telemetry,
+            )
         else:
             raise ValueError(f"Unsupported agent tool operation: {body['operation']!r}")
         committed = complete_agent_tool_job(
@@ -285,6 +298,7 @@ def _handle_message(
         OPERATION_INSPECT_INTERVAL,
         OPERATION_CROP_REGION,
         OPERATION_ENHANCE_REGION,
+        OPERATION_INSPECT_OTHER_ANGLE,
     }:
         return _handle_agent_tool_message(
             queue_url=queue_url, message=message, body=body, telemetry=telemetry,

@@ -1,0 +1,87 @@
+{
+  "step": 21,
+  "operation": "inspect_other_angle",
+  "tool_version": "rentready-inspect-other-angle/1.0",
+  "trace_version": "rentready-agentic-other-angle/1.0",
+  "goal": "Find geometrically verified nearby views of a Step-17 candidate and determine whether the same visible issue is supported from multiple viewpoints.",
+  "inputs": {
+    "application_resolved": [
+      "video_id",
+      "source_video_s3_key",
+      "source_video_etag",
+      "timestamp",
+      "bounding_box"
+    ],
+    "bounded_controls": {
+      "search_seconds_before": {"default": 4.0, "minimum": 0.0, "maximum": 30.0},
+      "search_seconds_after": {"default": 4.0, "minimum": 0.0, "maximum": 30.0},
+      "sample_every_seconds": {"default": 0.5, "minimum": 0.1, "maximum": 5.0},
+      "max_results": {"default": 3, "minimum": 2, "maximum": 5},
+      "min_viewpoint_change": {"default": 0.06, "minimum": 0.0, "maximum": 1.0}
+    }
+  },
+  "opencv_pipeline": [
+    "candidate-context ORB feature detection",
+    "Hamming KNN descriptor matching",
+    "ratio test",
+    "RANSAC homography",
+    "minimum match, inlier, and inlier-ratio gates",
+    "candidate-box projection and geometry validation",
+    "viewpoint change scoring",
+    "before/after and temporal-diversity selection"
+  ],
+  "geometric_thresholds": {
+    "minimum_good_matches": 8,
+    "minimum_inliers": 6,
+    "minimum_inlier_ratio": 0.4,
+    "descriptor_ratio_test": 0.78,
+    "ransac_reprojection_threshold_pixels": 4.0,
+    "projected_area_ratio_minimum": 0.15,
+    "projected_area_ratio_maximum": 6.0,
+    "projected_quadrilateral_must_be_convex": true
+  },
+  "viewpoint_score_components": [
+    "translation_fraction_of_diagonal",
+    "absolute_log_area_change",
+    "edge_shape_change"
+  ],
+  "ai_decision_contract": {
+    "forced_tool": "reassess_other_angle_evidence",
+    "required_fields": [
+      "confidence",
+      "same_region_or_object",
+      "visible_in_multiple_viewpoints",
+      "evidence_summary"
+    ],
+    "multi_view_confirmed_requires": [
+      "at least two OpenCV-selected views",
+      "same_region_or_object is true",
+      "visible_in_multiple_viewpoints is true"
+    ],
+    "inconclusive_action": "REQUEST_HUMAN_APPROVAL"
+  },
+  "evidence": {
+    "source_video_overwritten": false,
+    "derived_per_selected_frame": [
+      "annotated full-frame JPEG",
+      "1024px contextual region JPEG"
+    ],
+    "trace_suffix": "step21-other-angle-trace.json",
+    "required_metadata": [
+      "ordered Frame A/B/C labels",
+      "timestamps",
+      "ORB match counts",
+      "RANSAC inlier counts and ratio",
+      "viewpoint change metrics",
+      "artifact S3 keys and SHA-256 hashes",
+      "source S3 key and ETag",
+      "runtime identity",
+      "AI assessment",
+      "confidence before and after",
+      "final action"
+    ]
+  },
+  "production_path": "FastAPI -> deterministic SQS message -> Graviton4 COOL worker -> OpenCV -> S3 -> AI assessment -> DynamoDB/CloudWatch",
+  "local_status": "PASS",
+  "live_aws_status": "PENDING"
+}

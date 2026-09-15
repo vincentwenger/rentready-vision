@@ -30,6 +30,7 @@ from ..models import (
     InspectionResponse,
     InspectionStatus,
     IssuesResponse,
+    OtherAngleRunRequest,
     UploadCompleteRequest,
     UploadUrlResponse,
 )
@@ -37,6 +38,7 @@ from ..processing_jobs import (
     build_crop_region_message,
     build_enhance_region_message,
     build_interval_inspection_message,
+    build_other_angle_message,
     build_processing_message,
     processing_parameters,
 )
@@ -712,6 +714,204 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
         tool_call=tool_call,
         note="Step-20 Agent Tool 3 queued an explicit derived inspection view; original evidence remains unchanged.",
     )
+
+
+@router.post(
+    "/{inspection_id}/agent/other-angle",
+    response_model=AgenticRunResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> AgenticRunResponse:
+    """Run Agent Tool 4 against the original video and Step-17 candidate bbox."""
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(status_code=409, detail="Inspection must be COMPLETE before inspect_other_angle")
+    if not settings.processing_queue_url:
+        raise HTTPException(
+            status_code=409,
+            detail="inspect_other_angle judge path requires PROCESSING_QUEUE_URL so it runs on COOL/Graviton4",
+        )
+    if payload.search_seconds_before + payload.search_seconds_after <= 0:
+        raise HTTPException(status_code=400, detail="Other-angle search window must have positive duration")
+
+    issue_report = load_issues_report(inspection_id)
+    candidate = choose_uncertain_candidate(
+        issue_report.get("candidate_findings", []),
+        minimum_confidence=settings.agentic_reinspect_min_confidence,
+        maximum_confidence=settings.agentic_reinspect_max_confidence,
+    )
+    if candidate is None:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="NO_ACTION",
+            decision="NO_OTHER_ANGLE_TARGET",
+            note="No Step-17 candidate falls inside the configured uncertainty band.",
+        )
+    if not isinstance(candidate.get("bbox"), dict):
+        raise HTTPException(status_code=409, detail="Step-17 candidate has no normalized bounding box")
+    source_key = item.get("original_s3_key")
+    if not source_key:
+        raise HTTPException(status_code=409, detail="Inspection has no original video")
+
+    candidate_timestamp = round(float(candidate.get("timestamp")), 3)
+    confidence_before = float(candidate.get("confidence"))
+    agent_context = {
+        "issue_id": candidate.get("issue_id"),
+        "room": candidate.get("room"),
+        "category": candidate.get("category"),
+        "description": candidate.get("description"),
+        "timestamp": candidate_timestamp,
+        "confidence": confidence_before,
+        "confidence_before": confidence_before,
+        "severity_candidate": candidate.get("severity_candidate"),
+        "bbox": candidate.get("bbox"),
+        "decision_reason": "Need independent nearby viewpoints for a single-frame visual candidate.",
+    }
+    message = build_other_angle_message(
+        inspection_id=inspection_id,
+        s3_input_key=str(source_key),
+        source_etag=item.get("s3_etag"),
+        video_id=inspection_id,
+        timestamp=candidate_timestamp,
+        bounding_box=candidate["bbox"],
+        search_seconds_before=float(payload.search_seconds_before),
+        search_seconds_after=float(payload.search_seconds_after),
+        sample_every_seconds=float(payload.sample_every_seconds),
+        max_results=int(payload.max_results),
+        min_viewpoint_change=float(payload.min_viewpoint_change),
+        agent_context=agent_context,
+    )
+    job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+    tool_call = {
+        "name": "inspect_other_angle",
+        "arguments": {
+            "video_id": inspection_id,
+            "timestamp": candidate_timestamp,
+            "bounding_box": candidate["bbox"],
+            "search_seconds_before": float(payload.search_seconds_before),
+            "search_seconds_after": float(payload.search_seconds_after),
+            "sample_every_seconds": float(payload.sample_every_seconds),
+            "max_results": int(payload.max_results),
+            "min_viewpoint_change": float(payload.min_viewpoint_change),
+        },
+    }
+    if job_record.get("status") == "COMPLETE":
+        update_inspection(
+            inspection_id,
+            agentic_status="COMPLETE",
+            active_agent_job_id=message["job_id"],
+            agentic_trace_s3_key=job_record.get("result_s3_key"),
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_ACTION_DECIDED",
+        )
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="COMPLETE",
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical inspect_other_angle evidence already exists.",
+        )
+    if not should_enqueue:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status=str(job_record.get("status") or "QUEUED"),
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical inspect_other_angle request is already queued or processing.",
+        )
+
+    update_inspection(
+        inspection_id,
+        agentic_status="QUEUED",
+        agentic_error=None,
+        active_agent_job_id=message["job_id"],
+        agentic_confidence_before=confidence_before,
+        agentic_decision="CALL_TOOL",
+        agentic_tool_call=tool_call,
+        last_agentic_event="AGENT_DECISION",
+    )
+    try:
+        response = sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+            MessageAttributes={
+                "operation": {"DataType": "String", "StringValue": message["operation"]},
+                "runtime_schema_version": {
+                    "DataType": "String",
+                    "StringValue": message["runtime_schema_version"],
+                },
+            },
+        )
+    except Exception as exc:
+        error = f"inspect_other_angle enqueue failed: {type(exc).__name__}: {exc}"
+        mark_enqueue_failed(inspection_id, message["job_id"], error)
+        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        raise HTTPException(status_code=503, detail=error) from exc
+
+    mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
+    return AgenticRunResponse(
+        inspection_id=inspection_id,
+        status="QUEUED",
+        decision="CALL_TOOL",
+        job_id=message["job_id"],
+        backend="graviton4_cool_sqs",
+        candidate=candidate,
+        tool_call=tool_call,
+        note="Step-21 Agent Tool 4 queued a geometrically verified nearby-view search on COOL/Graviton4.",
+    )
+
+
+@router.get("/{inspection_id}/agent/other-angle/views")
+def get_other_angle_views(inspection_id: str) -> dict:
+    """Return short-lived URLs for the latest Step-21 multi-view evidence."""
+    item = _require_inspection(inspection_id)
+    trace_key = item.get("agentic_trace_s3_key")
+    if not trace_key:
+        raise HTTPException(status_code=409, detail="No completed other-angle evidence is available")
+    obj = s3.get_object(Bucket=settings.s3_bucket, Key=trace_key)
+    trace = json.loads(obj["Body"].read())
+    if trace.get("schema_version") != "rentready-agentic-other-angle/1.0":
+        raise HTTPException(status_code=409, detail="Latest agent result is not inspect_other_angle evidence")
+
+    views = []
+    for frame in (trace.get("other_angle_result") or {}).get("frames", []):
+        key = frame.get("view_s3_key")
+        if not key:
+            continue
+        views.append(
+            {
+                "label": frame.get("label"),
+                "timestamp_seconds": frame.get("observed_timestamp_seconds"),
+                "timestamp_label": frame.get("timestamp_label"),
+                "relation": frame.get("relation"),
+                "viewpoint_change": frame.get("viewpoint_change"),
+                "s3_key": key,
+                "derived": True,
+                "url": s3.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": settings.s3_bucket, "Key": key},
+                    ExpiresIn=settings.presigned_url_ttl_seconds,
+                ),
+            }
+        )
+    return {
+        "inspection_id": inspection_id,
+        "views": views,
+        "multi_view_assessment": trace.get("multi_view_assessment"),
+        "multi_view_confirmed": trace.get("multi_view_confirmed"),
+        "confidence_before": trace.get("confidence_before"),
+        "confidence_after": trace.get("confidence_after"),
+        "action": trace.get("action"),
+        "original_overwritten": (trace.get("evidence_preservation") or {}).get("original_overwritten"),
+        "expires_in_seconds": settings.presigned_url_ttl_seconds,
+    }
 
 
 @router.get("/{inspection_id}/agent/views")

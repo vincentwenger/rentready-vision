@@ -13,13 +13,22 @@ from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
 from .runtime_evidence import collect_runtime_evidence
 from .telemetry import CloudWatchTelemetry, PeakMemorySampler
-from .agentic_vision import AGENTIC_TRACE_VERSION, action_from_confidence, reassess_interval_batches
+from .agentic_vision import (
+    AGENTIC_TRACE_VERSION,
+    action_from_confidence,
+    reassess_interval_batches,
+    reassess_other_angle_evidence,
+)
 from .vision.issue_detector import REPORT_SCHEMA_VERSION, STRUCTURED_FINDING_VERSION, detect_visible_issues
 from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
 from .vision.interval_inspector import inspect_interval
 from .vision.region_cropper import CROP_TRACE_VERSION, write_crop_region
 from .vision.region_enhancer import ENHANCE_TRACE_VERSION, write_enhanced_region
+from .vision.other_angle_inspector import (
+    OTHER_ANGLE_TRACE_VERSION,
+    inspect_other_angle,
+)
 
 settings = get_settings()
 ROOT = Path(__file__).resolve().parents[1]
@@ -609,6 +618,222 @@ def execute_enhance_region_job(
             runtime=runtime.get("runtime"),
             result_s3_key=result_key,
             enhanced_view_s3_key=enhanced_key,
+        )
+    return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
+
+
+def execute_other_angle_job(
+    *,
+    inspection_id: str,
+    source_key: str,
+    parameters: dict[str, Any],
+    agent_context: dict[str, Any],
+    job_id: str,
+    require_cool: bool,
+    expected_source_etag: str | None = None,
+    telemetry: CloudWatchTelemetry | None = None,
+) -> dict[str, Any]:
+    """Execute Step-21 Agent Tool 4 and persist auditable multi-view evidence."""
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
+    observed_etag = str(source_head.get("ETag", "")).strip('"')
+    if expected_source_etag and observed_etag != expected_source_etag:
+        raise RuntimeError(
+            "S3 video changed after inspect_other_angle enqueue: "
+            f"expected ETag {expected_source_etag!r}, observed {observed_etag!r}"
+        )
+
+    runtime = _verify_runtime(
+        input_s3_key=source_key,
+        parameters={"tool": "inspect_other_angle", **parameters},
+        require_cool=require_cool,
+    )
+    confidence_before = float(agent_context.get("confidence_before"))
+    if telemetry:
+        telemetry.event(
+            "AGENT_TOOL_STARTED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="inspect_other_angle",
+            runtime=runtime.get("runtime"),
+            timestamp=parameters.get("timestamp"),
+            confidence_before=confidence_before,
+        )
+
+    started = time.perf_counter()
+    with PeakMemorySampler() as memory:
+        with tempfile.TemporaryDirectory(prefix=f"rentready-other-angle-{inspection_id}-") as tmp:
+            tmp_path = Path(tmp)
+            suffix = Path(source_key).suffix or ".mp4"
+            input_path = tmp_path / f"walkthrough{suffix}"
+            evidence_dir = tmp_path / "other_angle"
+            s3.download_file(settings.s3_bucket, source_key, str(input_path))
+            search = inspect_other_angle(
+                input_path,
+                evidence_dir,
+                timestamp=float(parameters["timestamp"]),
+                bounding_box=parameters["bounding_box"],
+                search_seconds_before=float(parameters["search_seconds_before"]),
+                search_seconds_after=float(parameters["search_seconds_after"]),
+                sample_every_seconds=float(parameters["sample_every_seconds"]),
+                max_results=int(parameters["max_results"]),
+                min_viewpoint_change=float(parameters["min_viewpoint_change"]),
+            )
+            prefix = f"inspections/{inspection_id}/agentic/{job_id}/other-angle"
+            public_frames: list[dict[str, Any]] = []
+            for frame in search["frames"]:
+                local_view = Path(frame["local_view_path"])
+                local_region = Path(frame["local_region_path"])
+                view_key = f"{prefix}/{local_view.name}"
+                region_key = f"{prefix}/{local_region.name}"
+                s3.upload_file(
+                    str(local_view),
+                    settings.s3_bucket,
+                    view_key,
+                    ExtraArgs={"ContentType": "image/jpeg"},
+                )
+                s3.upload_file(
+                    str(local_region),
+                    settings.s3_bucket,
+                    region_key,
+                    ExtraArgs={"ContentType": "image/jpeg"},
+                )
+                public = {
+                    key: value
+                    for key, value in frame.items()
+                    if key not in {"local_view_path", "local_region_path"}
+                }
+                public["view_s3_key"] = view_key
+                public["region_s3_key"] = region_key
+                public_frames.append(public)
+            search["frames"] = public_frames
+
+            if telemetry:
+                telemetry.event(
+                    "AGENT_TOOL_OPENCV_COMPLETE",
+                    inspection_id=inspection_id,
+                    job_id=job_id,
+                    tool="inspect_other_angle",
+                    runtime=runtime.get("runtime"),
+                    sampled_candidate_count=search["search"]["sampled_candidate_count"],
+                    geometrically_matched_count=search["search"]["geometrically_matched_count"],
+                    selected_frame_count=len(public_frames),
+                )
+
+            if len(public_frames) >= 2:
+                assessment = reassess_other_angle_evidence(
+                    bedrock_client=bedrock_runtime,
+                    bucket=settings.s3_bucket,
+                    frames=public_frames,
+                    candidate=agent_context,
+                    model_id=settings.issue_detection_model_id,
+                    max_tokens=min(1000, settings.issue_detection_max_tokens),
+                )
+            else:
+                assessment = {
+                    "confidence_after": round(confidence_before, 4),
+                    "same_region_or_object": False,
+                    "visible_in_multiple_viewpoints": False,
+                    "evidence_summary": (
+                        "OpenCV did not find enough geometrically verified viewpoint alternatives; "
+                        "the finding remains unresolved."
+                    ),
+                    "bedrock_request_id": None,
+                    "usage": None,
+                    "metrics": None,
+                }
+
+    confidence_after = float(assessment["confidence_after"])
+    multi_view_confirmed = bool(
+        assessment["same_region_or_object"]
+        and assessment["visible_in_multiple_viewpoints"]
+        and len(search["frames"]) >= 2
+    )
+    action = (
+        action_from_confidence(
+            confidence_after,
+            accept_threshold=settings.agentic_accept_threshold,
+            dismiss_threshold=settings.agentic_dismiss_threshold,
+        )
+        if multi_view_confirmed
+        else "REQUEST_HUMAN_APPROVAL"
+    )
+    elapsed = max(time.perf_counter() - started, 1e-9)
+    result = {
+        "schema_version": OTHER_ANGLE_TRACE_VERSION,
+        "inspection_id": inspection_id,
+        "job_id": job_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "agent_decision": {
+            "reason": "Need nearby camera viewpoints to strengthen or challenge a single-frame finding.",
+            "tool_call": {
+                "name": "inspect_other_angle",
+                "arguments": {
+                    key: parameters[key]
+                    for key in (
+                        "video_id",
+                        "timestamp",
+                        "bounding_box",
+                        "search_seconds_before",
+                        "search_seconds_after",
+                        "sample_every_seconds",
+                        "max_results",
+                        "min_viewpoint_change",
+                    )
+                },
+            },
+        },
+        "candidate": agent_context,
+        "runtime": runtime,
+        "other_angle_result": search,
+        "multi_view_assessment": assessment,
+        "multi_view_confirmed": multi_view_confirmed,
+        "confidence_before": round(confidence_before, 4),
+        "confidence_after": round(confidence_after, 4),
+        "confidence_delta": round(confidence_after - confidence_before, 4),
+        "evidence_preservation": {
+            "original_video_s3_key": source_key,
+            "original_video_etag": observed_etag or None,
+            "original_overwritten": False,
+            "derived_view_s3_keys": [frame["view_s3_key"] for frame in search["frames"]],
+            "derived_region_s3_keys": [frame["region_s3_key"] for frame in search["frames"]],
+        },
+        "action": action,
+        "human_control": {
+            "required": action == "REQUEST_HUMAN_APPROVAL",
+            "reason": (
+                "Multiple viewpoints did not conclusively verify the same visible issue."
+                if action == "REQUEST_HUMAN_APPROVAL"
+                else None
+            ),
+        },
+        "completion_event": "AGENT_ACTION_DECIDED",
+        "telemetry": {
+            "processing_seconds": round(elapsed, 3),
+            "peak_memory_mb": round(memory.peak_memory_mb, 3),
+            "sampled_candidate_count": search["search"]["sampled_candidate_count"],
+            "geometrically_matched_count": search["search"]["geometrically_matched_count"],
+            "selected_frame_count": len(search["frames"]),
+        },
+    }
+    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step21-other-angle-trace.json"
+    s3.put_object(
+        Bucket=settings.s3_bucket,
+        Key=result_key,
+        Body=json.dumps(result, indent=2).encode("utf-8"),
+        ContentType="application/json",
+    )
+    if telemetry:
+        telemetry.event(
+            "AGENT_ACTION_DECIDED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="inspect_other_angle",
+            runtime=runtime.get("runtime"),
+            multi_view_confirmed=multi_view_confirmed,
+            confidence_before=round(confidence_before, 4),
+            confidence_after=round(confidence_after, 4),
+            action=action,
+            result_s3_key=result_key,
         )
     return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
 

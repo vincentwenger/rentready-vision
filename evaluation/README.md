@@ -1,5 +1,19 @@
 # Evaluation evidence and benchmark contracts
 
+## Current Step-21 status
+
+**Agent Tool 4 `inspect_other_angle()` is LOCAL PASS; live AWS acceptance is pending.**
+
+Evidence is organized under:
+
+- `step21/inspect_other_angle_contract.json` — machine-readable algorithm, queue, evidence, and AI decision contract;
+- `step21/local_verification.json` — local contract-verifier output;
+- `step21/test_summary.json` — focused and full-project regression results.
+
+The live verifier is `../scripts/verify_step21_aws.py`. After deployment it must confirm the COOL/OpenCV 5 Arm64 runtime, ordered view artifacts, AI multi-view booleans, source immutability, hashes, and CloudWatch lifecycle before Step 21 is promoted to LIVE AWS PASS.
+
+---
+
 ## Current Step-17 status
 
 **Structured candidate JSON is LIVE AWS PASS (September 8, 2026).**

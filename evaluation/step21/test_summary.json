@@ -1,0 +1,29 @@
+{
+  "step": 21,
+  "generated_at": "2026-09-15T03:40:38Z",
+  "focused_command": "S3_BUCKET=rentready-test-bucket AWS_EC2_METADATA_DISABLED=true pytest -q tests/test_step21_other_angle.py",
+  "focused_result": {
+    "passed": 8,
+    "failed": 0
+  },
+  "agent_tool_regression_command": "S3_BUCKET=rentready-test-bucket AWS_EC2_METADATA_DISABLED=true pytest -q tests/test_step21_other_angle.py tests/test_step18_agentic_interval.py tests/test_step19_crop_region.py tests/test_step20_enhance_region.py",
+  "agent_tool_regression_result": {
+    "passed": 30,
+    "failed": 0
+  },
+  "full_suite_command": "S3_BUCKET=rentready-test-bucket AWS_EC2_METADATA_DISABLED=true GIT_COMMIT=local-step21 pytest -q",
+  "full_suite_result": {
+    "passed": 86,
+    "failed": 0,
+    "warnings": 1,
+    "warning_note": "One upstream Starlette deprecation warning for the httpx TestClient compatibility layer."
+  },
+  "local_verifier": {
+    "passed": true,
+    "checks_passed": 20,
+    "checks_total": 20,
+    "errors": []
+  },
+  "live_aws_validated": false,
+  "status": "LOCAL PASS"
+}

@@ -136,6 +136,14 @@ class EnhanceRegionRunRequest(BaseModel):
     sharpening: float = Field(default=0.8, ge=0.0, le=2.0)
 
 
+class OtherAngleRunRequest(BaseModel):
+    search_seconds_before: float = Field(default=4.0, ge=0, le=30)
+    search_seconds_after: float = Field(default=4.0, ge=0, le=30)
+    sample_every_seconds: float = Field(default=0.5, ge=0.1, le=5.0)
+    max_results: int = Field(default=3, ge=2, le=5)
+    min_viewpoint_change: float = Field(default=0.06, ge=0.0, le=1.0)
+
+
 class AgenticRunResponse(BaseModel):
     inspection_id: str
     status: str

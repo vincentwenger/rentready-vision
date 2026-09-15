@@ -16,6 +16,7 @@ OPERATION_ANALYZE_VIDEO = "analyze_video"
 OPERATION_INSPECT_INTERVAL = "inspect_interval"
 OPERATION_CROP_REGION = "crop_region"
 OPERATION_ENHANCE_REGION = "enhance_region"
+OPERATION_INSPECT_OTHER_ANGLE = "inspect_other_angle"
 INTERVAL_TOOL_PARAMETER_NAMES = (
     "video_id",
     "timestamp",
@@ -34,6 +35,16 @@ ENHANCE_TOOL_PARAMETER_NAMES = (
     "contrast",
     "brightness_normalization",
     "sharpening",
+)
+OTHER_ANGLE_TOOL_PARAMETER_NAMES = (
+    "video_id",
+    "timestamp",
+    "bounding_box",
+    "search_seconds_before",
+    "search_seconds_after",
+    "sample_every_seconds",
+    "max_results",
+    "min_viewpoint_change",
 )
 
 # These names intentionally match app.vision.video_processor.process_video().
@@ -320,6 +331,64 @@ def build_enhance_region_message(
         "agent_context": agent_context,
         "enqueued_at": utc_now(),
     }
+
+
+def build_other_angle_message(
+    *,
+    inspection_id: str,
+    s3_input_key: str,
+    source_etag: str | None,
+    video_id: str,
+    timestamp: float,
+    bounding_box: dict[str, Any],
+    search_seconds_before: float,
+    search_seconds_after: float,
+    sample_every_seconds: float,
+    max_results: int,
+    min_viewpoint_change: float,
+    agent_context: dict[str, Any],
+    git_commit: str | None = None,
+) -> dict[str, Any]:
+    resolved_git_commit = git_commit or current_git_commit()
+    parameters = {
+        "video_id": str(video_id),
+        "timestamp": float(timestamp),
+        "bounding_box": {
+            "x": float(bounding_box["x"]),
+            "y": float(bounding_box["y"]),
+            "width": float(bounding_box["width"]),
+            "height": float(bounding_box["height"]),
+        },
+        "search_seconds_before": float(search_seconds_before),
+        "search_seconds_after": float(search_seconds_after),
+        "sample_every_seconds": float(sample_every_seconds),
+        "max_results": int(max_results),
+        "min_viewpoint_change": float(min_viewpoint_change),
+    }
+    job_id = deterministic_job_id(
+        inspection_id=inspection_id,
+        s3_input_key=s3_input_key,
+        source_etag=source_etag,
+        parameters=parameters,
+        git_commit=resolved_git_commit,
+        operation=OPERATION_INSPECT_OTHER_ANGLE,
+        agent_context=agent_context,
+    )
+    return {
+        "schema_version": MESSAGE_SCHEMA_VERSION,
+        "runtime_schema_version": RUNTIME_SCHEMA_VERSION,
+        "git_commit": resolved_git_commit,
+        "operation": OPERATION_INSPECT_OTHER_ANGLE,
+        "job_id": job_id,
+        "inspection_id": inspection_id,
+        "s3_input_key": s3_input_key,
+        "source_etag": source_etag,
+        "processing_parameters": parameters,
+        "agent_context": agent_context,
+        "enqueued_at": utc_now(),
+    }
+
+
 def validate_processing_message(body: dict[str, Any], settings: Settings) -> dict[str, Any]:
     required = {
         "schema_version",
@@ -443,6 +512,44 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
         }
         if not isinstance(body.get("agent_context"), dict):
             raise ValueError("enhance_region requires agent_context")
+    elif operation == OPERATION_INSPECT_OTHER_ANGLE:
+        expected_names = set(OTHER_ANGLE_TOOL_PARAMETER_NAMES)
+        if supplied_names != expected_names:
+            raise ValueError(
+                "inspect_other_angle message has incorrect tool parameters; "
+                f"missing={sorted(expected_names-supplied_names)}, extra={sorted(supplied_names-expected_names)}"
+            )
+        raw = body["processing_parameters"]
+        raw_bbox = raw.get("bounding_box")
+        if not isinstance(raw_bbox, dict) or set(raw_bbox) != {"x", "y", "width", "height"}:
+            raise ValueError("inspect_other_angle bounding_box must contain x, y, width, height")
+        bbox = {name: float(raw_bbox[name]) for name in ("x", "y", "width", "height")}
+        if bbox["x"] < 0 or bbox["y"] < 0 or bbox["width"] <= 0 or bbox["height"] <= 0:
+            raise ValueError("inspect_other_angle bounding_box must be positive and normalized")
+        if bbox["x"] + bbox["width"] > 1.0 + 1e-9 or bbox["y"] + bbox["height"] > 1.0 + 1e-9:
+            raise ValueError("inspect_other_angle bounding_box must stay inside the normalized frame")
+        params = {
+            "video_id": str(raw["video_id"]),
+            "timestamp": float(raw["timestamp"]),
+            "bounding_box": bbox,
+            "search_seconds_before": float(raw["search_seconds_before"]),
+            "search_seconds_after": float(raw["search_seconds_after"]),
+            "sample_every_seconds": float(raw["sample_every_seconds"]),
+            "max_results": int(raw["max_results"]),
+            "min_viewpoint_change": float(raw["min_viewpoint_change"]),
+        }
+        if params["timestamp"] < 0 or params["search_seconds_before"] < 0 or params["search_seconds_after"] < 0:
+            raise ValueError("inspect_other_angle temporal parameters must be non-negative")
+        if params["search_seconds_before"] + params["search_seconds_after"] <= 0:
+            raise ValueError("inspect_other_angle search window must have positive duration")
+        if not 0.1 <= params["sample_every_seconds"] <= 5.0:
+            raise ValueError("inspect_other_angle sample_every_seconds must be between 0.1 and 5.0")
+        if not 2 <= params["max_results"] <= 5:
+            raise ValueError("inspect_other_angle max_results must be between 2 and 5")
+        if not 0 <= params["min_viewpoint_change"] <= 1:
+            raise ValueError("inspect_other_angle min_viewpoint_change must be between 0 and 1")
+        if not isinstance(body.get("agent_context"), dict):
+            raise ValueError("inspect_other_angle requires agent_context")
     else:
         raise ValueError(f"Unsupported operation: {operation!r}")
     expected_id = deterministic_job_id(
@@ -457,6 +564,7 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
             OPERATION_INSPECT_INTERVAL,
             OPERATION_CROP_REGION,
             OPERATION_ENHANCE_REGION,
+            OPERATION_INSPECT_OTHER_ANGLE,
         } else None,
     )
     if str(body["job_id"]) != expected_id:
