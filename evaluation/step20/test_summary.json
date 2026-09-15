@@ -1,0 +1,28 @@
+{
+  "step": 20,
+  "generated_at": "2026-09-14T20:06:31Z",
+  "focused_tests": {
+    "command": "pytest -q tests/test_step20_enhance_region.py",
+    "passed": 10,
+    "failed": 0
+  },
+  "agent_tool_regression_tests": {
+    "command": "pytest -q tests/test_step18_agentic_interval.py tests/test_step19_crop_region.py tests/test_step20_enhance_region.py",
+    "passed": 22,
+    "failed": 0
+  },
+  "full_project_tests": {
+    "command": "pytest -q",
+    "passed": 78,
+    "failed": 0,
+    "warnings": 1,
+    "warning_note": "Existing Starlette TestClient httpx deprecation warning."
+  },
+  "local_contract_verifier": {
+    "passed": true,
+    "checks_passed": 17,
+    "checks_total": 17
+  },
+  "browser_javascript_syntax": "PASS",
+  "live_aws_validated": false
+}

@@ -1,0 +1,29 @@
+{
+  "step": 20,
+  "tool_number": 3,
+  "operation": "enhance_region",
+  "tool_version": "rentready-enhance-region/1.0",
+  "trace_version": "rentready-agentic-enhance/1.0",
+  "inputs": {
+    "frame": "preserved Step-17 keyframe resolved by the application",
+    "bounding_box": "normalized Step-17 x/y/width/height",
+    "contrast": {"type": "number", "minimum": 0.5, "maximum": 3.0, "default": 1.25},
+    "brightness_normalization": {"type": "boolean", "default": true},
+    "sharpening": {"type": "number", "minimum": 0.0, "maximum": 2.0, "default": 0.8}
+  },
+  "processing_order": [
+    "brightness_normalization_lab",
+    "contrast_adjustment",
+    "unsharp_mask"
+  ],
+  "evidence_policy": {
+    "source_is_modified": false,
+    "output_is_separate_derived_artifact": true,
+    "source_and_output_sha256_recorded": true,
+    "source_etag_recorded": true,
+    "required_display_labels": ["Original evidence", "Enhanced inspection view"]
+  },
+  "aws_path": "SQS -> Graviton4 -> COOL/OpenCV 5 -> S3 + DynamoDB + CloudWatch",
+  "local_status": "PASS",
+  "live_aws_status": "PENDING"
+}

@@ -25,6 +25,7 @@ from ..models import (
     CreateInspectionResponse,
     CreateUploadUrlRequest,
     CropRegionRunRequest,
+    EnhanceRegionRunRequest,
     FramesResponse,
     InspectionResponse,
     InspectionStatus,
@@ -34,6 +35,7 @@ from ..models import (
 )
 from ..processing_jobs import (
     build_crop_region_message,
+    build_enhance_region_message,
     build_interval_inspection_message,
     build_processing_message,
     processing_parameters,
@@ -560,6 +562,193 @@ def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> A
         tool_call=tool_call,
         note="Step-19 Agent Tool 2 queued a padded 1024px OpenCV crop from the preserved keyframe.",
     )
+
+
+@router.post("/{inspection_id}/agent/enhance", response_model=AgenticRunResponse, status_code=status.HTTP_202_ACCEPTED)
+def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest) -> AgenticRunResponse:
+    """Run Agent Tool 3 on a copied ROI of the uncertain candidate keyframe."""
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(status_code=409, detail="Inspection must be COMPLETE before enhance_region")
+    if not settings.processing_queue_url:
+        raise HTTPException(
+            status_code=409,
+            detail="enhance_region judge path requires PROCESSING_QUEUE_URL so it runs on COOL/Graviton4",
+        )
+
+    issue_report = load_issues_report(inspection_id)
+    candidate = choose_uncertain_candidate(
+        issue_report.get("candidate_findings", []),
+        minimum_confidence=settings.agentic_reinspect_min_confidence,
+        maximum_confidence=settings.agentic_reinspect_max_confidence,
+    )
+    if candidate is None:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="NO_ACTION",
+            decision="NO_ENHANCEMENT_TARGET",
+            note="No Step-17 candidate falls inside the configured uncertainty band.",
+        )
+
+    manifest = load_manifest(inspection_id)
+    candidate_timestamp = round(float(candidate.get("timestamp")), 3)
+    matching_frames = [
+        frame for frame in manifest.get("keyframes", [])
+        if round(float(frame.get("timestamp_seconds") or 0.0), 3) == candidate_timestamp
+    ]
+    if not matching_frames:
+        raise HTTPException(
+            status_code=409,
+            detail=f"No preserved OpenCV keyframe matches candidate timestamp {candidate_timestamp}",
+        )
+    frame = matching_frames[0]
+    frame_s3_key = str(frame["s3_key"])
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=frame_s3_key)
+    source_etag = str(source_head.get("ETag", "")).strip('"') or None
+
+    confidence_before = float(candidate.get("confidence"))
+    agent_context = {
+        "room": candidate.get("room"),
+        "category": candidate.get("category"),
+        "description": candidate.get("description"),
+        "timestamp": candidate_timestamp,
+        "confidence": confidence_before,
+        "confidence_before": confidence_before,
+        "severity_candidate": candidate.get("severity_candidate"),
+        "bbox": candidate.get("bbox"),
+        "evidence_frame_index": frame.get("index"),
+        "evidence_frame_s3_key": frame_s3_key,
+        "decision_reason": "Need a clearer region view without altering the original evidence.",
+    }
+    message = build_enhance_region_message(
+        inspection_id=inspection_id,
+        frame_s3_key=frame_s3_key,
+        source_etag=source_etag,
+        bounding_box=candidate["bbox"],
+        contrast=float(payload.contrast),
+        brightness_normalization=payload.brightness_normalization,
+        sharpening=float(payload.sharpening),
+        agent_context=agent_context,
+    )
+    job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+    tool_call = {
+        "name": "enhance_region",
+        "arguments": {
+            "frame": frame_s3_key,
+            "bounding_box": candidate["bbox"],
+            "contrast": float(payload.contrast),
+            "brightness_normalization": payload.brightness_normalization,
+            "sharpening": float(payload.sharpening),
+        },
+    }
+    if job_record.get("status") == "COMPLETE":
+        update_inspection(
+            inspection_id,
+            agentic_status="COMPLETE",
+            active_agent_job_id=message["job_id"],
+            agentic_trace_s3_key=job_record.get("result_s3_key"),
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_TOOL_COMPLETE",
+        )
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="COMPLETE",
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical enhance_region inspection view already exists.",
+        )
+    if not should_enqueue:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status=str(job_record.get("status") or "QUEUED"),
+            decision="CALL_TOOL",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            note="Identical enhance_region request is already queued or processing.",
+        )
+
+    update_inspection(
+        inspection_id,
+        agentic_status="QUEUED",
+        agentic_error=None,
+        active_agent_job_id=message["job_id"],
+        agentic_confidence_before=confidence_before,
+        agentic_decision="CALL_TOOL",
+        agentic_tool_call=tool_call,
+        last_agentic_event="AGENT_DECISION",
+    )
+    try:
+        response = sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+            MessageAttributes={
+                "operation": {"DataType": "String", "StringValue": message["operation"]},
+                "runtime_schema_version": {
+                    "DataType": "String",
+                    "StringValue": message["runtime_schema_version"],
+                },
+            },
+        )
+    except Exception as exc:
+        error = f"enhance_region enqueue failed: {type(exc).__name__}: {exc}"
+        mark_enqueue_failed(inspection_id, message["job_id"], error)
+        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        raise HTTPException(status_code=503, detail=error) from exc
+
+    mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
+    return AgenticRunResponse(
+        inspection_id=inspection_id,
+        status="QUEUED",
+        decision="CALL_TOOL",
+        job_id=message["job_id"],
+        backend="graviton4_cool_sqs",
+        candidate=candidate,
+        tool_call=tool_call,
+        note="Step-20 Agent Tool 3 queued an explicit derived inspection view; original evidence remains unchanged.",
+    )
+
+
+@router.get("/{inspection_id}/agent/views")
+def get_agentic_evidence_views(inspection_id: str) -> dict:
+    """Return short-lived URLs for the explicit original/enhanced comparison."""
+    item = _require_inspection(inspection_id)
+    trace_key = item.get("agentic_trace_s3_key")
+    if not trace_key:
+        raise HTTPException(status_code=409, detail="No completed agent evidence view is available")
+    obj = s3.get_object(Bucket=settings.s3_bucket, Key=trace_key)
+    trace = json.loads(obj["Body"].read())
+    preservation = trace.get("evidence_preservation") or {}
+    original_key = preservation.get("original_frame_s3_key")
+    enhanced_key = preservation.get("enhanced_view_s3_key")
+    if not original_key or not enhanced_key:
+        raise HTTPException(status_code=409, detail="Latest agent result is not an enhance_region comparison")
+
+    def view(label: str, key: str, derived: bool) -> dict:
+        return {
+            "label": label,
+            "s3_key": key,
+            "derived": derived,
+            "url": s3.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": settings.s3_bucket, "Key": key},
+                ExpiresIn=settings.presigned_url_ttl_seconds,
+            ),
+        }
+
+    return {
+        "inspection_id": inspection_id,
+        "original": view("Original evidence", str(original_key), False),
+        "enhanced": view("Enhanced inspection view", str(enhanced_key), True),
+        "original_overwritten": preservation.get("original_overwritten"),
+        "parameters": (trace.get("enhancement_result") or {}).get("request"),
+        "expires_in_seconds": settings.presigned_url_ttl_seconds,
+    }
 
 
 @router.get("/{inspection_id}/agent")

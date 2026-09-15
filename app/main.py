@@ -11,7 +11,7 @@ settings = get_settings()
 app = FastAPI(
     title="RentReady Vision API",
     version="0.5.0",
-    description="RentReady Vision: durable Graviton4 OpenCV COOL evidence processing plus a schema-constrained Step-17 structured candidate-finding detector with normalized bounding boxes.",
+    description="RentReady Vision: durable Graviton4 OpenCV COOL evidence processing, structured findings, and explicit evidence-preserving agent tools for temporal inspection, cropping, and enhancement.",
 )
 
 app.add_middleware(

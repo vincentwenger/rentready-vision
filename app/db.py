@@ -514,7 +514,7 @@ def complete_agent_tool_job(
     result: dict[str, Any],
     telemetry: dict[str, Any],
 ) -> bool:
-    """Complete a Step-18 agent tool without replacing the primary video manifest."""
+    """Complete an agent tool without replacing the primary video manifest."""
     now = utc_now()
     try:
         table.update_item(

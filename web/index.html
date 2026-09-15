@@ -51,7 +51,10 @@
     .issue-warning { padding: 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; }
     .agent-box { margin: 12px 0 24px; padding: 16px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
     .agent-flow { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86rem; color: #334155; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
-    @media (max-width: 600px) { .methods { columns: 1; } }
+    .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 12px 0 24px; }
+    .comparison img { aspect-ratio: auto; object-fit: contain; }
+    .derived-label { color: #9a3412; font-weight: 700; }
+    @media (max-width: 600px) { .methods { columns: 1; } .comparison { grid-template-columns: 1fr; } }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -81,6 +84,7 @@
       <li class="step" id="step-extract"><span class="mark">○</span><span>Extracting useful frames</span></li>
       <li class="step" id="step-inspect"><span class="mark">○</span><span>Detecting visible property issues</span></li>
       <li class="step" id="step-agent"><span class="mark">○</span><span>Agent deciding whether to inspect again</span></li>
+      <li class="step" id="step-enhance"><span class="mark">○</span><span>Creating a labeled enhanced inspection view</span></li>
       <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
     </ul>
   </section>
@@ -105,6 +109,9 @@
     <h3>Agentic Vision follow-up</h3>
     <p class="issue-note" id="agent-note"></p>
     <div class="agent-box" id="agent-trace"></div>
+    <h3>Evidence comparison</h3>
+    <p class="issue-note" id="enhancement-note"></p>
+    <div class="comparison" id="enhancement-comparison" hidden></div>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -219,6 +226,41 @@ function renderAgentic(response, warning = null) {
     `ACTION      ${action}`
   ].join("\n");
   box.append(text);
+}
+
+async function renderEnhancement(id, response, warning = null) {
+  const note = document.getElementById("enhancement-note");
+  const comparison = document.getElementById("enhancement-comparison");
+  comparison.replaceChildren();
+  comparison.hidden = true;
+  if (warning) {
+    note.textContent = `Step 20 enhancement was not completed: ${warning}`;
+    return;
+  }
+  if (!response || response.status === "NO_ACTION") {
+    note.textContent = "Step 20 found no uncertain candidate requiring enhancement.";
+    return;
+  }
+  const views = await api(`/inspections/${id}/agent/views`);
+  const parameters = views.parameters ?? {};
+  note.textContent = `The original evidence is unchanged. The enhanced view is a labeled derivative only · contrast ${parameters.contrast ?? "n/a"} · brightness normalization ${parameters.brightness_normalization ? "on" : "off"} · sharpening ${parameters.sharpening ?? "n/a"}.`;
+
+  [
+    {view: views.original, label: "Original evidence"},
+    {view: views.enhanced, label: "Enhanced inspection view"}
+  ].forEach(({view, label}) => {
+    const figure = document.createElement("figure");
+    const img = document.createElement("img");
+    img.src = view.url;
+    img.alt = label;
+    img.loading = "lazy";
+    const caption = document.createElement("figcaption");
+    caption.textContent = label;
+    if (view.derived) caption.className = "derived-label";
+    figure.append(img, caption);
+    comparison.append(figure);
+  });
+  comparison.hidden = false;
 }
 
 function renderRuntime(processing) {
@@ -368,7 +410,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  ["upload", "read", "extract", "inspect", "agent", "report"].forEach(name => setStep(name, null));
+  ["upload", "read", "extract", "inspect", "agent", "enhance", "report"].forEach(name => setStep(name, null));
 
   try {
     setStep("upload", "active");
@@ -455,10 +497,44 @@ runButton.onclick = async () => {
       agentWarning = "Step 18 could not run because Step 17 did not complete.";
     }
 
+    let enhancementResponse = null;
+    let enhancementWarning = null;
+    if (issueResponse) {
+      setStep("enhance", "active");
+      try {
+        const started = await api(`/inspections/${id}/agent/enhance`, {
+          method: "POST",
+          body: JSON.stringify({
+            contrast: 1.25,
+            brightness_normalization: true,
+            sharpening: 0.8
+          })
+        });
+        if (started.status === "NO_ACTION" || started.status === "COMPLETE") {
+          enhancementResponse = started;
+        } else {
+          for (;;) {
+            const status = await api(`/inspections/${id}/agent`);
+            if (status.status === "FAILED") throw new Error(status.error || "enhance_region failed.");
+            if (status.status === "COMPLETE") { enhancementResponse = status; break; }
+            await sleep(1200);
+          }
+        }
+        setStep("enhance", "done");
+      } catch (enhancementError) {
+        enhancementWarning = enhancementError instanceof Error ? enhancementError.message : String(enhancementError);
+        setStep("enhance", "warn");
+      }
+    } else {
+      enhancementWarning = "Step 20 could not run because Step 17 did not complete.";
+      setStep("enhance", "warn");
+    }
+
     setStep("report", "active");
     await renderResults(id, frames);
     renderIssues(issueResponse, issueWarning);
     renderAgentic(agentResponse, agentWarning);
+    await renderEnhancement(id, enhancementResponse, enhancementWarning);
     setStep("report", "done");
   } catch (error) {
     errorEl.textContent = error instanceof Error ? error.message : String(error);

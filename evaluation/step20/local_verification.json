@@ -1,0 +1,65 @@
+{
+  "step": 20,
+  "verification_scope": "local_enhance_region_agent_tool_contract",
+  "passed": true,
+  "checks_passed": 17,
+  "checks_total": 17,
+  "checks": {
+    "operation_named_enhance_region": true,
+    "tool_signature_exposes_controls": true,
+    "queue_parameter_contract": true,
+    "tool_versioned": true,
+    "contrast_implemented": true,
+    "brightness_normalization_implemented": true,
+    "sharpening_implemented": true,
+    "original_array_preserved": true,
+    "derived_view_created": true,
+    "message_is_valid": true,
+    "cool_worker_dispatches_enhancement": true,
+    "service_uses_separate_s3_artifact": true,
+    "api_enhance_and_view_routes_present": true,
+    "comparison_labels_present": true,
+    "silent_modification_prohibited": true,
+    "step20_documented": true,
+    "step20_tests_present": true
+  },
+  "errors": [],
+  "enhance_region_signature": "(frame: 'np.ndarray', bounding_box: 'dict[str, Any]', *, contrast: 'float' = 1.25, brightness_normalization: 'bool' = True, sharpening: 'float' = 0.8) -> 'tuple[np.ndarray, dict[str, Any]]'",
+  "example": {
+    "tool": "enhance_region",
+    "tool_version": "rentready-enhance-region/1.0",
+    "source": {
+      "width": 120,
+      "height": 80,
+      "preserved_original": true
+    },
+    "request": {
+      "bounding_box": {
+        "x": 0.25,
+        "y": 0.25,
+        "width": 0.5,
+        "height": 0.5
+      },
+      "contrast": 1.25,
+      "brightness_normalization": true,
+      "sharpening": 0.8
+    },
+    "region_pixels": {
+      "x": 30,
+      "y": 20,
+      "width": 60,
+      "height": 40
+    },
+    "operations_applied": [
+      "brightness_normalization_lab",
+      "contrast_adjustment",
+      "unsharp_mask"
+    ],
+    "output": {
+      "width": 120,
+      "height": 80
+    }
+  },
+  "live_aws_validated": false,
+  "note": "Local PASS proves Tool 3 transforms, immutable source behavior, deterministic SQS validation, COOL worker dispatch, separate derived persistence, and explicit browser comparison. A live SQS-to-COOL run is still required for AWS acceptance."
+}

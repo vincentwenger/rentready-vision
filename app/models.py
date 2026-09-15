@@ -130,6 +130,12 @@ class CropRegionRunRequest(BaseModel):
     padding: float = Field(default=0.15, ge=0, le=2.0)
 
 
+class EnhanceRegionRunRequest(BaseModel):
+    contrast: float = Field(default=1.25, ge=0.5, le=3.0)
+    brightness_normalization: bool = True
+    sharpening: float = Field(default=0.8, ge=0.0, le=2.0)
+
+
 class AgenticRunResponse(BaseModel):
     inspection_id: str
     status: str

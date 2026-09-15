@@ -19,6 +19,7 @@ from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
 from .vision.interval_inspector import inspect_interval
 from .vision.region_cropper import CROP_TRACE_VERSION, write_crop_region
+from .vision.region_enhancer import ENHANCE_TRACE_VERSION, write_enhanced_region
 
 settings = get_settings()
 ROOT = Path(__file__).resolve().parents[1]
@@ -462,6 +463,152 @@ def execute_crop_region_job(
             runtime=runtime.get("runtime"),
             result_s3_key=result_key,
             crop_s3_key=crop_key,
+        )
+    return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
+
+
+def execute_enhance_region_job(
+    *,
+    inspection_id: str,
+    source_key: str,
+    parameters: dict[str, Any],
+    agent_context: dict[str, Any],
+    job_id: str,
+    require_cool: bool,
+    expected_source_etag: str | None = None,
+    telemetry: CloudWatchTelemetry | None = None,
+) -> dict[str, Any]:
+    """Execute Step-20 Agent Tool 3 without replacing original evidence."""
+    frame_s3_key = str(parameters["frame_s3_key"])
+    if source_key != frame_s3_key:
+        raise RuntimeError("enhance_region source key must match frame_s3_key")
+
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=frame_s3_key)
+    observed_etag = str(source_head.get("ETag", "")).strip('"')
+    if expected_source_etag and observed_etag != expected_source_etag:
+        raise RuntimeError(
+            "S3 frame changed after enhance_region enqueue: "
+            f"expected ETag {expected_source_etag!r}, observed {observed_etag!r}"
+        )
+
+    runtime = _verify_runtime(
+        input_s3_key=frame_s3_key,
+        parameters={"tool": "enhance_region", **parameters},
+        require_cool=require_cool,
+    )
+    if telemetry:
+        telemetry.event(
+            "AGENT_TOOL_STARTED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="enhance_region",
+            runtime=runtime.get("runtime"),
+            frame_s3_key=frame_s3_key,
+            contrast=parameters.get("contrast"),
+            brightness_normalization=parameters.get("brightness_normalization"),
+            sharpening=parameters.get("sharpening"),
+        )
+
+    started = time.perf_counter()
+    with PeakMemorySampler() as memory:
+        with tempfile.TemporaryDirectory(prefix=f"rentready-enhance-{inspection_id}-") as tmp:
+            tmp_path = Path(tmp)
+            source_suffix = Path(frame_s3_key).suffix or ".jpg"
+            source_path = tmp_path / f"original{source_suffix}"
+            enhanced_path = tmp_path / "enhanced_inspection_view.jpg"
+            s3.download_file(settings.s3_bucket, frame_s3_key, str(source_path))
+
+            enhancement = write_enhanced_region(
+                source_path,
+                enhanced_path,
+                bounding_box=parameters["bounding_box"],
+                contrast=float(parameters["contrast"]),
+                brightness_normalization=bool(parameters["brightness_normalization"]),
+                sharpening=float(parameters["sharpening"]),
+            )
+            enhanced_key = (
+                f"inspections/{inspection_id}/agentic/{job_id}/enhance/"
+                "enhanced_inspection_view.jpg"
+            )
+            s3.upload_file(
+                str(enhanced_path),
+                settings.s3_bucket,
+                enhanced_key,
+                ExtraArgs={"ContentType": "image/jpeg"},
+            )
+
+    elapsed = max(time.perf_counter() - started, 1e-9)
+    enhancement_public = {k: v for k, v in enhancement.items() if k != "local_path"}
+    enhancement_public["source"]["s3_key"] = frame_s3_key
+    enhancement_public["source"]["etag"] = observed_etag or None
+    enhancement_public["output"]["s3_key"] = enhanced_key
+
+    result = {
+        "schema_version": ENHANCE_TRACE_VERSION,
+        "inspection_id": inspection_id,
+        "job_id": job_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "agent_decision": {
+            "reason": "Need a clearer inspection view while keeping the original evidence immutable.",
+            "tool_call": {
+                "name": "enhance_region",
+                "arguments": {
+                    "frame": frame_s3_key,
+                    "bounding_box": parameters["bounding_box"],
+                    "contrast": float(parameters["contrast"]),
+                    "brightness_normalization": bool(parameters["brightness_normalization"]),
+                    "sharpening": float(parameters["sharpening"]),
+                },
+            },
+        },
+        "candidate": agent_context,
+        "runtime": runtime,
+        "enhancement_result": enhancement_public,
+        "evidence_preservation": {
+            "original_frame_s3_key": frame_s3_key,
+            "original_frame_etag": observed_etag or None,
+            "original_sha256": enhancement_public["source_sha256"],
+            "original_overwritten": False,
+            "enhanced_view_s3_key": enhanced_key,
+            "enhanced_sha256": enhancement_public["enhanced_sha256"],
+            "display_labels": ["Original evidence", "Enhanced inspection view"],
+        },
+        "action": "ENHANCED_VIEW_READY",
+        "completion_event": "AGENT_TOOL_COMPLETE",
+        "telemetry": {
+            "processing_seconds": round(elapsed, 3),
+            "peak_memory_mb": round(memory.peak_memory_mb, 3),
+            "output_width": enhancement_public["output"]["width"],
+            "output_height": enhancement_public["output"]["height"],
+        },
+    }
+    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step20-enhance-region-trace.json"
+    s3.put_object(
+        Bucket=settings.s3_bucket,
+        Key=result_key,
+        Body=json.dumps(result, indent=2).encode("utf-8"),
+        ContentType="application/json",
+    )
+    if telemetry:
+        telemetry.event(
+            "AGENT_TOOL_OPENCV_COMPLETE",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="enhance_region",
+            runtime=runtime.get("runtime"),
+            operations=enhancement_public["operations_applied"],
+            original_frame_s3_key=frame_s3_key,
+            enhanced_view_s3_key=enhanced_key,
+            original_overwritten=False,
+        )
+        telemetry.event(
+            "AGENT_TOOL_COMPLETE",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool="enhance_region",
+            runtime=runtime.get("runtime"),
+            result_s3_key=result_key,
+            enhanced_view_s3_key=enhanced_key,
         )
     return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
 

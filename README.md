@@ -481,6 +481,14 @@ The Step-18 trace persists the original agent decision, tool arguments, COOL run
 See [`STEP18_AGENTIC_VISION.md`](STEP18_AGENTIC_VISION.md), [`evaluation/step18/`](evaluation/step18/), and [`evaluation/step18/live/verification.json`](evaluation/step18/live/verification.json) for the implementation, local checks, and live AWS acceptance evidence.
 
 Next Agentic Vision tools after Tool 1: ROI crop/enhance using the Step-17 bbox, explicit evidence comparison, and expanded human-control/failure-case evaluation.
+
+## Step 19 Agent Tool 2 — LIVE AWS PASS
+
+Step 19 adds `crop_region(frame, bounding_box, padding)`: a deterministic COOL/OpenCV tool that converts the Step-17 normalized bbox into a padded, aspect-ratio-preserving crop with a 1024px longest edge. The original keyframe remains untouched, and the derived crop, source ETag, tool parameters, runtime identity, and lifecycle events are stored separately. See [`STEP19_CROP_REGION.md`](STEP19_CROP_REGION.md) and [`evaluation/step19/`](evaluation/step19/).
+
+## Step 20 Agent Tool 3 — LOCAL PASS
+
+Step 20 adds `enhance_region()` with explicit contrast, brightness-normalization, and sharpening controls. It transforms only a copied Step-17 ROI, keeps the full original evidence immutable, saves a separately labeled inspection view, records source and derived hashes, and shows **Original evidence** beside **Enhanced inspection view** in the browser. The same deterministic SQS → Graviton4 COOL path is wired; live AWS validation remains pending deployment. See [`STEP20_ENHANCE_REGION.md`](STEP20_ENHANCE_REGION.md) and [`evaluation/step20/local_verification.json`](evaluation/step20/local_verification.json).
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in
