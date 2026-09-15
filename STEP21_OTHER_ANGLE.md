@@ -203,4 +203,5 @@ AGENT_TOOL_STARTED → AGENT_TOOL_OPENCV_COMPLETE → AGENT_ACTION_DECIDED
 - `evaluation/step21/local_verification.json`
 - `evaluation/step21/inspect_other_angle_contract.json`
 - `evaluation/step21/test_summary.json`
+- `evaluation/step21/live_aws_verification.json`
 - `README.md`
