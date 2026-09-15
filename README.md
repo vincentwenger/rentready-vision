@@ -491,9 +491,15 @@ Step 19 adds `crop_region(frame, bounding_box, padding)`: a deterministic COOL/O
 
 Step 20 adds `enhance_region()` with explicit contrast, brightness-normalization, and sharpening controls. It transforms only a copied Step-17 ROI, keeps the full original evidence immutable, saves a separately labeled inspection view, records source and derived hashes, and shows **Original evidence** beside **Enhanced inspection view** in the browser. Live AWS validation passed on September 15, 2026 for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-4b566e815c422a0df54ad76e6f8d9cdf`. The tool ran on COOL 3.1 / OpenCV 5.1.0-dev on an m8g.4xlarge Graviton4 worker, preserved the original object, persisted the enhanced view separately, and produced the complete CloudWatch lifecycle event chain. See [`STEP20_ENHANCE_REGION.md`](STEP20_ENHANCE_REGION.md) and [`evaluation/step20/`](evaluation/step20/).
 
-## Step 21 Agent Tool 4 — LOCAL PASS
+## Step 21 Agent Tool 4 — LIVE AWS PASS
 
-Step 21 adds `inspect_other_angle()`. OpenCV detects ORB features inside the Step-17 candidate region plus local context, searches a bounded set of nearby video frames, and uses RANSAC homographies to prove geometric continuity before ranking meaningful view changes. It prefers strong evidence before and after the reference, emits chronological Frame A/B/C artifacts, and sends contextual crops to a forced structured AI assessment. A multi-view result is confirmed only when AI verifies both the same region/object and the alleged issue in multiple viewpoints; otherwise human review remains required. The original video stays immutable and all derived views, hashes, match/inlier metrics, runtime evidence, and decisions are persisted separately. See [`STEP21_OTHER_ANGLE.md`](STEP21_OTHER_ANGLE.md) and [`evaluation/step21/`](evaluation/step21/). Live AWS validation remains pending.
+Step 21 adds `inspect_other_angle()`. OpenCV detects ORB features inside the Step-17 candidate region plus local context, searches nearby video frames, validates geometric continuity with RANSAC homographies, and ranks meaningful viewpoint changes. It emits chronological Frame A/B/C evidence and asks AI whether the same issue is visible from multiple viewpoints.
+
+Live AWS validation passed on **September 15, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-8d430190e1ad65696dcfdb045837caf6`. The tool ran at commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8` on COOL 3.1 / OpenCV 5.1.0-dev on an `m8g.4xlarge` Arm64 Graviton4 worker.
+
+The dense 12.0–13.4 second search sampled 14 candidates, geometrically matched eight, and selected Frame A at 12.6s, reference Frame B at 13.0s, and Frame C at 13.4s. Amazon Nova 2 Lite confirmed the same region and visible clutter/toys across the three viewpoints, increasing confidence from **0.80 to 0.95** and producing `ACCEPT_FINDING`. The verifier checked all six derived S3 JPEGs and hashes, original-video immutability, runtime identity, and the complete CloudWatch event chain, returning `passed=true` with `errors=[]`.
+
+See [`STEP21_OTHER_ANGLE.md`](STEP21_OTHER_ANGLE.md), [`evaluation/step21/`](evaluation/step21/), and [`evaluation/step21/live_aws_verification.json`](evaluation/step21/live_aws_verification.json).
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

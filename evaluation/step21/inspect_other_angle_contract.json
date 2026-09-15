@@ -13,11 +13,31 @@
       "bounding_box"
     ],
     "bounded_controls": {
-      "search_seconds_before": {"default": 4.0, "minimum": 0.0, "maximum": 30.0},
-      "search_seconds_after": {"default": 4.0, "minimum": 0.0, "maximum": 30.0},
-      "sample_every_seconds": {"default": 0.5, "minimum": 0.1, "maximum": 5.0},
-      "max_results": {"default": 3, "minimum": 2, "maximum": 5},
-      "min_viewpoint_change": {"default": 0.06, "minimum": 0.0, "maximum": 1.0}
+      "search_seconds_before": {
+        "default": 4.0,
+        "minimum": 0.0,
+        "maximum": 30.0
+      },
+      "search_seconds_after": {
+        "default": 4.0,
+        "minimum": 0.0,
+        "maximum": 30.0
+      },
+      "sample_every_seconds": {
+        "default": 0.5,
+        "minimum": 0.1,
+        "maximum": 5.0
+      },
+      "max_results": {
+        "default": 3,
+        "minimum": 2,
+        "maximum": 5
+      },
+      "min_viewpoint_change": {
+        "default": 0.06,
+        "minimum": 0.0,
+        "maximum": 1.0
+      }
     }
   },
   "opencv_pipeline": [
@@ -83,5 +103,20 @@
   },
   "production_path": "FastAPI -> deterministic SQS message -> Graviton4 COOL worker -> OpenCV -> S3 -> AI assessment -> DynamoDB/CloudWatch",
   "local_status": "PASS",
-  "live_aws_status": "PENDING"
+  "live_aws_status": "PASS",
+  "live_aws_evidence": {
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id": "rv-8d430190e1ad65696dcfdb045837caf6",
+    "git_commit": "f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8",
+    "selected_frames": [
+      "Frame A 12.6s OTHER_VIEW",
+      "Frame B 13.0s REFERENCE",
+      "Frame C 13.4s OTHER_VIEW"
+    ],
+    "multi_view_confirmed": true,
+    "confidence_before": 0.8,
+    "confidence_after": 0.95,
+    "action": "ACCEPT_FINDING",
+    "verifier": "passed=true, errors=[]"
+  }
 }

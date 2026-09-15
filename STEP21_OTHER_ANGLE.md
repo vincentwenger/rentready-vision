@@ -1,7 +1,7 @@
 # Step 21 — Agent Tool 4: `inspect_other_angle()`
 
 **Roadmap step:** 21
-**Status in this bundle:** LOCAL PASS — implementation, focused tests, deterministic queue contract, COOL-worker dispatch, derived S3 persistence, AI cross-view assessment, browser rendering, and local verification are complete. Live AWS acceptance is pending deployment.
+**Status in this bundle:** LIVE AWS PASS — implementation, focused tests, deterministic queue contract, COOL-worker dispatch, derived S3 persistence, AI cross-view assessment, browser rendering, local verification, and live AWS acceptance are complete.
 
 ## Goal
 
@@ -161,7 +161,31 @@ The read-only verifier checks the Step-21 schema, tool call, COOL/OpenCV 5/Arm64
 AGENT_TOOL_STARTED → AGENT_TOOL_OPENCV_COMPLETE → AGENT_ACTION_DECIDED
 ```
 
-Do not mark Step 21 as LIVE AWS PASS until that verifier returns `passed=true` with `errors=[]`.
+The acceptance gate requires that verifier to return `passed=true` with `errors=[]`.
+
+### Verified live result — September 15, 2026
+
+Live AWS validation passed for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-8d430190e1ad65696dcfdb045837caf6` at Git commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8`.
+
+The SQS job ran on an AWS Graviton4 `m8g.4xlarge` worker using COOL `3.1`, OpenCV `5.1.0-dev`, Python `3.12.3`, and `aarch64`. A dense bounded search from 12.0–13.4 seconds sampled 14 candidates, geometrically matched eight with ORB/RANSAC, and selected three ordered views:
+
+| Evidence | Precise timestamp | Relation | Viewpoint score | RANSAC inliers |
+| --- | ---: | --- | ---: | ---: |
+| Frame A | 12.6s | OTHER_VIEW | 0.2745 | 286 |
+| Frame B | 13.0s | REFERENCE | 0.0000 | 2200 |
+| Frame C | 13.4s | OTHER_VIEW | 0.2011 | 281 |
+
+The browser's whole-second timestamp labels display `00:13` for all three frames, while the trace preserves their precise 12.6, 13.0, and 13.4 second timestamps.
+
+Amazon Nova 2 Lite request `67c75349-cfed-4318-880a-bd3f50f1e640` confirmed `same_region_or_object=true` and `visible_in_multiple_viewpoints=true`. Confidence increased from `0.80` to `0.95`, `multi_view_confirmed` became true, and the final action was `ACCEPT_FINDING`.
+
+The verifier decoded and SHA-256 checked all six derived S3 JPEGs, confirmed `original_overwritten=false`, verified the exact COOL/OpenCV/Arm64 runtime and Git commit, and found the complete CloudWatch chain:
+
+```text
+AGENT_TOOL_STARTED → AGENT_TOOL_OPENCV_COMPLETE → AGENT_ACTION_DECIDED
+```
+
+`scripts/verify_step21_aws.py` returned `passed=true` with `errors=[]`. Step 21 is therefore **LIVE AWS PASS**.
 
 ## Files added or changed
 

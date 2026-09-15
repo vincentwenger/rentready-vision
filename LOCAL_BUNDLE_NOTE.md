@@ -2,10 +2,10 @@
 
 This archive is the Step-21 RentReady Vision source/evidence bundle prepared on September 15, 2026.
 
-- It preserves the completed live AWS evidence through Step 20.
+- It preserves the completed live AWS evidence through Step 21.
 - It adds Step 21 Agent Tool 4, `inspect_other_angle()`, including OpenCV ORB/RANSAC region matching, viewpoint-change ranking, structured AI multi-view assessment, production SQS/COOL dispatch, private derived evidence, browser Frame A/B/C rendering, documentation, tests, and verification scripts.
-- Step 21 is **LOCAL PASS**: 8/8 focused tests, 30/30 Agent Tool 1–4 regression tests, 86/86 full-project tests, and 20/20 local contract checks passed.
-- Step 21 is not labeled LIVE AWS PASS. Deploy the code, trigger the tool, and run `scripts/verify_step21_aws.py` before promotion.
+- Step 21 is **LIVE AWS PASS**: 8/8 focused tests, 30/30 Agent Tool 1–4 regression tests, 86/86 full-project tests, 20/20 local contract checks, and the official live AWS verifier passed.
+- Live AWS evidence uses inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-8d430190e1ad65696dcfdb045837caf6`, and commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8`. Three views were selected, multi-view evidence was confirmed, confidence increased from 0.80 to 0.95, and the verifier returned `passed=true` with `errors=[]`.
 - The local `.env` file is intentionally excluded. Copy `.env.example` to `.env` and fill in local AWS values when running on another machine.
 - Terraform state, `terraform.tfvars`, AWS credentials, virtual environments, Python caches, and test caches are intentionally excluded.
 

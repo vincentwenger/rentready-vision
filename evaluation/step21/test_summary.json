@@ -24,6 +24,21 @@
     "checks_total": 20,
     "errors": []
   },
-  "live_aws_validated": false,
-  "status": "LOCAL PASS"
+  "live_aws_validated": true,
+  "status": "LIVE AWS PASS",
+  "live_aws_validation": {
+    "passed": true,
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id": "rv-8d430190e1ad65696dcfdb045837caf6",
+    "git_commit": "f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8",
+    "runtime": "COOL 3.1 / OpenCV 5.1.0-dev / aarch64 Graviton4 m8g.4xlarge",
+    "selected_frame_count": 3,
+    "geometrically_matched_count": 8,
+    "multi_view_confirmed": true,
+    "confidence_before": 0.8,
+    "confidence_after": 0.95,
+    "action": "ACCEPT_FINDING",
+    "verifier_errors": []
+  },
+  "updated_at": "2026-09-15T17:05:10Z"
 }

@@ -2,15 +2,18 @@
 
 ## Current Step-21 status
 
-**Agent Tool 4 `inspect_other_angle()` is LOCAL PASS; live AWS acceptance is pending.**
+**Agent Tool 4 `inspect_other_angle()` is LIVE AWS PASS (September 15, 2026).**
+
+Local validation passed 8 focused tests, 30 Agent Tool regression tests, 86 full-project tests, and all 20 contract checks. Live AWS validation then passed for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-8d430190e1ad65696dcfdb045837caf6`.
+
+The COOL 3.1 / OpenCV 5.1.0-dev Arm64 worker geometrically matched eight nearby candidates and selected three ordered views. AI confirmed the same region and visible issue across multiple viewpoints, increasing confidence from 0.80 to 0.95. The live verifier validated all S3 artifacts and hashes, original immutability, runtime identity, and the complete CloudWatch lifecycle with `passed=true` and `errors=[]`.
 
 Evidence is organized under:
 
-- `step21/inspect_other_angle_contract.json` — machine-readable algorithm, queue, evidence, and AI decision contract;
+- `step21/inspect_other_angle_contract.json` — machine-readable algorithm, queue, evidence, AI decision, and live-pass contract;
 - `step21/local_verification.json` — local contract-verifier output;
-- `step21/test_summary.json` — focused and full-project regression results.
-
-The live verifier is `../scripts/verify_step21_aws.py`. After deployment it must confirm the COOL/OpenCV 5 Arm64 runtime, ordered view artifacts, AI multi-view booleans, source immutability, hashes, and CloudWatch lifecycle before Step 21 is promoted to LIVE AWS PASS.
+- `step21/test_summary.json` — focused, regression, full-project, and live AWS summary;
+- `step21/live_aws_verification.json` — official live AWS verifier result and artifact/CloudWatch evidence.
 
 ---
 
