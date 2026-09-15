@@ -24,5 +24,14 @@
     "checks_total": 17
   },
   "browser_javascript_syntax": "PASS",
-  "live_aws_validated": false
+  "live_aws_validated": true,
+  "live_aws_validation": {
+    "passed": true,
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id": "rv-4b566e815c422a0df54ad76e6f8d9cdf",
+    "git_commit": "67d726855aedca743550f6adfd14e2f23041d0a2",
+    "runtime": "COOL 3.1 / OpenCV 5.1.0-dev / aarch64 Graviton4 m8g.4xlarge",
+    "verifier_errors": []
+  },
+  "updated_at": "2026-09-15T03:12:05Z"
 }

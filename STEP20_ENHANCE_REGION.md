@@ -1,7 +1,7 @@
 # Step 20 — Agent Tool 3: `enhance_region()`
 
 **Roadmap step:** 20  
-**Status in this bundle:** LOCAL PASS — implementation, focused tests, immutable queue contract, COOL worker dispatch, derived S3 persistence, browser comparison, and local verification complete. Live AWS acceptance is intentionally pending deployment.
+**Status in this bundle:** LIVE AWS PASS — implementation, focused tests, immutable queue contract, COOL worker dispatch, derived S3 persistence, browser comparison, local verification, and live AWS acceptance are complete.
 
 ## Goal
 
@@ -99,6 +99,8 @@ python scripts/verify_step20_aws.py \
 ```
 
 The read-only verifier cross-checks DynamoDB, the Step-20 trace, both S3 images, ETag/SHA-256 preservation evidence, matching dimensions, COOL/OpenCV 5 on Arm64, and the three CloudWatch lifecycle events.
+
+Live AWS validation completed on **September 15, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-4b566e815c422a0df54ad76e6f8d9cdf`. The tool ran on an `m8g.4xlarge` Graviton4 instance using COOL `3.1` and OpenCV `5.1.0-dev` at Git commit `67d726855aedca743550f6adfd14e2f23041d0a2`. The verifier returned `passed=true` with `errors=[]`. It confirmed contrast `1.25`, LAB brightness normalization, sharpening `0.8`, separate original and enhanced S3 objects, matching 1080x1920 dimensions, distinct SHA-256 hashes, `original_overwritten=false`, and the complete `AGENT_TOOL_STARTED` → `AGENT_TOOL_OPENCV_COMPLETE` → `AGENT_TOOL_COMPLETE` event chain.
 
 ## Files added or changed
 

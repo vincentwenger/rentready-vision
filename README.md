@@ -486,9 +486,9 @@ Next Agentic Vision tools after Tool 1: ROI crop/enhance using the Step-17 bbox,
 
 Step 19 adds `crop_region(frame, bounding_box, padding)`: a deterministic COOL/OpenCV tool that converts the Step-17 normalized bbox into a padded, aspect-ratio-preserving crop with a 1024px longest edge. The original keyframe remains untouched, and the derived crop, source ETag, tool parameters, runtime identity, and lifecycle events are stored separately. See [`STEP19_CROP_REGION.md`](STEP19_CROP_REGION.md) and [`evaluation/step19/`](evaluation/step19/).
 
-## Step 20 Agent Tool 3 — LOCAL PASS
+## Step 20 Agent Tool 3 — LIVE AWS PASS
 
-Step 20 adds `enhance_region()` with explicit contrast, brightness-normalization, and sharpening controls. It transforms only a copied Step-17 ROI, keeps the full original evidence immutable, saves a separately labeled inspection view, records source and derived hashes, and shows **Original evidence** beside **Enhanced inspection view** in the browser. The same deterministic SQS → Graviton4 COOL path is wired; live AWS validation remains pending deployment. See [`STEP20_ENHANCE_REGION.md`](STEP20_ENHANCE_REGION.md) and [`evaluation/step20/local_verification.json`](evaluation/step20/local_verification.json).
+Step 20 adds `enhance_region()` with explicit contrast, brightness-normalization, and sharpening controls. It transforms only a copied Step-17 ROI, keeps the full original evidence immutable, saves a separately labeled inspection view, records source and derived hashes, and shows **Original evidence** beside **Enhanced inspection view** in the browser. Live AWS validation passed on September 15, 2026 for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-4b566e815c422a0df54ad76e6f8d9cdf`. The tool ran on COOL 3.1 / OpenCV 5.1.0-dev on an m8g.4xlarge Graviton4 worker, preserved the original object, persisted the enhanced view separately, and produced the complete CloudWatch lifecycle event chain. See [`STEP20_ENHANCE_REGION.md`](STEP20_ENHANCE_REGION.md) and [`evaluation/step20/`](evaluation/step20/).
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in
