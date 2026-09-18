@@ -1,7 +1,7 @@
 # Step 22 — Actual Decision Policy
 
 **Roadmap step:** 22  
-**Status in this bundle:** LOCAL PASS target — implementation, deterministic queue contract, COOL-worker orchestration, API/browser wiring, focused tests, and local verification are included. A live AWS run is intentionally not claimed until the deployed SQS → COOL path is exercised and captured.
+**Status in this bundle:** LIVE AWS PASS — implementation, exact threshold routing, safety guard, bounded investigation, persistence, API/browser wiring, local tests, and deployed SQS-to-COOL validation are complete.
 
 ## Goal
 
@@ -118,7 +118,7 @@ python scripts/verify_step22_decision_policy.py \
 
 The tests cover exact threshold boundaries, safety override behavior, evidence sufficiency, the complete investigation graph, deterministic candidate priority, strict SQS validation, interval-to-crop orchestration, final re-evaluation, immutable evidence, API/worker/browser wiring, and trace persistence.
 
-## Live AWS acceptance still required
+## Live AWS acceptance
 
 After deploying the Step-22 commit, run one candidate that requires investigation and capture:
 
@@ -136,7 +136,13 @@ python scripts/verify_step22_aws.py \
 - the persisted Step-22 trace and derived artifact hashes; and
 - the final DynamoDB action.
 
-Until that evidence exists, Step 22 is correctly reported as **local implementation complete; live AWS acceptance pending**.
+### Verified live result — September 18, 2026
+
+Live AWS validation passed for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-a5b37620b2cd24c5f8b2438d8618f470`, and Git commit `25d3d24367d552c7860aedf9e2087822f53e70fc`.
+
+The candidate entered `INVESTIGATE_CANDIDATE` at confidence `0.80`. `inspect_interval()` returned 15 hashed frames and established sufficient multi-frame evidence, so the bounded policy correctly skipped `crop_region()`. Re-evaluation raised confidence to `0.90` and produced `ACCEPT_CANDIDATE`.
+
+The job ran on the AWS Graviton4 `m8g.4xlarge` worker with COOL `3.1`, OpenCV `5.1.0-dev`, Python `3.12.3`, and `aarch64`. The verifier checked all 15 S3 artifact hashes, original-evidence immutability, exact thresholds, runtime identity, and the complete `DECISION_POLICY_STARTED` -> `DECISION_POLICY_TOOL_COMPLETE` -> `DECISION_POLICY_COMPLETE` CloudWatch chain. It returned `passed=true` with `errors=[]`. Step 22 is therefore **LIVE AWS PASS**.
 
 ## Files added or changed
 
@@ -155,4 +161,5 @@ Until that evidence exists, Step 22 is correctly reported as **local implementat
 - `evaluation/step22/decision_policy_contract.json`
 - `evaluation/step22/local_verification.json`
 - `evaluation/step22/test_summary.json`
+- `evaluation/step22/live_aws_verification.json`
 - `README.md`

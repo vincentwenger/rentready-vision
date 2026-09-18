@@ -501,13 +501,15 @@ The dense 12.0–13.4 second search sampled 14 candidates, geometrically matched
 
 See [`STEP21_OTHER_ANGLE.md`](STEP21_OTHER_ANGLE.md), [`evaluation/step21/`](evaluation/step21/), and [`evaluation/step21/live_aws_verification.json`](evaluation/step21/live_aws_verification.json).
 
-## Step 22 actual decision policy — LOCAL PASS target
+## Step 22 actual decision policy — LIVE AWS PASS
 
 Step 22 converts confidence into an explicit, bounded policy: candidates above `0.85` are accepted; candidates from `0.50` through `0.85` are investigated; and candidates below `0.50` are rejected unless a recorded safety guard applies. Exactly `0.85` remains in investigation. A low-confidence safety candidate is never auto-accepted—the override preserves it for investigation and, when unresolved, human approval.
 
 The investigation assesses evidence sufficiency, verifies already-sufficient evidence, otherwise calls `inspect_interval()`, conditionally calls `crop_region()` when temporal evidence is still insufficient, and then re-evaluates once. The complete route, safety reasons, tool results, confidence change, human-control decision, COOL runtime, and immutable evidence references are persisted in `step22-decision-policy-trace.json`. The browser calls `POST /inspections/{inspection_id}/agent/policy` and displays the policy path.
 
-See [`STEP22_DECISION_POLICY.md`](STEP22_DECISION_POLICY.md) and [`evaluation/step22/`](evaluation/step22/). The bundle does not claim live AWS acceptance until a deployed `run_decision_policy` SQS job and CloudWatch lifecycle have been captured and verified.
+See [`STEP22_DECISION_POLICY.md`](STEP22_DECISION_POLICY.md), [`evaluation/step22/`](evaluation/step22/), and [`evaluation/step22/live_aws_verification.json`](evaluation/step22/live_aws_verification.json).
+
+On **September 18, 2026**, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed live job `rv-a5b37620b2cd24c5f8b2438d8618f470` on the Graviton4 COOL worker at commit `25d3d24367d552c7860aedf9e2087822f53e70fc`. The policy investigated the `0.80` candidate with 15 interval frames, found sufficient evidence without spending a crop call, raised confidence to `0.90`, and returned `ACCEPT_CANDIDATE`. The verifier returned `passed=true` with `errors=[]` after checking S3 hashes, immutable evidence, COOL/OpenCV/Arm64 identity, and the full CloudWatch lifecycle.
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

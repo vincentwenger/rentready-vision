@@ -15,5 +15,19 @@
     "COOL service orchestration and persisted trace",
     "API, worker, browser, and documentation wiring"
   ],
-  "live_aws_validated": false
+  "live_aws_validated": true,
+  "live_aws": {
+    "date": "2026-09-18",
+    "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id": "rv-a5b37620b2cd24c5f8b2438d8618f470",
+    "git_commit": "25d3d24367d552c7860aedf9e2087822f53e70fc",
+    "tools_executed": [
+      "inspect_interval"
+    ],
+    "confidence_before": 0.8,
+    "confidence_after": 0.9,
+    "action": "ACCEPT_CANDIDATE",
+    "passed": true,
+    "errors": []
+  }
 }

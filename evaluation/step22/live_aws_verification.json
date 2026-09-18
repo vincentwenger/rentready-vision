@@ -1,0 +1,205 @@
+{
+  "step": 22,
+  "verification_scope": "live_aws_decision_policy",
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "job_id": "rv-a5b37620b2cd24c5f8b2438d8618f470",
+  "passed": true,
+  "trace_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/step22-decision-policy-trace.json",
+  "thresholds": {
+    "accept_when_greater_than": 0.85,
+    "investigate_minimum_inclusive": 0.5,
+    "investigate_maximum_inclusive": 0.85
+  },
+  "safety_sensitive": false,
+  "safety_override_applied": false,
+  "stages": [
+    "INITIAL_ROUTE",
+    "CALL_INSPECT_INTERVAL",
+    "RE_EVALUATE"
+  ],
+  "tools_executed": [
+    "inspect_interval"
+  ],
+  "confidence_before": 0.8,
+  "confidence_after": 0.9,
+  "action": "ACCEPT_CANDIDATE",
+  "runtime": {
+    "schema_version": "1.2",
+    "timestamp": "2026-09-18T00:24:39.640218+00:00",
+    "runtime": "COOL",
+    "cool_version": "3.1",
+    "opencv_version": "5.1.0-dev",
+    "cv2_path": "/opt/cool/python_3.12/site-packages/cv2/__init__.py",
+    "cv2_version": "5.1.0-dev",
+    "cv2_file": "/opt/cool/python_3.12/site-packages/cv2/__init__.py",
+    "cv2_file_sha256": "69192904dead3ada37c8b305ee850ac7474924730881a9d5e0b2390944eb5aae",
+    "cv2_binary_file": "/opt/cool/python_3.12/site-packages/cv2/python-3.12/cv2.cpython-312-aarch64-linux-gnu.so",
+    "cv2_binary_sha256": "8e0cb494f0c5dbfe5c0fc92d3b242d2fad5732de4a81fc3d45a9a537e7711556",
+    "cv2_distribution": {
+      "name": null,
+      "version": null
+    },
+    "cv2_build_information": "\nGeneral configuration for OpenCV 5.1.0-dev =====================================\n  Version control:               unknown\n\n  Platform:\n    Timestamp:                   2026-07-13T03:56:14Z\n    Host:                        Linux 6.17.0-1019-aws aarch64\n    CMake:                       3.28.3\n    CMake generator:             Ninja\n    CMake build tool:            /usr/bin/ninja\n    Configuration:               Release\n    Algorithm Hint:              ALGO_HINT_ACCURATE\n\n  CPU/HW features:\n    Baseline:                    SVE NEON FP16 NEON_DOTPROD NEON_FP16 NEON_BF16\n      requested:                 DETECT\n    Dispatched code generation:\n      requested:                 NEON_DOTPROD NEON_FP16 NEON_BF16\n\n  C/C++:\n    Built as dynamic libs?:      YES\n    C++ standard:                17\n    C++ Compiler:                /usr/bin/c++  (ver 13.3.0)\n    C++ flags (Release):         -O3 -mcpu=neoverse-v2 -fvisibility=hidden -fvisibility-inlines-hidden   -fsigned-char -W -Wall -Wreturn-type -Wnon-virtual-dtor -Waddress -Wsequence-point -Wformat -Wformat-security -Wmissing-declarations -Wundef -Winit-self -Wpointer-arith -Wshadow -Wsign-promo -Wuninitialized -Wsuggest-override -Wno-delete-non-virtual-dtor -Wno-comment -Wimplicit-fallthrough=3 -Wno-strict-overflow -fdiagnostics-show-option -pthread -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto  -O3 -DNDEBUG  -DNDEBUG\n    C++ flags (Debug):           -O3 -mcpu=neoverse-v2 -fvisibility=hidden -fvisibility-inlines-hidden   -fsigned-char -W -Wall -Wreturn-type -Wnon-virtual-dtor -Waddress -Wsequence-point -Wformat -Wformat-security -Wmissing-declarations -Wundef -Winit-self -Wpointer-arith -Wshadow -Wsign-promo -Wuninitialized -Wsuggest-override -Wno-delete-non-virtual-dtor -Wno-comment -Wimplicit-fallthrough=3 -Wno-strict-overflow -fdiagnostics-show-option -pthread -fomit-frame-pointer -ffunction-sections -fdata-sections -flto=auto  -g  -DDEBUG -D_DEBUG\n    C Compiler:                  /usr/bin/cc\n    C flags (Release):           -O3 -mcpu=neoverse-v2 -fvisibility=hidden -fvisibility-inlines-hidden    -O3 -DNDEBUG  -DNDEBUG\n    C flags (Debug):             -O3 -mcpu=neoverse-v2 -fvisibility=hidden -fvisibility-inlines-hidden    -g  -DDEBUG -D_DEBUG\n    Linker flags (Release):      -Wl,-rpath,/opt/arm/armpl_25.07.1_gcc/lib -Wl,-rpath,/opt/ffmpeg/lib  -Wl,--gc-sections -Wl,--as-needed -Wl,--no-undefined  \n    Linker flags (Debug):        -Wl,-rpath,/opt/arm/armpl_25.07.1_gcc/lib -Wl,-rpath,/opt/ffmpeg/lib  -Wl,--gc-sections -Wl,--as-needed -Wl,--no-undefined  \n    ccache:                      NO\n    Precompiled headers:         NO\n    Extra dependencies:          dl m pthread rt\n    3rdparty dependencies:\n\n  OpenCV modules:\n    To be built:                 calib core dnn features flann geometry highgui imgcodecs imgproc objdetect photo ptcloud python3 stereo stitching ts video videoio\n    Disabled:                    world\n    Disabled by dependency:      -\n    Unavailable:                 java\n    Applications:                tests perf_tests\n    Documentation:               NO\n    Non-free algorithms:         NO\n\n  GUI:                           NONE\n    GTK+:                        NO\n    VTK support:                 NO\n    Built-in Unicode font:       YES\n\n  Media I/O: \n    ZLib:                        /usr/lib/aarch64-linux-gnu/libz.so (ver 1.3)\n    JPEG:                        build-libjpeg-turbo (ver 3.1.2-70)\n      SIMD Support Request:      YES\n      SIMD Support:              YES\n    WEBP:                        build (ver decoder: 0x0210, encoder: 0x0210, demux: 0x0107)\n    AVIF:                        NO\n    PNG:                         build (ver 1.6.57)\n      Metadata Support:          EXIF XMP ICC cICP\n    TIFF:                        build (ver 42 - 4.7.1)\n    JPEG 2000:                   build (ver 2.5.3)\n    OpenEXR:                     NO\n    GIF:                         YES\n    HDR:                         YES\n    SUNRASTER:                   YES\n    PXM:                         YES\n    PFM:                         YES\n\n  Video I/O:\n    FFMPEG:                      YES\n      avcodec:                   YES (62.28.101)\n      avformat:                  YES (62.12.101)\n      avutil:                    YES (60.26.101)\n      swscale:                   YES (9.5.101)\n      avdevice:                  YES (62.3.101)\n    GStreamer:                   NO\n    v4l/v4l2:                    YES (linux/videodev2.h)\n    Orbbec:                      YES\n\n  Parallel framework:            pthreads\n\n  Trace:                         YES (with Intel ITT(3.25.4))\n\n  Other third-party libraries:\n    Lapack:                      YES (Unknown /opt/arm/armpl_25.07.1_gcc/lib/libarmpl_lp64.so /opt/arm/armpl_25.07.1_gcc/lib/libamath.so /opt/arm/armpl_25.07.1_gcc/lib/libastring.so -lgfortran -lm)\n    DNN MLAS:                    YES (SGEMM-only, vendored)\n      ASM kernels:               YES (ARM64: NEON SGEMM, NEON SGEMV)\n    Eigen:                       NO\n    Custom HAL:                  YES (carotene (ver 0.0.1) KleidiCV (ver 0.7.0))\n    Protobuf:                    build (3.19.1)\n    Flatbuffers:                 builtin/3rdparty (25.9.23)\n\n  OpenCL:                        YES (no extra features)\n    Include path:                /home/ubuntu/opencv-5x-cool/3rdparty/include/opencl/1.2\n    Link libraries:              Dynamic load\n\n  ONNX Runtime:                  NO\n\n  Python 3:\n    Interpreter:                 /home/ubuntu/build_artifacts_secure/venv_3.12/bin/python3.12 (ver 3.12.3)\n    Libraries:                   /usr/lib/aarch64-linux-gnu/libpython3.12.so (ver 3.12.3)\n    Limited API:                 NO\n    numpy:                       /home/ubuntu/build_artifacts_secure/venv_3.12/lib/python3.12/site-packages/numpy/_core/include (ver 2.5.1)\n    install path:                /home/ubuntu/build_artifacts_secure/venv_3.12/lib/python3.12/site-packages/cv2/python-3.12\n\n  Python (for build):            /home/ubuntu/build_artifacts_secure/venv_3.12/bin/python3.12\n\n  Install to:                    /home/ubuntu/build_artifacts_secure/install_3.12\n-----------------------------------------------------------------\n\n",
+    "cv2_build_information_sha256": "12740978f31483f2352d9e8b367f4f6053c3bfb58618e2ff42d53443da2a8ec4",
+    "python_version": "3.12.3",
+    "python_implementation": "CPython",
+    "python_executable": "/opt/cool/venvs/python_3.12/bin/python",
+    "python_build": [
+      "main",
+      "Jun 19 2026 12:46:00"
+    ],
+    "operating_system": "Linux-6.17.0-1019-aws-aarch64-with-glibc2.39",
+    "system": "Linux",
+    "release": "6.17.0-1019-aws",
+    "architecture": "aarch64",
+    "machine": "aarch64",
+    "word_size": "64bit",
+    "processor": "aarch64",
+    "container": false,
+    "instance_id": "i-09f7fe6ae97e1aa2e",
+    "instance_type": "m8g.4xlarge",
+    "ami_id": "ami-08dacb72c289c8261",
+    "region": "us-west-2",
+    "availability_zone": "us-west-2a",
+    "git_commit": "25d3d24367d552c7860aedf9e2087822f53e70fc",
+    "git_dirty": true,
+    "input_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/original/walkthrough.mov",
+    "processing_parameters": {
+      "tool": "run_decision_policy",
+      "video_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+      "timestamp": 13.0,
+      "bounding_box": {
+        "x": 0.0,
+        "y": 0.5,
+        "width": 1.0,
+        "height": 0.5
+      },
+      "frame_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg",
+      "frame_etag": "061a02c38c6fe61d6a7ab42ee8834cd4",
+      "seconds_before": 2.0,
+      "seconds_after": 3.0,
+      "sample_fps": 6.0,
+      "crop_padding": 0.15,
+      "accept_threshold": 0.85,
+      "investigate_threshold": 0.5
+    },
+    "verification": {
+      "passed": true,
+      "errors": []
+    }
+  },
+  "artifacts": [
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_000_000011.000.jpg",
+      "sha256": "66e81cb7c72a208390a7ce7ae7c369caadffcb2041fb291dea55c7c9472d7801"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_001_000011.167.jpg",
+      "sha256": "11177cb8d45b25759a61812a3aac0adc3bd7f67adc2e85d94b6c33c258477ba2"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_002_000011.333.jpg",
+      "sha256": "17a7be55a8863460191c3468a4bbca2e13aa05b0ce10773fda83bce9d85fc77d"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_003_000011.500.jpg",
+      "sha256": "aa1a40509da18c3d7f52562e22b765863b6f8a1454961b73defcb9071639f5d2"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_004_000011.667.jpg",
+      "sha256": "fb78be8a176a23e00d020f109916c588464f6fcd83ceb63fc0999943c19087bc"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_005_000011.833.jpg",
+      "sha256": "2858f2fe98bd66f53e7bd63926d479af3f667b25548553adf1cc7dad72134d92"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_006_000012.000.jpg",
+      "sha256": "b55e9e6b811042c72cc8f92d33e9f5ade4935a9016ddd055dab134d981a79b65"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_007_000012.167.jpg",
+      "sha256": "9b670c03e7a9fe4ce4027d442a2c731acd94a7df57fd34e6882997602f449a6d"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_008_000012.333.jpg",
+      "sha256": "983d716cbdfcb0f58a4d2c80f730773430556f2eda8fbdff5f8ffdbfe34cdceb"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_009_000012.500.jpg",
+      "sha256": "a2641cbb64aac8c550c18e08a91310ae874c42aa86a3a82170f61dfd73a5fe83"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_010_000012.667.jpg",
+      "sha256": "0f8db9714cedbf2a9a10a3f5e1c25b8ca4d48347e000ac6821ba4caf2f278343"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_011_000012.833.jpg",
+      "sha256": "5f60d052971ba4f724a85ab99eccd1041c76e15d375d8f22cc3711a2e35e86d7"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_012_000013.000.jpg",
+      "sha256": "14866c23c334de6723245258510587e088dd6f46d0ec39e3758763ae88a35c95"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_013_000013.167.jpg",
+      "sha256": "ed19407d835d3f76bd0e9ffb7571d25d3bd3d4d972aab53a17c67a646fc88a85"
+    },
+    {
+      "type": "interval_frame",
+      "s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/policy/interval/interval_014_000013.333.jpg",
+      "sha256": "7b15b443bd4c9bdf96c51f2437780d05b72e647cba8aea82ab1cba5aa72c16b1"
+    }
+  ],
+  "cloudwatch_events": [
+    {
+      "confidence_before": 0.8,
+      "event": "DECISION_POLICY_STARTED",
+      "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+      "job_id": "rv-a5b37620b2cd24c5f8b2438d8618f470",
+      "next_step": "CALL_INSPECT_INTERVAL",
+      "policy_version": "rentready-decision-policy/1.0",
+      "runtime": "COOL",
+      "safety_sensitive": false,
+      "timestamp": "2026-09-18T00:24:39.652396+00:00"
+    },
+    {
+      "event": "DECISION_POLICY_TOOL_COMPLETE",
+      "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+      "job_id": "rv-a5b37620b2cd24c5f8b2438d8618f470",
+      "returned_frame_count": 15,
+      "runtime": "COOL",
+      "timestamp": "2026-09-18T00:24:42.446353+00:00",
+      "tool": "inspect_interval"
+    },
+    {
+      "action": "ACCEPT_CANDIDATE",
+      "confidence_after": 0.9,
+      "confidence_before": 0.8,
+      "event": "DECISION_POLICY_COMPLETE",
+      "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+      "job_id": "rv-a5b37620b2cd24c5f8b2438d8618f470",
+      "result_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-a5b37620b2cd24c5f8b2438d8618f470/step22-decision-policy-trace.json",
+      "safety_override_applied": false,
+      "timestamp": "2026-09-18T00:24:54.788890+00:00",
+      "tools_executed": [
+        "inspect_interval"
+      ]
+    }
+  ],
+  "errors": []
+}

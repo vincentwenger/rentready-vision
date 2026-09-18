@@ -139,4 +139,4 @@ The generated 21-page report prepends the gate status, exact pinned Runtime iden
 
 ## Step 22 decision policy
 
-`evaluation/step22/` contains the machine-readable policy contract, focused-test summary, and local verifier result for the exact `>0.85`, `0.50–0.85`, and `<0.50 unless safety-sensitive` routing rules. Live AWS evidence is intentionally absent until the new `run_decision_policy` operation is deployed and exercised on the COOL/Graviton4 worker.
+`evaluation/step22/` contains the machine-readable policy contract, focused-test summary, local verifier result, and official live AWS verification. The September 18, 2026 run used inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-a5b37620b2cd24c5f8b2438d8618f470`, and commit `25d3d24367d552c7860aedf9e2087822f53e70fc`. It executed `inspect_interval`, raised confidence from `0.80` to `0.90`, returned `ACCEPT_CANDIDATE`, and passed with `errors=[]`.
