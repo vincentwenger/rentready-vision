@@ -511,13 +511,14 @@ See [`STEP22_DECISION_POLICY.md`](STEP22_DECISION_POLICY.md), [`evaluation/step2
 
 On **September 18, 2026**, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed live job `rv-a5b37620b2cd24c5f8b2438d8618f470` on the Graviton4 COOL worker at commit `25d3d24367d552c7860aedf9e2087822f53e70fc`. The policy investigated the `0.80` candidate with 15 interval frames, found sufficient evidence without spending a crop call, raised confidence to `0.90`, and returned `ACCEPT_CANDIDATE`. The verifier returned `passed=true` with `errors=[]` after checking S3 hashes, immutable evidence, COOL/OpenCV/Arm64 identity, and the full CloudWatch lifecycle.
 
-## Step 23 agent action log — LOCAL PASS
+## Step 23 agent action log -- LIVE AWS PASS
 
 Step 23 adds one canonical, ordered audit log for the perception → decision → action loop. Every record includes `candidate_id`, `action`, `reason`, `input_timestamp`, `frames_returned`, `confidence_before`, and `confidence_after`, plus sequence, deterministic event identity, write time, and action-specific details. Investigated candidates record the observation, each visual tool actually used, and the final decision; direct accept/reject routes record the observation and terminal decision without inventing tool activity.
 
 Each policy run embeds the log in the Step-22 trace and stores a dedicated `step23-agent-action-log.json` artifact. `GET /inspections/{inspection_id}/agent/actions` returns the latest log, and the browser's **Agent Investigation** timeline shows the observation, OpenCV frame count, optional ROI close-up, confidence transitions, and final human-readable result.
 
-See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Local verification is complete; a deployed run is still required before labeling Step 23 **LIVE AWS PASS**.
+See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection 96a7a795-498f-4c6c-96d5-ad3a4d0027b3, job
+v-7f65b61f061005d9e1fbc28b03e73542, and implementation commit 5426e42afce6d824993aba0d65a19aff4f5df987. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with ACCEPT_CANDIDATE. The Step 23 evidence summary passed all **17/17** checks with errors=[].
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

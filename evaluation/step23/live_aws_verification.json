@@ -1,0 +1,123 @@
+{
+    "step":  23,
+    "verification_scope":  "live_aws_agent_action_log",
+    "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "job_id":  "rv-7f65b61f061005d9e1fbc28b03e73542",
+    "passed":  true,
+    "implementation_commit":  "5426e42afce6d824993aba0d65a19aff4f5df987",
+    "trace_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-7f65b61f061005d9e1fbc28b03e73542/step22-decision-policy-trace.json",
+    "action_log_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-7f65b61f061005d9e1fbc28b03e73542/step23-agent-action-log.json",
+    "checks":  {
+                   "policy_verifier_passed":  true,
+                   "no_policy_errors":  true,
+                   "exact_step23_commit":  true,
+                   "cool_runtime":  true,
+                   "cool_version_3_1":  true,
+                   "opencv_5":  true,
+                   "arm64_graviton":  true,
+                   "action_log_schema":  true,
+                   "dedicated_action_log_present":  true,
+                   "action_count_is_3":  true,
+                   "ordered_actions_correct":  true,
+                   "opencv_frames_logged":  true,
+                   "confidence_transition_logged":  true,
+                   "api_matches_s3":  true,
+                   "cloudwatch_action_count":  true,
+                   "cloudwatch_action_log_key":  true,
+                   "original_evidence_preserved":  true
+               },
+    "action_log":  {
+                       "schema_version":  "rentready-agent-action-log/1.0",
+                       "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+                       "job_id":  "rv-7f65b61f061005d9e1fbc28b03e73542",
+                       "candidate_id":  "issue-5443f379d4abd19c",
+                       "generated_at":  "2026-09-18T18:15:00.371707+00:00",
+                       "action_count":  3,
+                       "actions":  [
+                                       {
+                                           "sequence":  1,
+                                           "candidate_id":  "issue-5443f379d4abd19c",
+                                           "action":  "observe_candidate",
+                                           "reason":  "Initial visual finding entered the investigation band; additional evidence was required before a terminal decision.",
+                                           "input_timestamp":  13.0,
+                                           "frames_returned":  1,
+                                           "confidence_before":  0.8,
+                                           "confidence_after":  0.8,
+                                           "recorded_at":  "2026-09-18T18:15:00.371602+00:00",
+                                           "details":  {
+                                                           "description":  "visible clutter and toys on the floor",
+                                                           "category":  "cleanliness",
+                                                           "initial_route":  "INVESTIGATE_CANDIDATE",
+                                                           "next_step":  "CALL_INSPECT_INTERVAL"
+                                                       },
+                                           "event_id":  "action-0fb8f330f6d67386"
+                                       },
+                                       {
+                                           "sequence":  2,
+                                           "candidate_id":  "issue-5443f379d4abd19c",
+                                           "action":  "inspect_interval",
+                                           "reason":  "Initial confidence was below the automatic acceptance threshold and the available evidence did not yet establish temporal persistence.",
+                                           "input_timestamp":  13.0,
+                                           "frames_returned":  15,
+                                           "confidence_before":  0.8,
+                                           "confidence_after":  0.9,
+                                           "recorded_at":  "2026-09-18T18:15:00.371665+00:00",
+                                           "details":  {
+                                                           "visible_in_multiple_frames":  true,
+                                                           "requested_seconds_before":  2.0,
+                                                           "requested_seconds_after":  3.0,
+                                                           "sample_fps":  6.0,
+                                                           "next_step":  "RE_EVALUATE"
+                                                       },
+                                           "event_id":  "action-1b373d11b700574d"
+                                       },
+                                       {
+                                           "sequence":  3,
+                                           "candidate_id":  "issue-5443f379d4abd19c",
+                                           "action":  "final_decision",
+                                           "reason":  "The bounded investigation completed and confidence mapped to ACCEPT_CANDIDATE.",
+                                           "input_timestamp":  13.0,
+                                           "frames_returned":  0,
+                                           "confidence_before":  0.8,
+                                           "confidence_after":  0.9,
+                                           "recorded_at":  "2026-09-18T18:15:00.371687+00:00",
+                                           "details":  {
+                                                           "result":  "ACCEPT_CANDIDATE",
+                                                           "human_review_required":  false,
+                                                           "safety_override_applied":  false
+                                                       },
+                                           "event_id":  "action-aa8865a78c978ad3"
+                                       }
+                                   ]
+                   },
+    "runtime":  {
+                    "runtime":  "COOL",
+                    "cool_version":  "3.1",
+                    "opencv_version":  "5.1.0-dev",
+                    "architecture":  "aarch64",
+                    "instance_id":  "i-09f7fe6ae97e1aa2e",
+                    "instance_type":  "m8g.4xlarge",
+                    "ami_id":  "ami-08dacb72c289c8261",
+                    "region":  "us-west-2",
+                    "git_commit":  "5426e42afce6d824993aba0d65a19aff4f5df987"
+                },
+    "cloudwatch_completion_event":  {
+                                        "action":  "ACCEPT_CANDIDATE",
+                                        "action_count":  3,
+                                        "action_log_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-7f65b61f061005d9e1fbc28b03e73542/step23-agent-action-log.json",
+                                        "confidence_after":  0.9,
+                                        "confidence_before":  0.8,
+                                        "event":  "DECISION_POLICY_COMPLETE",
+                                        "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+                                        "job_id":  "rv-7f65b61f061005d9e1fbc28b03e73542",
+                                        "result_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/agentic/rv-7f65b61f061005d9e1fbc28b03e73542/step22-decision-policy-trace.json",
+                                        "safety_override_applied":  false,
+                                        "timestamp":  "2026-09-18T18:15:00.517056+00:00",
+                                        "tools_executed":  [
+                                                               "inspect_interval"
+                                                           ]
+                                    },
+    "errors":  [
+
+               ]
+}

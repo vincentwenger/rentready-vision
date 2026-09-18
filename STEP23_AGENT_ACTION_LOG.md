@@ -2,7 +2,7 @@
 
 ## Status
 
-**LOCAL PASS. LIVE AWS VALIDATION NOT YET RUN.**
+**LIVE AWS PASS. Implementation, local verification, deployment, S3 persistence, API retrieval, CloudWatch evidence, and the live SQS-to-COOL run are complete.**
 
 Step 23 makes the perception → decision → action loop directly auditable. Every Step-22 terminal route now creates an ordered, versioned action log. Investigated candidates record the initial observation, each visual tool actually used, and the final decision.
 
@@ -74,12 +74,20 @@ pytest -q
 
 The verifier covers the exact field contract, confidence validation, contiguous ordering, deterministic event IDs, trace and S3 persistence wiring, read API, browser timeline, tests, and documentation.
 
-## Live acceptance still required
+## Live AWS acceptance -- PASS
 
-After deployment, run a real policy investigation and verify that:
+On September 18, 2026, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed live Step 23 job `rv-7f65b61f061005d9e1fbc28b03e73542` using implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`.
 
-- S3 contains both the Step-22 trace and dedicated Step-23 action-log artifact;
-- the action log matches the actual tool path and returned frame count;
-- `GET /agent/actions` returns the same ordered document;
-- CloudWatch's completion event names the action count and S3 key;
-- the browser renders the same confidence transitions and final decision.
+The candidate entered investigation at confidence `0.80`. OpenCV inspected 15 nearby frames on the Graviton4 COOL worker, verified temporal persistence, and raised confidence to `0.90`. The final action was `ACCEPT_CANDIDATE`.
+
+The persisted action log contains three ordered actions:
+
+1. `observe_candidate`
+2. `inspect_interval`
+3. `final_decision`
+
+The dedicated `step23-agent-action-log.json` artifact was stored separately from the Step 22 policy trace and returned successfully through `GET /inspections/{inspection_id}/agent/actions`. The API response and S3 artifact contained identical deterministic event IDs.
+
+The worker runtime proved COOL `3.1`, OpenCV `5.1.0-dev`, Python `3.12.3`, `aarch64`, and `m8g.4xlarge`. CloudWatch recorded `action_count=3` and the dedicated action-log S3 key in `DECISION_POLICY_COMPLETE`.
+
+`evaluation/step23/live_aws_policy_verification.json` returned `passed=true` with `errors=[]`. The Step 23 evidence summary independently passed all 17 checks with zero errors in `evaluation/step23/live_aws_verification.json`.
