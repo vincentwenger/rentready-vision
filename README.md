@@ -517,8 +517,8 @@ Step 23 adds one canonical, ordered audit log for the perception â†’ decision â†
 
 Each policy run embeds the log in the Step-22 trace and stores a dedicated `step23-agent-action-log.json` artifact. `GET /inspections/{inspection_id}/agent/actions` returns the latest log, and the browser's **Agent Investigation** timeline shows the observation, OpenCV frame count, optional ROI close-up, confidence transitions, and final human-readable result.
 
-See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection 96a7a795-498f-4c6c-96d5-ad3a4d0027b3, job
-v-7f65b61f061005d9e1fbc28b03e73542, and implementation commit 5426e42afce6d824993aba0d65a19aff4f5df987. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with ACCEPT_CANDIDATE. The Step 23 evidence summary passed all **17/17** checks with errors=[].
+See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-7f65b61f061005d9e1fbc28b03e73542`, and implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with `ACCEPT_CANDIDATE`. The Step 23 evidence summary passed all **17/17** checks with `errors=[]`.
+
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in
