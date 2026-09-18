@@ -17,6 +17,7 @@ OPERATION_INSPECT_INTERVAL = "inspect_interval"
 OPERATION_CROP_REGION = "crop_region"
 OPERATION_ENHANCE_REGION = "enhance_region"
 OPERATION_INSPECT_OTHER_ANGLE = "inspect_other_angle"
+OPERATION_DECISION_POLICY = "run_decision_policy"
 INTERVAL_TOOL_PARAMETER_NAMES = (
     "video_id",
     "timestamp",
@@ -45,6 +46,19 @@ OTHER_ANGLE_TOOL_PARAMETER_NAMES = (
     "sample_every_seconds",
     "max_results",
     "min_viewpoint_change",
+)
+DECISION_POLICY_PARAMETER_NAMES = (
+    "video_id",
+    "timestamp",
+    "bounding_box",
+    "frame_s3_key",
+    "frame_etag",
+    "seconds_before",
+    "seconds_after",
+    "sample_fps",
+    "crop_padding",
+    "accept_threshold",
+    "investigate_threshold",
 )
 
 # These names intentionally match app.vision.video_processor.process_video().
@@ -389,6 +403,68 @@ def build_other_angle_message(
     }
 
 
+def build_decision_policy_message(
+    *,
+    inspection_id: str,
+    s3_input_key: str,
+    source_etag: str | None,
+    video_id: str,
+    timestamp: float,
+    bounding_box: dict[str, Any],
+    frame_s3_key: str,
+    frame_etag: str | None,
+    seconds_before: float,
+    seconds_after: float,
+    sample_fps: float,
+    crop_padding: float,
+    accept_threshold: float,
+    investigate_threshold: float,
+    agent_context: dict[str, Any],
+    git_commit: str | None = None,
+) -> dict[str, Any]:
+    resolved_git_commit = git_commit or current_git_commit()
+    parameters = {
+        "video_id": str(video_id),
+        "timestamp": float(timestamp),
+        "bounding_box": {
+            "x": float(bounding_box["x"]),
+            "y": float(bounding_box["y"]),
+            "width": float(bounding_box["width"]),
+            "height": float(bounding_box["height"]),
+        },
+        "frame_s3_key": str(frame_s3_key),
+        "frame_etag": str(frame_etag or ""),
+        "seconds_before": float(seconds_before),
+        "seconds_after": float(seconds_after),
+        "sample_fps": float(sample_fps),
+        "crop_padding": float(crop_padding),
+        "accept_threshold": float(accept_threshold),
+        "investigate_threshold": float(investigate_threshold),
+    }
+    job_id = deterministic_job_id(
+        inspection_id=inspection_id,
+        s3_input_key=s3_input_key,
+        source_etag=source_etag,
+        parameters=parameters,
+        git_commit=resolved_git_commit,
+        operation=OPERATION_DECISION_POLICY,
+        agent_context=agent_context,
+    )
+    return {
+        "schema_version": MESSAGE_SCHEMA_VERSION,
+        "runtime_schema_version": RUNTIME_SCHEMA_VERSION,
+        "git_commit": resolved_git_commit,
+        "operation": OPERATION_DECISION_POLICY,
+        "job_id": job_id,
+        "inspection_id": inspection_id,
+        "s3_input_key": s3_input_key,
+        "source_etag": source_etag,
+        "processing_parameters": parameters,
+        "agent_context": agent_context,
+        "enqueued_at": utc_now(),
+    }
+
+
 def validate_processing_message(body: dict[str, Any], settings: Settings) -> dict[str, Any]:
     required = {
         "schema_version",
@@ -550,6 +626,49 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
             raise ValueError("inspect_other_angle min_viewpoint_change must be between 0 and 1")
         if not isinstance(body.get("agent_context"), dict):
             raise ValueError("inspect_other_angle requires agent_context")
+    elif operation == OPERATION_DECISION_POLICY:
+        expected_names = set(DECISION_POLICY_PARAMETER_NAMES)
+        if supplied_names != expected_names:
+            raise ValueError(
+                "run_decision_policy message has incorrect parameters; "
+                f"missing={sorted(expected_names-supplied_names)}, extra={sorted(supplied_names-expected_names)}"
+            )
+        raw = body["processing_parameters"]
+        raw_bbox = raw.get("bounding_box")
+        if not isinstance(raw_bbox, dict) or set(raw_bbox) != {"x", "y", "width", "height"}:
+            raise ValueError("run_decision_policy bounding_box must contain x, y, width, height")
+        bbox = {name: float(raw_bbox[name]) for name in ("x", "y", "width", "height")}
+        if bbox["x"] < 0 or bbox["y"] < 0 or bbox["width"] <= 0 or bbox["height"] <= 0:
+            raise ValueError("run_decision_policy bounding_box must be positive and normalized")
+        if bbox["x"] + bbox["width"] > 1.0 + 1e-9 or bbox["y"] + bbox["height"] > 1.0 + 1e-9:
+            raise ValueError("run_decision_policy bounding_box must stay inside the normalized frame")
+        params = {
+            "video_id": str(raw["video_id"]),
+            "timestamp": float(raw["timestamp"]),
+            "bounding_box": bbox,
+            "frame_s3_key": str(raw["frame_s3_key"]).strip(),
+            "frame_etag": str(raw["frame_etag"]),
+            "seconds_before": float(raw["seconds_before"]),
+            "seconds_after": float(raw["seconds_after"]),
+            "sample_fps": float(raw["sample_fps"]),
+            "crop_padding": float(raw["crop_padding"]),
+            "accept_threshold": float(raw["accept_threshold"]),
+            "investigate_threshold": float(raw["investigate_threshold"]),
+        }
+        if params["timestamp"] < 0 or params["seconds_before"] < 0 or params["seconds_after"] < 0:
+            raise ValueError("run_decision_policy temporal parameters must be non-negative")
+        if params["seconds_before"] + params["seconds_after"] <= 0:
+            raise ValueError("run_decision_policy inspection interval must have positive duration")
+        if not 0 < params["sample_fps"] <= 30:
+            raise ValueError("run_decision_policy sample_fps must be >0 and <=30")
+        if not 0 <= params["crop_padding"] <= 2:
+            raise ValueError("run_decision_policy crop_padding must be between 0 and 2")
+        if not 0 <= params["investigate_threshold"] < params["accept_threshold"] <= 1:
+            raise ValueError("decision thresholds must satisfy 0 <= investigate < accept <= 1")
+        if not params["frame_s3_key"]:
+            raise ValueError("run_decision_policy frame_s3_key is required")
+        if not isinstance(body.get("agent_context"), dict):
+            raise ValueError("run_decision_policy requires agent_context")
     else:
         raise ValueError(f"Unsupported operation: {operation!r}")
     expected_id = deterministic_job_id(
@@ -565,6 +684,7 @@ def validate_processing_message(body: dict[str, Any], settings: Settings) -> dic
             OPERATION_CROP_REGION,
             OPERATION_ENHANCE_REGION,
             OPERATION_INSPECT_OTHER_ANGLE,
+            OPERATION_DECISION_POLICY,
         } else None,
     )
     if str(body["job_id"]) != expected_id:

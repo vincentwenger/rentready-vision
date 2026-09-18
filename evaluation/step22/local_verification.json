@@ -1,0 +1,48 @@
+{
+  "step": 22,
+  "verification_scope": "local_decision_policy_contract",
+  "passed": true,
+  "checks_passed": 26,
+  "checks_total": 26,
+  "checks": {
+    "policy_versioned": true,
+    "accept_is_strictly_above_085": true,
+    "exact_085_is_investigated": true,
+    "exact_050_is_investigated": true,
+    "below_050_is_rejected": true,
+    "low_safety_is_investigated": true,
+    "unresolved_safety_requires_human": true,
+    "insufficient_initial_calls_interval": true,
+    "insufficient_interval_calls_crop": true,
+    "crop_then_reevaluate": true,
+    "sufficient_initial_is_verified": true,
+    "sufficient_interval_is_reevaluated": true,
+    "operation_named_run_decision_policy": true,
+    "message_is_valid": true,
+    "worker_dispatches_policy": true,
+    "service_runs_interval": true,
+    "service_runs_conditional_crop": true,
+    "service_re_evaluates_crop": true,
+    "trace_is_persisted": true,
+    "evidence_is_immutable": true,
+    "api_route_present": true,
+    "browser_policy_visible": true,
+    "focused_tests_present": true,
+    "documentation_present": true,
+    "contract_present": true,
+    "policy_function_signature_stable": true
+  },
+  "errors": [],
+  "policy": {
+    "accept": "confidence > 0.85",
+    "investigate": "0.50 <= confidence <= 0.85",
+    "reject": "confidence < 0.50 unless safety-sensitive",
+    "bounded_tools": [
+      "inspect_interval",
+      "crop_region"
+    ]
+  },
+  "example_job_id": "rv-98c7c6d43de19b196194590d31431d62",
+  "live_aws_validated": false,
+  "note": "Local PASS proves exact threshold routing, the safety guard, evidence sufficiency, bounded tool transitions, deterministic queue validation, worker/API/browser wiring, and trace persistence. A deployed SQS-to-COOL run remains required for live AWS acceptance."
+}

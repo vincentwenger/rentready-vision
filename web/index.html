@@ -88,6 +88,7 @@
       <li class="step" id="step-agent"><span class="mark">○</span><span>Agent deciding whether to inspect again</span></li>
       <li class="step" id="step-enhance"><span class="mark">○</span><span>Creating a labeled enhanced inspection view</span></li>
       <li class="step" id="step-angle"><span class="mark">○</span><span>Searching nearby frames for other camera viewpoints</span></li>
+      <li class="step" id="step-policy"><span class="mark">○</span><span>Applying the confidence and evidence decision policy</span></li>
       <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
     </ul>
   </section>
@@ -118,6 +119,9 @@
     <h3>Multi-view evidence</h3>
     <p class="issue-note" id="other-angle-note"></p>
     <div class="other-angles" id="other-angle-views" aria-label="Frame A, Frame B and Frame C multi-view evidence" hidden></div>
+    <h3>Decision policy</h3>
+    <p class="issue-note" id="policy-note"></p>
+    <div class="agent-box" id="policy-trace"></div>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -302,6 +306,31 @@ async function renderOtherAngles(id, response, warning = null, suppliedViews = n
   grid.hidden = false;
 }
 
+function renderDecisionPolicy(response, warning = null) {
+  const note = document.getElementById("policy-note");
+  const box = document.getElementById("policy-trace");
+  box.replaceChildren();
+  const text = document.createElement("div");
+  text.className = "agent-flow";
+  if (warning) {
+    note.textContent = `Step 22 decision policy was not completed: ${warning}`;
+    return;
+  }
+  const trace = response?.trace ?? response ?? {};
+  const policy = trace.final_policy ?? trace.initial_policy ?? response?.policy ?? {};
+  const thresholds = policy.thresholds ?? trace.thresholds ?? {};
+  const steps = trace.steps ?? [];
+  note.textContent = "Step 22 · deterministic confidence routing with a safety override and a bounded evidence investigation.";
+  text.textContent = [
+    `THRESHOLDS  accept > ${thresholds.accept_when_greater_than ?? 0.85} · investigate ${thresholds.investigate_minimum_inclusive ?? 0.50}–${thresholds.investigate_maximum_inclusive ?? 0.85}`,
+    `SAFETY      sensitive=${trace.safety_sensitive ?? policy.safety_sensitive ?? false} · override=${trace.safety_override_applied ?? policy.safety_override_applied ?? false}`,
+    ...steps.map(step => `STEP ${step.sequence}      ${step.stage}${step.tool ? ` → ${step.tool}` : ""}`),
+    `CONFIDENCE  ${trace.confidence_before ?? policy.confidence ?? "n/a"} → ${trace.confidence_after ?? policy.confidence ?? "n/a"}`,
+    `ACTION      ${trace.action ?? policy.route ?? response?.decision ?? "pending"}`
+  ].join("\n");
+  box.append(text);
+}
+
 function renderRuntime(processing) {
   const runtimeElement = document.getElementById("runtime");
   runtimeElement.replaceChildren();
@@ -449,7 +478,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "report"].forEach(name => setStep(name, null));
+  ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "report"].forEach(name => setStep(name, null));
 
   try {
     setStep("upload", "active");
@@ -612,12 +641,44 @@ runButton.onclick = async () => {
       setStep("angle", "warn");
     }
 
+    let policyResponse = null;
+    let policyWarning = null;
+    if (issueResponse) {
+      setStep("policy", "active");
+      try {
+        const started = await api(`/inspections/${id}/agent/policy`, {
+          method: "POST",
+          body: JSON.stringify({})
+        });
+        if (started.status === "NO_ACTION") {
+          policyResponse = started;
+        } else if (started.status === "COMPLETE") {
+          policyResponse = await api(`/inspections/${id}/agent`);
+        } else {
+          for (;;) {
+            const status = await api(`/inspections/${id}/agent`);
+            if (status.status === "FAILED") throw new Error(status.error || "Decision policy failed.");
+            if (status.status === "COMPLETE") { policyResponse = status; break; }
+            await sleep(1200);
+          }
+        }
+        setStep("policy", "done");
+      } catch (policyError) {
+        policyWarning = policyError instanceof Error ? policyError.message : String(policyError);
+        setStep("policy", "warn");
+      }
+    } else {
+      policyWarning = "Step 22 could not run because Step 17 did not complete.";
+      setStep("policy", "warn");
+    }
+
     setStep("report", "active");
     await renderResults(id, frames);
     renderIssues(issueResponse, issueWarning);
     renderAgentic(agentResponse, agentWarning);
     await renderEnhancement(id, enhancementResponse, enhancementWarning, enhancementViews);
     await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);
+    renderDecisionPolicy(policyResponse, policyWarning);
     setStep("report", "done");
   } catch (error) {
     errorEl.textContent = error instanceof Error ? error.message : String(error);

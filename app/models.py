@@ -144,6 +144,14 @@ class OtherAngleRunRequest(BaseModel):
     min_viewpoint_change: float = Field(default=0.06, ge=0.0, le=1.0)
 
 
+class DecisionPolicyRunRequest(BaseModel):
+    candidate_issue_id: str | None = Field(default=None, max_length=80)
+    seconds_before: float | None = Field(default=None, ge=0, le=30)
+    seconds_after: float | None = Field(default=None, ge=0, le=30)
+    sample_fps: float | None = Field(default=None, gt=0, le=30)
+    crop_padding: float | None = Field(default=None, ge=0, le=2.0)
+
+
 class AgenticRunResponse(BaseModel):
     inspection_id: str
     status: str
@@ -152,4 +160,6 @@ class AgenticRunResponse(BaseModel):
     backend: str | None = None
     candidate: dict[str, Any] | None = None
     tool_call: dict[str, Any] | None = None
+    policy: dict[str, Any] | None = None
+    candidate_decisions: list[dict[str, Any]] = Field(default_factory=list)
     note: str | None = None

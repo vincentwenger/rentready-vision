@@ -1,0 +1,49 @@
+{
+  "step": 22,
+  "policy_version": "rentready-decision-policy/1.0",
+  "operation": "run_decision_policy",
+  "confidence_policy": {
+    "accept": "confidence > 0.85",
+    "investigate": "0.50 <= confidence <= 0.85",
+    "reject": "confidence < 0.50 and not safety-sensitive",
+    "low_confidence_safety": "investigate, then require human approval if unresolved"
+  },
+  "investigation_graph": [
+    "assess initial evidence",
+    "verify original evidence when sufficient",
+    "otherwise call inspect_interval",
+    "re-evaluate when temporal evidence is sufficient",
+    "otherwise call crop_region",
+    "re-evaluate cropped evidence",
+    "apply final confidence policy with safety guard"
+  ],
+  "evidence_sufficiency": {
+    "candidate_visible": true,
+    "minimum_quality_score": 0.55,
+    "support": "at least two observations or independent views, or prior multi-view confirmation",
+    "interval_minimum_frames": 3,
+    "interval_requires_semantic_persistence": true
+  },
+  "bounded_execution": {
+    "maximum_inspect_interval_calls": 1,
+    "maximum_crop_region_calls": 1,
+    "automatic_infinite_loop_possible": false
+  },
+  "safety_override": {
+    "purpose": "prevent automatic rejection only",
+    "can_auto_accept": false,
+    "unresolved_terminal_action": "REQUEST_HUMAN_APPROVAL",
+    "reasons_persisted": true
+  },
+  "evidence": {
+    "trace_suffix": "step22-decision-policy-trace.json",
+    "original_overwritten": false,
+    "required_events": [
+      "DECISION_POLICY_STARTED",
+      "DECISION_POLICY_TOOL_COMPLETE",
+      "DECISION_POLICY_COMPLETE"
+    ]
+  },
+  "local_status": "PASS",
+  "live_aws_status": "NOT_RUN"
+}

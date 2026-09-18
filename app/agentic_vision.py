@@ -7,6 +7,7 @@ import json
 AGENTIC_TRACE_VERSION = "rentready-agentic-vision/1.0"
 INTERVAL_REASSESS_TOOL = "reassess_interval_evidence"
 OTHER_ANGLE_REASSESS_TOOL = "reassess_other_angle_evidence"
+SINGLE_VIEW_VERIFY_TOOL = "verify_candidate_evidence"
 
 
 def utc_now() -> str:
@@ -275,6 +276,97 @@ def reassess_other_angle_evidence(
         "same_region_or_object": bool(payload.get("same_region_or_object")),
         "visible_in_multiple_viewpoints": bool(payload.get("visible_in_multiple_viewpoints")),
         "evidence_summary": str(payload.get("evidence_summary") or "").strip()[:800],
+        "bedrock_request_id": (response.get("ResponseMetadata") or {}).get("RequestId"),
+        "usage": response.get("usage"),
+        "metrics": response.get("metrics"),
+    }
+
+
+def verify_candidate_image(
+    *,
+    bedrock_client: Any,
+    bucket: str,
+    image_s3_key: str,
+    candidate: dict[str, Any],
+    model_id: str,
+    evidence_label: str,
+    max_tokens: int = 700,
+) -> dict[str, Any]:
+    """Conservatively re-evaluate one original or derived evidence view."""
+    tool_config = {
+        "tools": [
+            {
+                "toolSpec": {
+                    "name": SINGLE_VIEW_VERIFY_TOOL,
+                    "description": "Verify whether the supplied image visibly supports the candidate issue.",
+                    "inputSchema": {
+                        "json": {
+                            "type": "object",
+                            "properties": {
+                                "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                                "candidate_visible": {"type": "boolean"},
+                                "evidence_summary": {"type": "string"},
+                            },
+                            "required": ["confidence", "candidate_visible", "evidence_summary"],
+                        }
+                    },
+                }
+            }
+        ],
+        "toolChoice": {"tool": {"name": SINGLE_VIEW_VERIFY_TOOL}},
+    }
+    prompt = (
+        "Re-evaluate one rental-inspection candidate using the supplied labeled evidence image. "
+        "Judge only the visible condition and do not infer a hidden cause, code violation, or repair cost. "
+        + json.dumps(
+            {
+                "evidence_label": evidence_label,
+                "room": candidate.get("room"),
+                "category": candidate.get("category"),
+                "description": candidate.get("description"),
+                "timestamp": candidate.get("timestamp"),
+                "confidence_before": candidate.get("confidence_before", candidate.get("confidence")),
+            },
+            sort_keys=True,
+        )
+    )
+    response = bedrock_client.converse(
+        modelId=model_id,
+        system=[{"text": "You are a conservative visual evidence reviewer. Never infer hidden defects."}],
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"text": prompt},
+                    {
+                        "image": {
+                            "format": "jpeg",
+                            "source": {"s3Location": {"uri": f"s3://{bucket}/{image_s3_key}"}},
+                        }
+                    },
+                ],
+            }
+        ],
+        inferenceConfig={"maxTokens": int(max_tokens), "temperature": 0, "topP": 0.1},
+        toolConfig=tool_config,
+    )
+    payload: dict[str, Any] | None = None
+    for block in response.get("output", {}).get("message", {}).get("content", []):
+        tool_use = block.get("toolUse") if isinstance(block, dict) else None
+        if tool_use and tool_use.get("name") == SINGLE_VIEW_VERIFY_TOOL:
+            candidate_payload = tool_use.get("input")
+            if isinstance(candidate_payload, dict):
+                payload = candidate_payload
+                break
+    if payload is None:
+        raise RuntimeError(f"Bedrock response did not contain {SINGLE_VIEW_VERIFY_TOOL!r}")
+    confidence = max(0.0, min(1.0, float(payload.get("confidence", 0.0))))
+    return {
+        "confidence_after": round(confidence, 4),
+        "candidate_visible": bool(payload.get("candidate_visible")),
+        "evidence_summary": str(payload.get("evidence_summary") or "").strip()[:800],
+        "evidence_label": str(evidence_label),
+        "image_s3_key": str(image_s3_key),
         "bedrock_request_id": (response.get("ResponseMetadata") or {}).get("RequestId"),
         "usage": response.get("usage"),
         "metrics": response.get("metrics"),

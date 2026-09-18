@@ -500,6 +500,14 @@ Live AWS validation passed on **September 15, 2026** for inspection `96a7a795-49
 The dense 12.0–13.4 second search sampled 14 candidates, geometrically matched eight, and selected Frame A at 12.6s, reference Frame B at 13.0s, and Frame C at 13.4s. Amazon Nova 2 Lite confirmed the same region and visible clutter/toys across the three viewpoints, increasing confidence from **0.80 to 0.95** and producing `ACCEPT_FINDING`. The verifier checked all six derived S3 JPEGs and hashes, original-video immutability, runtime identity, and the complete CloudWatch event chain, returning `passed=true` with `errors=[]`.
 
 See [`STEP21_OTHER_ANGLE.md`](STEP21_OTHER_ANGLE.md), [`evaluation/step21/`](evaluation/step21/), and [`evaluation/step21/live_aws_verification.json`](evaluation/step21/live_aws_verification.json).
+
+## Step 22 actual decision policy — LOCAL PASS target
+
+Step 22 converts confidence into an explicit, bounded policy: candidates above `0.85` are accepted; candidates from `0.50` through `0.85` are investigated; and candidates below `0.50` are rejected unless a recorded safety guard applies. Exactly `0.85` remains in investigation. A low-confidence safety candidate is never auto-accepted—the override preserves it for investigation and, when unresolved, human approval.
+
+The investigation assesses evidence sufficiency, verifies already-sufficient evidence, otherwise calls `inspect_interval()`, conditionally calls `crop_region()` when temporal evidence is still insufficient, and then re-evaluates once. The complete route, safety reasons, tool results, confidence change, human-control decision, COOL runtime, and immutable evidence references are persisted in `step22-decision-policy-trace.json`. The browser calls `POST /inspections/{inspection_id}/agent/policy` and displays the policy path.
+
+See [`STEP22_DECISION_POLICY.md`](STEP22_DECISION_POLICY.md) and [`evaluation/step22/`](evaluation/step22/). The bundle does not claim live AWS acceptance until a deployed `run_decision_policy` SQS job and CloudWatch lifecycle have been captured and verified.
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

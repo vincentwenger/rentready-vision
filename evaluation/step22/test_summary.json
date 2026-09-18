@@ -1,0 +1,19 @@
+{
+  "step": 22,
+  "command": "pytest -q tests/test_step22_decision_policy.py",
+  "passed": true,
+  "tests_passed": 9,
+  "tests_failed": 0,
+  "coverage": [
+    "strict confidence thresholds and exact boundaries",
+    "low-confidence safety override and human-control fallback",
+    "evidence sufficiency assessment",
+    "inspect_interval then conditional crop_region state transitions",
+    "Step-17 single-frame insufficiency",
+    "deterministic safety-first candidate selection",
+    "deterministic and strictly validated SQS message",
+    "COOL service orchestration and persisted trace",
+    "API, worker, browser, and documentation wiring"
+  ],
+  "live_aws_validated": false
+}

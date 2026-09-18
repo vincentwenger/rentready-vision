@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     agentic_default_sample_fps: float = 6.0
     agentic_accept_threshold: float = 0.80
     agentic_dismiss_threshold: float = 0.45
+    decision_policy_accept_threshold: float = 0.85
+    decision_policy_investigate_threshold: float = 0.50
+    decision_policy_crop_padding: float = 0.15
     presigned_url_ttl_seconds: int = 900
     max_upload_bytes: int = 1024 * 1024 * 1024
     cors_origins: str = "http://localhost:8000,http://localhost:5173"

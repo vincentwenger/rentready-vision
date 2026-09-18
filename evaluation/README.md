@@ -136,3 +136,7 @@ The report generator and its ReportLab/PyPDF dependencies are included in the fu
 ```
 
 The generated 21-page report prepends the gate status, exact pinned Runtime identity, processing parameters, and expected invariants while preserving all original page content streams.
+
+## Step 22 decision policy
+
+`evaluation/step22/` contains the machine-readable policy contract, focused-test summary, and local verifier result for the exact `>0.85`, `0.50–0.85`, and `<0.50 unless safety-sensitive` routing rules. Live AWS evidence is intentionally absent until the new `run_decision_policy` operation is deployed and exercised on the COOL/Graviton4 worker.

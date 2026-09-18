@@ -25,6 +25,7 @@ from ..models import (
     CreateInspectionResponse,
     CreateUploadUrlRequest,
     CropRegionRunRequest,
+    DecisionPolicyRunRequest,
     EnhanceRegionRunRequest,
     FramesResponse,
     InspectionResponse,
@@ -36,6 +37,7 @@ from ..models import (
 )
 from ..processing_jobs import (
     build_crop_region_message,
+    build_decision_policy_message,
     build_enhance_region_message,
     build_interval_inspection_message,
     build_other_angle_message,
@@ -43,6 +45,13 @@ from ..processing_jobs import (
     processing_parameters,
 )
 from ..agentic_vision import choose_uncertain_candidate
+from ..decision_policy import (
+    DECISION_POLICY_VERSION,
+    INVESTIGATE_CANDIDATE,
+    choose_policy_candidate,
+    evaluate_candidate,
+    initial_evidence_from_candidate,
+)
 from ..services import (
     detect_issues_for_inspection,
     load_issues_report,
@@ -865,6 +874,293 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
         candidate=candidate,
         tool_call=tool_call,
         note="Step-21 Agent Tool 4 queued a geometrically verified nearby-view search on COOL/Graviton4.",
+    )
+
+
+@router.post(
+    "/{inspection_id}/agent/policy",
+    response_model=AgenticRunResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -> AgenticRunResponse:
+    """Apply Step 22 and run the bounded investigation only when policy requires it."""
+    item = _require_inspection(inspection_id)
+    if item.get("status") != "COMPLETE":
+        raise HTTPException(status_code=409, detail="Inspection must be COMPLETE before decision policy")
+
+    issue_report = load_issues_report(inspection_id)
+    raw_candidates = list(issue_report.get("candidate_findings") or [])
+    enriched_issues = list(issue_report.get("issues") or [])
+    candidates: list[dict] = []
+    for index, raw in enumerate(raw_candidates):
+        match = next(
+            (
+                issue for issue in enriched_issues
+                if issue.get("category") == raw.get("category")
+                and issue.get("description") == raw.get("description")
+                and round(float(issue.get("timestamp") or 0.0), 3)
+                == round(float(raw.get("timestamp") or 0.0), 3)
+            ),
+            None,
+        )
+        candidate = {**raw, **(match or {})}
+        candidate.setdefault("policy_candidate_id", candidate.get("issue_id") or f"candidate-{index + 1}")
+        candidates.append(candidate)
+    if not candidates:
+        candidates = [dict(issue) for issue in enriched_issues]
+        for index, candidate in enumerate(candidates):
+            candidate.setdefault("policy_candidate_id", candidate.get("issue_id") or f"candidate-{index + 1}")
+
+    evaluations = [
+        {
+            "candidate_id": candidate.get("policy_candidate_id"),
+            "issue_id": candidate.get("issue_id"),
+            "description": candidate.get("description"),
+            "policy": evaluate_candidate(
+                candidate,
+                evidence=initial_evidence_from_candidate(candidate),
+                accept_threshold=settings.decision_policy_accept_threshold,
+                investigate_threshold=settings.decision_policy_investigate_threshold,
+            ),
+        }
+        for candidate in candidates
+    ]
+    if payload.candidate_issue_id:
+        candidate = next(
+            (
+                candidate for candidate in candidates
+                if payload.candidate_issue_id in {
+                    candidate.get("issue_id"), candidate.get("policy_candidate_id")
+                }
+            ),
+            None,
+        )
+        if candidate is None:
+            raise HTTPException(status_code=404, detail="Requested policy candidate was not found")
+    else:
+        candidate = choose_policy_candidate(candidates)
+    if candidate is None:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="NO_ACTION",
+            decision="NO_POLICY_CANDIDATE",
+            candidate_decisions=evaluations,
+            note="The Step-17 report contains no candidate with a valid confidence.",
+        )
+
+    if not isinstance(candidate.get("bbox"), dict):
+        raise HTTPException(status_code=409, detail="Selected Step-17 candidate has no normalized bounding box")
+    source_key = item.get("original_s3_key")
+    if not source_key:
+        raise HTTPException(status_code=409, detail="Inspection has no original video")
+    manifest = load_manifest(inspection_id)
+    candidate_timestamp = round(float(candidate.get("timestamp")), 3)
+    frame = next(
+        (
+            frame for frame in manifest.get("keyframes", [])
+            if round(float(frame.get("timestamp_seconds") or 0.0), 3) == candidate_timestamp
+        ),
+        None,
+    )
+    if frame is None:
+        raise HTTPException(
+            status_code=409,
+            detail=f"No preserved OpenCV keyframe matches candidate timestamp {candidate_timestamp}",
+        )
+    frame_s3_key = str(frame["s3_key"])
+    frame_head = s3.head_object(Bucket=settings.s3_bucket, Key=frame_s3_key)
+    frame_etag = str(frame_head.get("ETag", "")).strip('"') or None
+    initial_evidence = initial_evidence_from_candidate(candidate)
+    selected_policy = evaluate_candidate(
+        candidate,
+        evidence=initial_evidence,
+        accept_threshold=settings.decision_policy_accept_threshold,
+        investigate_threshold=settings.decision_policy_investigate_threshold,
+    )
+    seconds_before = payload.seconds_before if payload.seconds_before is not None else settings.agentic_default_seconds_before
+    seconds_after = payload.seconds_after if payload.seconds_after is not None else settings.agentic_default_seconds_after
+    sample_fps = payload.sample_fps if payload.sample_fps is not None else settings.agentic_default_sample_fps
+    crop_padding = payload.crop_padding if payload.crop_padding is not None else settings.decision_policy_crop_padding
+    if seconds_before + seconds_after <= 0:
+        raise HTTPException(status_code=400, detail="Decision-policy inspection interval must have positive duration")
+    confidence_before = float(candidate["confidence"])
+    agent_context = {
+        **candidate,
+        "timestamp": candidate_timestamp,
+        "confidence": confidence_before,
+        "confidence_before": confidence_before,
+        "bbox": candidate["bbox"],
+        "evidence_frame_index": frame.get("index"),
+        "evidence_frame_s3_key": frame_s3_key,
+        "initial_evidence": initial_evidence,
+        "decision_reason": "Apply the Step-22 confidence and evidence policy.",
+    }
+    message = build_decision_policy_message(
+        inspection_id=inspection_id,
+        s3_input_key=str(source_key),
+        source_etag=item.get("s3_etag"),
+        video_id=inspection_id,
+        timestamp=candidate_timestamp,
+        bounding_box=candidate["bbox"],
+        frame_s3_key=frame_s3_key,
+        frame_etag=frame_etag,
+        seconds_before=float(seconds_before),
+        seconds_after=float(seconds_after),
+        sample_fps=float(sample_fps),
+        crop_padding=float(crop_padding),
+        accept_threshold=settings.decision_policy_accept_threshold,
+        investigate_threshold=settings.decision_policy_investigate_threshold,
+        agent_context=agent_context,
+    )
+
+    if selected_policy["route"] != INVESTIGATE_CANDIDATE:
+        result_key = (
+            f"inspections/{inspection_id}/agentic/{message['job_id']}/"
+            "step22-decision-policy-trace.json"
+        )
+        trace = {
+            "schema_version": DECISION_POLICY_VERSION,
+            "inspection_id": inspection_id,
+            "job_id": message["job_id"],
+            "candidate": candidate,
+            "initial_policy": selected_policy,
+            "steps": [{"sequence": 1, "stage": "INITIAL_ROUTE", "decision": selected_policy}],
+            "confidence_before": confidence_before,
+            "confidence_after": confidence_before,
+            "confidence_delta": 0.0,
+            "action": selected_policy["route"],
+            "safety_sensitive": selected_policy["safety_sensitive"],
+            "safety_override_applied": selected_policy["safety_override_applied"],
+            "human_control": {"required": False, "reason": None},
+            "evidence_preservation": {
+                "source_video_s3_key": source_key,
+                "original_overwritten": False,
+            },
+            "completion_event": "DECISION_POLICY_COMPLETE",
+        }
+        s3.put_object(
+            Bucket=settings.s3_bucket,
+            Key=result_key,
+            Body=json.dumps(trace, indent=2).encode("utf-8"),
+            ContentType="application/json",
+        )
+        update_inspection(
+            inspection_id,
+            agentic_status="COMPLETE",
+            agentic_error=None,
+            active_agent_job_id=message["job_id"],
+            agentic_trace_s3_key=result_key,
+            agentic_confidence_before=confidence_before,
+            agentic_confidence_after=confidence_before,
+            agentic_action=selected_policy["route"],
+            agentic_decision="POLICY_ROUTE",
+            agentic_tool_call=None,
+            last_agentic_event="DECISION_POLICY_COMPLETE",
+        )
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="COMPLETE",
+            decision=selected_policy["route"],
+            job_id=message["job_id"],
+            backend="decision_policy",
+            candidate=candidate,
+            policy=selected_policy,
+            candidate_decisions=evaluations,
+            note="Step 22 reached a terminal decision without spending an investigation tool call.",
+        )
+
+    if not settings.processing_queue_url:
+        raise HTTPException(
+            status_code=409,
+            detail="Decision-policy investigation requires PROCESSING_QUEUE_URL for COOL/Graviton4 tools",
+        )
+    job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+    tool_call = {
+        "name": "run_decision_policy",
+        "arguments": {
+            "candidate_id": candidate.get("policy_candidate_id"),
+            "first_step": selected_policy["next_step"],
+            "seconds_before": float(seconds_before),
+            "seconds_after": float(seconds_after),
+            "sample_fps": float(sample_fps),
+            "crop_padding": float(crop_padding),
+        },
+    }
+    if job_record.get("status") == "COMPLETE":
+        update_inspection(
+            inspection_id,
+            agentic_status="COMPLETE",
+            active_agent_job_id=message["job_id"],
+            agentic_trace_s3_key=job_record.get("result_s3_key"),
+            agentic_decision="POLICY_INVESTIGATION",
+            agentic_tool_call=tool_call,
+            last_agentic_event="DECISION_POLICY_COMPLETE",
+        )
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status="COMPLETE",
+            decision="POLICY_INVESTIGATION",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            policy=selected_policy,
+            candidate_decisions=evaluations,
+            note="Identical Step-22 policy investigation already completed.",
+        )
+    if not should_enqueue:
+        return AgenticRunResponse(
+            inspection_id=inspection_id,
+            status=str(job_record.get("status") or "QUEUED"),
+            decision="POLICY_INVESTIGATION",
+            job_id=message["job_id"],
+            backend="graviton4_cool_sqs",
+            candidate=candidate,
+            tool_call=tool_call,
+            policy=selected_policy,
+            candidate_decisions=evaluations,
+            note="Identical Step-22 policy investigation is already queued or processing.",
+        )
+
+    update_inspection(
+        inspection_id,
+        agentic_status="QUEUED",
+        agentic_error=None,
+        active_agent_job_id=message["job_id"],
+        agentic_confidence_before=confidence_before,
+        agentic_decision="POLICY_INVESTIGATION",
+        agentic_tool_call=tool_call,
+        last_agentic_event="DECISION_POLICY_STARTED",
+    )
+    try:
+        response = sqs.send_message(
+            QueueUrl=settings.processing_queue_url,
+            MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
+            MessageAttributes={
+                "operation": {"DataType": "String", "StringValue": message["operation"]},
+                "runtime_schema_version": {
+                    "DataType": "String",
+                    "StringValue": message["runtime_schema_version"],
+                },
+            },
+        )
+    except Exception as exc:
+        error = f"Decision-policy enqueue failed: {type(exc).__name__}: {exc}"
+        mark_enqueue_failed(inspection_id, message["job_id"], error)
+        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        raise HTTPException(status_code=503, detail=error) from exc
+    mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
+    return AgenticRunResponse(
+        inspection_id=inspection_id,
+        status="QUEUED",
+        decision="POLICY_INVESTIGATION",
+        job_id=message["job_id"],
+        backend="graviton4_cool_sqs",
+        candidate=candidate,
+        tool_call=tool_call,
+        policy=selected_policy,
+        candidate_decisions=evaluations,
+        note="Step 22 queued the bounded inspect_interval → crop_region-if-needed → re-evaluate policy.",
     )
 
 

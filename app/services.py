@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 import tempfile
@@ -18,6 +19,17 @@ from .agentic_vision import (
     action_from_confidence,
     reassess_interval_batches,
     reassess_other_angle_evidence,
+    verify_candidate_image,
+)
+from .decision_policy import (
+    CALL_CROP_REGION,
+    CALL_INSPECT_INTERVAL,
+    DECISION_POLICY_VERSION,
+    RE_EVALUATE,
+    VERIFY_EVIDENCE,
+    evaluate_candidate,
+    interval_evidence_from_result,
+    next_investigation_step,
 )
 from .vision.issue_detector import REPORT_SCHEMA_VERSION, STRUCTURED_FINDING_VERSION, detect_visible_issues
 from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
@@ -337,6 +349,322 @@ def execute_interval_inspection_job(
             confidence_after=round(confidence_after, 4),
             confidence_delta=round(confidence_after - confidence_before, 4),
             action=action,
+            result_s3_key=result_key,
+        )
+    return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
+
+
+def execute_decision_policy_job(
+    *,
+    inspection_id: str,
+    source_key: str,
+    parameters: dict[str, Any],
+    agent_context: dict[str, Any],
+    job_id: str,
+    require_cool: bool,
+    expected_source_etag: str | None = None,
+    telemetry: CloudWatchTelemetry | None = None,
+) -> dict[str, Any]:
+    """Execute the bounded Step-22 evidence policy on the COOL worker."""
+    source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
+    observed_etag = str(source_head.get("ETag", "")).strip('"')
+    if expected_source_etag and observed_etag != expected_source_etag:
+        raise RuntimeError(
+            "S3 input changed after decision-policy enqueue: "
+            f"expected ETag {expected_source_etag!r}, observed {observed_etag!r}"
+        )
+    frame_key = str(parameters["frame_s3_key"])
+    frame_head = s3.head_object(Bucket=settings.s3_bucket, Key=frame_key)
+    observed_frame_etag = str(frame_head.get("ETag", "")).strip('"')
+    expected_frame_etag = str(parameters.get("frame_etag") or "")
+    if expected_frame_etag and observed_frame_etag != expected_frame_etag:
+        raise RuntimeError(
+            "Step-17 frame changed after decision-policy enqueue: "
+            f"expected ETag {expected_frame_etag!r}, observed {observed_frame_etag!r}"
+        )
+
+    runtime = _verify_runtime(
+        input_s3_key=source_key,
+        parameters={"tool": "run_decision_policy", **parameters},
+        require_cool=require_cool,
+    )
+    candidate = dict(agent_context)
+    confidence_before = float(candidate["confidence"])
+    initial_evidence = candidate.get("initial_evidence") if isinstance(candidate.get("initial_evidence"), dict) else {}
+    initial_policy = evaluate_candidate(
+        candidate,
+        evidence=initial_evidence,
+        accept_threshold=float(parameters["accept_threshold"]),
+        investigate_threshold=float(parameters["investigate_threshold"]),
+    )
+    if initial_policy["route"] != "INVESTIGATE_CANDIDATE":
+        raise RuntimeError("Decision-policy worker received a candidate that does not require investigation")
+
+    if telemetry:
+        telemetry.event(
+            "DECISION_POLICY_STARTED",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            policy_version=DECISION_POLICY_VERSION,
+            confidence_before=confidence_before,
+            safety_sensitive=initial_policy["safety_sensitive"],
+            next_step=initial_policy["next_step"],
+            runtime=runtime.get("runtime"),
+        )
+
+    started = time.perf_counter()
+    steps: list[dict[str, Any]] = [
+        {
+            "sequence": 1,
+            "stage": "INITIAL_ROUTE",
+            "decision": initial_policy,
+        }
+    ]
+    interval_public: dict[str, Any] | None = None
+    interval_reassessment: dict[str, Any] | None = None
+    crop_public: dict[str, Any] | None = None
+    verification: dict[str, Any] | None = None
+    final_evidence = initial_evidence
+
+    with PeakMemorySampler() as memory:
+        with tempfile.TemporaryDirectory(prefix=f"rentready-policy-{inspection_id}-") as tmp:
+            tmp_path = Path(tmp)
+            next_step = initial_policy["next_step"]
+            if next_step == VERIFY_EVIDENCE:
+                verification = verify_candidate_image(
+                    bedrock_client=bedrock_runtime,
+                    bucket=settings.s3_bucket,
+                    image_s3_key=frame_key,
+                    candidate=candidate,
+                    model_id=settings.issue_detection_model_id,
+                    evidence_label="Original Step-17 evidence",
+                    max_tokens=min(1000, settings.issue_detection_max_tokens),
+                )
+                confidence_after = float(verification["confidence_after"])
+                steps.append(
+                    {
+                        "sequence": 2,
+                        "stage": VERIFY_EVIDENCE,
+                        "tool": "verify_candidate_evidence",
+                        "result": verification,
+                    }
+                )
+            elif next_step == CALL_INSPECT_INTERVAL:
+                suffix = Path(source_key).suffix or ".mp4"
+                input_path = tmp_path / f"walkthrough{suffix}"
+                interval_dir = tmp_path / "interval"
+                interval_dir.mkdir()
+                s3.download_file(settings.s3_bucket, source_key, str(input_path))
+                interval = inspect_interval(
+                    input_path,
+                    interval_dir,
+                    timestamp=float(parameters["timestamp"]),
+                    seconds_before=float(parameters["seconds_before"]),
+                    seconds_after=float(parameters["seconds_after"]),
+                    sample_fps=float(parameters["sample_fps"]),
+                )
+                interval_prefix = f"inspections/{inspection_id}/agentic/{job_id}/policy/interval"
+                public_frames: list[dict[str, Any]] = []
+                for frame in interval["frames"]:
+                    local_path = Path(frame["local_path"])
+                    key = f"{interval_prefix}/{local_path.name}"
+                    s3.upload_file(
+                        str(local_path), settings.s3_bucket, key,
+                        ExtraArgs={"ContentType": "image/jpeg"},
+                    )
+                    public = {k: v for k, v in frame.items() if k != "local_path"}
+                    public["s3_key"] = key
+                    public["sha256"] = hashlib.sha256(local_path.read_bytes()).hexdigest()
+                    public_frames.append(public)
+                interval["frames"] = public_frames
+                interval_public = interval
+                if telemetry:
+                    telemetry.event(
+                        "DECISION_POLICY_TOOL_COMPLETE",
+                        inspection_id=inspection_id,
+                        job_id=job_id,
+                        tool="inspect_interval",
+                        returned_frame_count=len(public_frames),
+                        runtime=runtime.get("runtime"),
+                    )
+                interval_reassessment = reassess_interval_batches(
+                    bedrock_client=bedrock_runtime,
+                    bucket=settings.s3_bucket,
+                    frames=public_frames,
+                    candidate=candidate,
+                    model_id=settings.issue_detection_model_id,
+                    max_tokens=min(1000, settings.issue_detection_max_tokens),
+                    batch_size=15,
+                )
+                final_evidence = interval_evidence_from_result(interval, interval_reassessment)
+                interval_policy = evaluate_candidate(
+                    {**candidate, "confidence": interval_reassessment["confidence_after"]},
+                    evidence=final_evidence,
+                    inspect_interval_completed=True,
+                    accept_threshold=float(parameters["accept_threshold"]),
+                    investigate_threshold=float(parameters["investigate_threshold"]),
+                )
+                # Once investigation has started, evidence sufficiency controls
+                # the next tool. A high model score from an interval that did not
+                # visibly corroborate the candidate cannot bypass crop_region.
+                interval_next_step = next_investigation_step(
+                    final_evidence,
+                    inspect_interval_completed=True,
+                )
+                interval_policy["next_step"] = interval_next_step
+                if interval_next_step == CALL_CROP_REGION:
+                    interval_policy["route"] = "INVESTIGATE_CANDIDATE"
+                steps.append(
+                    {
+                        "sequence": 2,
+                        "stage": CALL_INSPECT_INTERVAL,
+                        "tool": "inspect_interval",
+                        "returned_frame_count": len(public_frames),
+                        "reassessment": interval_reassessment,
+                        "evidence_assessment": interval_policy["evidence_assessment"],
+                        "next_step": interval_next_step,
+                    }
+                )
+                if interval_next_step == CALL_CROP_REGION:
+                    frame_path = tmp_path / ("source" + (Path(frame_key).suffix or ".jpg"))
+                    crop_path = tmp_path / "policy_crop_1024.jpg"
+                    s3.download_file(settings.s3_bucket, frame_key, str(frame_path))
+                    crop = write_crop_region(
+                        frame_path,
+                        crop_path,
+                        bounding_box=parameters["bounding_box"],
+                        padding=float(parameters["crop_padding"]),
+                    )
+                    crop_key = f"inspections/{inspection_id}/agentic/{job_id}/policy/crop/crop_1024.jpg"
+                    s3.upload_file(
+                        str(crop_path), settings.s3_bucket, crop_key,
+                        ExtraArgs={"ContentType": "image/jpeg"},
+                    )
+                    crop_public = {k: v for k, v in crop.items() if k != "local_path"}
+                    crop_public["source_sha256"] = hashlib.sha256(frame_path.read_bytes()).hexdigest()
+                    crop_public["crop_sha256"] = hashlib.sha256(crop_path.read_bytes()).hexdigest()
+                    crop_public["source"]["s3_key"] = frame_key
+                    crop_public["source"]["etag"] = observed_frame_etag or None
+                    crop_public["output"]["s3_key"] = crop_key
+                    verification = verify_candidate_image(
+                        bedrock_client=bedrock_runtime,
+                        bucket=settings.s3_bucket,
+                        image_s3_key=crop_key,
+                        candidate=candidate,
+                        model_id=settings.issue_detection_model_id,
+                        evidence_label="Step-22 cropped inspection view",
+                        max_tokens=min(1000, settings.issue_detection_max_tokens),
+                    )
+                    confidence_after = float(verification["confidence_after"])
+                    final_evidence = {
+                        "source": "crop_region",
+                        "observation_count": 1 if verification["candidate_visible"] else 0,
+                        "independent_views": 1 if verification["candidate_visible"] else 0,
+                        "quality_score": 1.0 if verification["candidate_visible"] else 0.4,
+                        "candidate_visible": verification["candidate_visible"],
+                        "multi_view_confirmed": False,
+                    }
+                    steps.append(
+                        {
+                            "sequence": 3,
+                            "stage": CALL_CROP_REGION,
+                            "tool": "crop_region",
+                            "crop_result": crop_public,
+                            "verification": verification,
+                            "next_step": RE_EVALUATE,
+                        }
+                    )
+                    if telemetry:
+                        telemetry.event(
+                            "DECISION_POLICY_TOOL_COMPLETE",
+                            inspection_id=inspection_id,
+                            job_id=job_id,
+                            tool="crop_region",
+                            crop_s3_key=crop_key,
+                            runtime=runtime.get("runtime"),
+                        )
+                else:
+                    confidence_after = float(interval_reassessment["confidence_after"])
+            else:
+                raise RuntimeError(f"Unsupported initial decision-policy step: {next_step!r}")
+
+    final_policy = evaluate_candidate(
+        {**candidate, "confidence": confidence_after},
+        evidence=final_evidence,
+        inspect_interval_completed=interval_public is not None,
+        crop_region_completed=crop_public is not None,
+        investigation_exhausted=True,
+        accept_threshold=float(parameters["accept_threshold"]),
+        investigate_threshold=float(parameters["investigate_threshold"]),
+    )
+    steps.append(
+        {
+            "sequence": len(steps) + 1,
+            "stage": RE_EVALUATE,
+            "confidence": round(confidence_after, 4),
+            "decision": final_policy,
+        }
+    )
+    elapsed = max(time.perf_counter() - started, 1e-9)
+    result = {
+        "schema_version": DECISION_POLICY_VERSION,
+        "inspection_id": inspection_id,
+        "job_id": job_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "candidate": candidate,
+        "runtime": runtime,
+        "thresholds": final_policy["thresholds"],
+        "initial_policy": initial_policy,
+        "steps": steps,
+        "interval_result": interval_public,
+        "interval_reassessment": interval_reassessment,
+        "crop_result": crop_public,
+        "verification": verification,
+        "confidence_before": round(confidence_before, 4),
+        "confidence_after": round(confidence_after, 4),
+        "confidence_delta": round(confidence_after - confidence_before, 4),
+        "safety_sensitive": final_policy["safety_sensitive"],
+        "safety_override_applied": initial_policy["safety_override_applied"],
+        "action": final_policy["route"],
+        "final_policy": final_policy,
+        "human_control": {
+            "required": final_policy["route"] == "REQUEST_HUMAN_APPROVAL",
+            "reason": (
+                "Safety-sensitive or unresolved evidence remains after the bounded investigation."
+                if final_policy["route"] == "REQUEST_HUMAN_APPROVAL" else None
+            ),
+        },
+        "evidence_preservation": {
+            "source_video_s3_key": source_key,
+            "source_video_etag": observed_etag or None,
+            "source_frame_s3_key": frame_key,
+            "source_frame_etag": observed_frame_etag or None,
+            "original_overwritten": False,
+        },
+        "completion_event": "DECISION_POLICY_COMPLETE",
+        "telemetry": {
+            "processing_seconds": round(elapsed, 3),
+            "peak_memory_mb": round(memory.peak_memory_mb, 3),
+            "tools_executed": [step.get("tool") for step in steps if step.get("tool")],
+        },
+    }
+    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step22-decision-policy-trace.json"
+    s3.put_object(
+        Bucket=settings.s3_bucket,
+        Key=result_key,
+        Body=json.dumps(result, indent=2).encode("utf-8"),
+        ContentType="application/json",
+    )
+    if telemetry:
+        telemetry.event(
+            "DECISION_POLICY_COMPLETE",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            confidence_before=round(confidence_before, 4),
+            confidence_after=round(confidence_after, 4),
+            action=final_policy["route"],
+            safety_override_applied=initial_policy["safety_override_applied"],
+            tools_executed=result["telemetry"]["tools_executed"],
             result_s3_key=result_key,
         )
     return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}
