@@ -249,9 +249,16 @@ def test_policy_service_runs_interval_then_crop_when_temporal_evidence_is_insuff
         "INITIAL_ROUTE", CALL_INSPECT_INTERVAL, CALL_CROP_REGION, RE_EVALUATE
     ]
     assert trace["evidence_preservation"]["original_overwritten"] is False
-    assert put_calls[0]["Key"].endswith("step22-decision-policy-trace.json")
-    persisted = json.loads(put_calls[0]["Body"])
+    trace_put = next(
+        call for call in put_calls
+        if call["Key"].endswith("step22-decision-policy-trace.json")
+    )
+    persisted = json.loads(trace_put["Body"])
     assert persisted["action"] == ACCEPT_CANDIDATE
+    assert persisted["action_log"]["action_count"] == 4
+    assert [entry["action"] for entry in persisted["action_log"]["actions"]] == [
+        "observe_candidate", "inspect_interval", "crop_region", "final_decision"
+    ]
 
 
 def test_policy_is_wired_to_api_worker_browser_and_documentation() -> None:

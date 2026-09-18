@@ -45,6 +45,7 @@ from ..processing_jobs import (
     processing_parameters,
 )
 from ..agentic_vision import choose_uncertain_candidate
+from ..action_log import ACTION_LOG_VERSION, action_log_document, agent_action
 from ..decision_policy import (
     DECISION_POLICY_VERSION,
     INVESTIGATE_CANDIDATE,
@@ -1018,6 +1019,56 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             f"inspections/{inspection_id}/agentic/{message['job_id']}/"
             "step22-decision-policy-trace.json"
         )
+        candidate_id = str(
+            candidate.get("policy_candidate_id")
+            or candidate.get("issue_id")
+            or f"candidate-{message['job_id']}"
+        )
+        action_log_key = (
+            f"inspections/{inspection_id}/agentic/{message['job_id']}/"
+            "step23-agent-action-log.json"
+        )
+        actions = [
+            agent_action(
+                sequence=1,
+                candidate_id=candidate_id,
+                action="observe_candidate",
+                reason="The Step-17 visual finding was evaluated by the confidence policy.",
+                input_timestamp=candidate_timestamp,
+                frames_returned=1,
+                confidence_before=confidence_before,
+                confidence_after=confidence_before,
+                details={
+                    "description": candidate.get("description"),
+                    "category": candidate.get("category"),
+                    "initial_route": selected_policy["route"],
+                },
+            ),
+            agent_action(
+                sequence=2,
+                candidate_id=candidate_id,
+                action="final_decision",
+                reason=(
+                    f"Confidence mapped directly to {selected_policy['route']}; "
+                    "no additional visual tool call was necessary."
+                ),
+                input_timestamp=candidate_timestamp,
+                frames_returned=0,
+                confidence_before=confidence_before,
+                confidence_after=confidence_before,
+                details={
+                    "result": selected_policy["route"],
+                    "human_review_required": False,
+                    "safety_override_applied": selected_policy["safety_override_applied"],
+                },
+            ),
+        ]
+        action_log = action_log_document(
+            inspection_id=inspection_id,
+            job_id=message["job_id"],
+            candidate_id=candidate_id,
+            actions=actions,
+        )
         trace = {
             "schema_version": DECISION_POLICY_VERSION,
             "inspection_id": inspection_id,
@@ -1029,6 +1080,9 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             "confidence_after": confidence_before,
             "confidence_delta": 0.0,
             "action": selected_policy["route"],
+            "action_log_version": ACTION_LOG_VERSION,
+            "action_log_s3_key": action_log_key,
+            "action_log": action_log,
             "safety_sensitive": selected_policy["safety_sensitive"],
             "safety_override_applied": selected_policy["safety_override_applied"],
             "human_control": {"required": False, "reason": None},
@@ -1038,6 +1092,12 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             },
             "completion_event": "DECISION_POLICY_COMPLETE",
         }
+        s3.put_object(
+            Bucket=settings.s3_bucket,
+            Key=action_log_key,
+            Body=json.dumps(action_log, indent=2).encode("utf-8"),
+            ContentType="application/json",
+        )
         s3.put_object(
             Bucket=settings.s3_bucket,
             Key=result_key,
@@ -1245,6 +1305,27 @@ def get_agentic_evidence_views(inspection_id: str) -> dict:
         "parameters": (trace.get("enhancement_result") or {}).get("request"),
         "expires_in_seconds": settings.presigned_url_ttl_seconds,
     }
+
+
+@router.get("/{inspection_id}/agent/actions")
+def get_agent_action_log(inspection_id: str) -> dict:
+    """Return the ordered Step-23 perception → decision → action audit trail."""
+    item = _require_inspection(inspection_id)
+    trace_key = item.get("agentic_trace_s3_key")
+    if not trace_key:
+        raise HTTPException(status_code=409, detail="No completed agent action log is available")
+    trace_obj = s3.get_object(Bucket=settings.s3_bucket, Key=trace_key)
+    trace = json.loads(trace_obj["Body"].read())
+    action_log = trace.get("action_log")
+    if not isinstance(action_log, dict):
+        action_log_key = trace.get("action_log_s3_key")
+        if not action_log_key:
+            raise HTTPException(status_code=409, detail="Latest agent result has no Step-23 action log")
+        log_obj = s3.get_object(Bucket=settings.s3_bucket, Key=action_log_key)
+        action_log = json.loads(log_obj["Body"].read())
+    if action_log.get("schema_version") != ACTION_LOG_VERSION:
+        raise HTTPException(status_code=409, detail="Latest action log has an unsupported schema")
+    return action_log
 
 
 @router.get("/{inspection_id}/agent")

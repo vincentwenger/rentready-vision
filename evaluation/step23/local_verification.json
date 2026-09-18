@@ -1,0 +1,78 @@
+{
+  "step": 23,
+  "verification_scope": "local_agent_action_log_contract",
+  "passed": true,
+  "checks_passed": 14,
+  "checks_total": 14,
+  "checks": {
+    "schema_is_versioned": true,
+    "required_fields_present": true,
+    "example_values_preserved": true,
+    "ordered_action_document": true,
+    "deterministic_event_id": true,
+    "policy_embeds_action_log": true,
+    "dedicated_s3_artifact": true,
+    "terminal_routes_are_logged": true,
+    "read_api_present": true,
+    "demo_investigation_visible": true,
+    "demo_shows_opencv_frames": true,
+    "focused_tests_present": true,
+    "documentation_present": true,
+    "contract_present": true
+  },
+  "errors": [],
+  "example_action": {
+    "sequence": 1,
+    "candidate_id": "issue-17",
+    "action": "inspect_interval",
+    "reason": "Initial confidence below verification threshold",
+    "input_timestamp": 271.4,
+    "frames_returned": 30,
+    "confidence_before": 0.61,
+    "confidence_after": 0.84,
+    "recorded_at": "2026-09-18T12:00:00+00:00",
+    "details": {},
+    "event_id": "action-d431c5e7ee6fea95"
+  },
+  "example_log": {
+    "schema_version": "rentready-agent-action-log/1.0",
+    "inspection_id": "verification-inspection",
+    "job_id": "verification-job",
+    "candidate_id": "issue-17",
+    "generated_at": "2026-09-18T12:00:02+00:00",
+    "action_count": 2,
+    "actions": [
+      {
+        "sequence": 1,
+        "candidate_id": "issue-17",
+        "action": "inspect_interval",
+        "reason": "Initial confidence below verification threshold",
+        "input_timestamp": 271.4,
+        "frames_returned": 30,
+        "confidence_before": 0.61,
+        "confidence_after": 0.84,
+        "recorded_at": "2026-09-18T12:00:00+00:00",
+        "details": {},
+        "event_id": "action-d431c5e7ee6fea95"
+      },
+      {
+        "sequence": 2,
+        "candidate_id": "issue-17",
+        "action": "final_decision",
+        "reason": "The bounded investigation completed and requires review.",
+        "input_timestamp": 271.4,
+        "frames_returned": 0,
+        "confidence_before": 0.61,
+        "confidence_after": 0.84,
+        "recorded_at": "2026-09-18T12:00:01+00:00",
+        "details": {
+          "result": "REQUEST_HUMAN_APPROVAL",
+          "human_review_required": true
+        },
+        "event_id": "action-19e609c03881caf5"
+      }
+    ]
+  },
+  "live_aws_validated": false,
+  "note": "Local PASS proves the strict record shape, ordered log, deterministic event identity, policy persistence, read API, and judge-facing demo wiring. A deployed Step-23 run is still required for live AWS acceptance."
+}

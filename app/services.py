@@ -14,6 +14,7 @@ from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
 from .runtime_evidence import collect_runtime_evidence
 from .telemetry import CloudWatchTelemetry, PeakMemorySampler
+from .action_log import ACTION_LOG_VERSION, action_log_document, agent_action
 from .agentic_vision import (
     AGENTIC_TRACE_VERSION,
     action_from_confidence,
@@ -606,6 +607,126 @@ def execute_decision_policy_job(
         }
     )
     elapsed = max(time.perf_counter() - started, 1e-9)
+    candidate_id = str(
+        candidate.get("policy_candidate_id")
+        or candidate.get("issue_id")
+        or f"candidate-{job_id}"
+    )
+    candidate_timestamp = float(parameters["timestamp"])
+    actions: list[dict[str, Any]] = [
+        agent_action(
+            sequence=1,
+            candidate_id=candidate_id,
+            action="observe_candidate",
+            reason=(
+                "Initial visual finding entered the investigation band; "
+                "additional evidence was required before a terminal decision."
+            ),
+            input_timestamp=candidate_timestamp,
+            frames_returned=1,
+            confidence_before=confidence_before,
+            confidence_after=confidence_before,
+            details={
+                "description": candidate.get("description"),
+                "category": candidate.get("category"),
+                "initial_route": initial_policy["route"],
+                "next_step": initial_policy["next_step"],
+            },
+        )
+    ]
+    if interval_public is not None and interval_reassessment is not None:
+        interval_confidence = float(interval_reassessment["confidence_after"])
+        actions.append(
+            agent_action(
+                sequence=len(actions) + 1,
+                candidate_id=candidate_id,
+                action="inspect_interval",
+                reason=(
+                    "Initial confidence was below the automatic acceptance threshold and "
+                    "the available evidence did not yet establish temporal persistence."
+                ),
+                input_timestamp=candidate_timestamp,
+                frames_returned=int(interval_public.get("returned_frame_count") or 0),
+                confidence_before=confidence_before,
+                confidence_after=interval_confidence,
+                details={
+                    "visible_in_multiple_frames": bool(
+                        interval_reassessment.get("visible_in_multiple_frames")
+                    ),
+                    "requested_seconds_before": float(parameters["seconds_before"]),
+                    "requested_seconds_after": float(parameters["seconds_after"]),
+                    "sample_fps": float(parameters["sample_fps"]),
+                    "next_step": (
+                        steps[1].get("next_step") if len(steps) > 1 else None
+                    ),
+                },
+            )
+        )
+    if crop_public is not None and verification is not None:
+        prior_confidence = float(
+            (interval_reassessment or {}).get("confidence_after", confidence_before)
+        )
+        actions.append(
+            agent_action(
+                sequence=len(actions) + 1,
+                candidate_id=candidate_id,
+                action="crop_region",
+                reason=(
+                    "Nearby frames were not sufficient to verify the candidate, so the agent "
+                    "requested a close-up ROI while preserving the original evidence."
+                ),
+                input_timestamp=candidate_timestamp,
+                frames_returned=1,
+                confidence_before=prior_confidence,
+                confidence_after=float(verification["confidence_after"]),
+                details={
+                    "crop_s3_key": (crop_public.get("output") or {}).get("s3_key"),
+                    "candidate_visible": bool(verification.get("candidate_visible")),
+                    "original_overwritten": False,
+                },
+            )
+        )
+    elif interval_public is None and verification is not None:
+        actions.append(
+            agent_action(
+                sequence=len(actions) + 1,
+                candidate_id=candidate_id,
+                action="verify_evidence",
+                reason="Existing evidence was sufficient for a direct conservative verification.",
+                input_timestamp=candidate_timestamp,
+                frames_returned=1,
+                confidence_before=confidence_before,
+                confidence_after=float(verification["confidence_after"]),
+                details={"candidate_visible": bool(verification.get("candidate_visible"))},
+            )
+        )
+    actions.append(
+        agent_action(
+            sequence=len(actions) + 1,
+            candidate_id=candidate_id,
+            action="final_decision",
+            reason=(
+                f"The bounded investigation completed and confidence mapped to "
+                f"{final_policy['route']}."
+            ),
+            input_timestamp=candidate_timestamp,
+            frames_returned=0,
+            confidence_before=confidence_before,
+            confidence_after=confidence_after,
+            details={
+                "result": final_policy["route"],
+                "human_review_required": final_policy["route"] == "REQUEST_HUMAN_APPROVAL",
+                "safety_override_applied": initial_policy["safety_override_applied"],
+            },
+        )
+    )
+    action_log = action_log_document(
+        inspection_id=inspection_id,
+        job_id=job_id,
+        candidate_id=candidate_id,
+        actions=actions,
+    )
+    action_log_key = f"inspections/{inspection_id}/agentic/{job_id}/step23-agent-action-log.json"
     result = {
         "schema_version": DECISION_POLICY_VERSION,
         "inspection_id": inspection_id,
@@ -627,6 +748,9 @@ def execute_decision_policy_job(
         "safety_override_applied": initial_policy["safety_override_applied"],
         "action": final_policy["route"],
         "final_policy": final_policy,
+        "action_log_version": ACTION_LOG_VERSION,
+        "action_log_s3_key": action_log_key,
+        "action_log": action_log,
         "human_control": {
             "required": final_policy["route"] == "REQUEST_HUMAN_APPROVAL",
             "reason": (
@@ -651,6 +775,12 @@ def execute_decision_policy_job(
     result_key = f"inspections/{inspection_id}/agentic/{job_id}/step22-decision-policy-trace.json"
     s3.put_object(
         Bucket=settings.s3_bucket,
+        Key=action_log_key,
+        Body=json.dumps(action_log, indent=2).encode("utf-8"),
+        ContentType="application/json",
+    )
+    s3.put_object(
+        Bucket=settings.s3_bucket,
         Key=result_key,
         Body=json.dumps(result, indent=2).encode("utf-8"),
         ContentType="application/json",
@@ -665,6 +795,8 @@ def execute_decision_policy_job(
             action=final_policy["route"],
             safety_override_applied=initial_policy["safety_override_applied"],
             tools_executed=result["telemetry"]["tools_executed"],
+            action_count=action_log["action_count"],
+            action_log_s3_key=action_log_key,
             result_s3_key=result_key,
         )
     return {"result_s3_key": result_key, "result": result, "telemetry": result["telemetry"]}

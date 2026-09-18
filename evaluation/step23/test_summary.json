@@ -1,0 +1,19 @@
+{
+  "step": 23,
+  "tested_at": "2026-09-18",
+  "focused_command": "pytest -q tests/test_step23_action_log.py tests/test_step22_decision_policy.py",
+  "focused_result": {
+    "passed": true,
+    "tests_passed": 14,
+    "tests_failed": 0
+  },
+  "full_command": "GIT_COMMIT=archive-v22b pytest -q",
+  "full_result": {
+    "passed": true,
+    "tests_passed": 100,
+    "tests_failed": 0,
+    "warnings": 1,
+    "warning_note": "Existing Starlette TestClient deprecation warning for httpx; unrelated to Step 23."
+  },
+  "environment_note": "GIT_COMMIT was supplied because the distributed v22b source archive intentionally contains no .git directory. AWS metadata lookup was disabled during local tests."
+}

@@ -51,6 +51,14 @@
     .issue-warning { padding: 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; }
     .agent-box { margin: 12px 0 24px; padding: 16px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
     .agent-flow { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86rem; color: #334155; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .investigation-flow { display: grid; gap: 0; margin: 12px 0 24px; }
+    .investigation-event { position: relative; padding: 14px 16px 14px 46px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
+    .investigation-event + .investigation-event { margin-top: 18px; }
+    .investigation-event + .investigation-event::before { content: "↓"; position: absolute; top: -22px; left: 19px; color: #166534; font-weight: 800; }
+    .investigation-index { position: absolute; left: 14px; top: 14px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; color: #fff; background: #166534; font-size: .75rem; font-weight: 800; }
+    .investigation-event strong { display: block; color: #172033; }
+    .investigation-event p { margin: 5px 0 0; color: #475569; font-size: .88rem; }
+    .investigation-meta { color: #64748b !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem !important; }
     .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 12px 0 24px; }
     .comparison img { aspect-ratio: auto; object-fit: contain; }
     .other-angles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 12px 0 24px; }
@@ -89,6 +97,7 @@
       <li class="step" id="step-enhance"><span class="mark">○</span><span>Creating a labeled enhanced inspection view</span></li>
       <li class="step" id="step-angle"><span class="mark">○</span><span>Searching nearby frames for other camera viewpoints</span></li>
       <li class="step" id="step-policy"><span class="mark">○</span><span>Applying the confidence and evidence decision policy</span></li>
+      <li class="step" id="step-audit"><span class="mark">○</span><span>Persisting the agent action audit trail</span></li>
       <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
     </ul>
   </section>
@@ -122,6 +131,9 @@
     <h3>Decision policy</h3>
     <p class="issue-note" id="policy-note"></p>
     <div class="agent-box" id="policy-trace"></div>
+    <h3>Agent Investigation</h3>
+    <p class="issue-note" id="investigation-note"></p>
+    <div class="investigation-flow" id="investigation-flow"></div>
     <h3>Detected scenes</h3>
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
@@ -331,6 +343,59 @@ function renderDecisionPolicy(response, warning = null) {
   box.append(text);
 }
 
+function renderAgentInvestigation(response, warning = null) {
+  const note = document.getElementById("investigation-note");
+  const flow = document.getElementById("investigation-flow");
+  flow.replaceChildren();
+  if (warning) {
+    note.textContent = `Step 23 action log was not completed: ${warning}`;
+    return;
+  }
+  const trace = response?.trace ?? response ?? {};
+  const log = trace.action_log ?? response?.action_log;
+  const actions = log?.actions ?? [];
+  if (!actions.length) {
+    note.textContent = "No agent action log was produced for this inspection.";
+    return;
+  }
+  note.textContent = `Step 23 · ${actions.length} ordered action(s) stored for ${log.candidate_id}.`;
+  const labels = {
+    observe_candidate: "Observation",
+    inspect_interval: "Requested additional video evidence",
+    crop_region: "Requested close-up",
+    verify_evidence: "Verified existing evidence",
+    final_decision: "Final result"
+  };
+  const resultLabels = {
+    ACCEPT_CANDIDATE: "Finding confirmed",
+    REJECT_CANDIDATE: "Finding not retained",
+    REQUEST_HUMAN_APPROVAL: "Review recommended"
+  };
+  actions.forEach(action => {
+    const event = document.createElement("div");
+    event.className = "investigation-event";
+    const index = document.createElement("span");
+    index.className = "investigation-index";
+    index.textContent = action.sequence;
+    const title = document.createElement("strong");
+    const result = action.details?.result;
+    title.textContent = action.action === "final_decision"
+      ? (resultLabels[result] ?? result ?? "Final result")
+      : (labels[action.action] ?? action.action);
+    const reason = document.createElement("p");
+    reason.textContent = action.action === "inspect_interval"
+      ? `OpenCV inspected ${action.frames_returned} nearby frame(s). ${action.reason}`
+      : action.action === "crop_region"
+        ? `OpenCV generated an ROI crop. ${action.reason}`
+        : action.reason;
+    const meta = document.createElement("p");
+    meta.className = "investigation-meta";
+    meta.textContent = `time ${Number(action.input_timestamp).toFixed(1)}s · confidence ${Math.round(Number(action.confidence_before) * 100)}% → ${Math.round(Number(action.confidence_after) * 100)}%`;
+    event.append(index, title, reason, meta);
+    flow.append(event);
+  });
+}
+
 function renderRuntime(processing) {
   const runtimeElement = document.getElementById("runtime");
   runtimeElement.replaceChildren();
@@ -478,7 +543,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "report"].forEach(name => setStep(name, null));
+  ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "audit", "report"].forEach(name => setStep(name, null));
 
   try {
     setStep("upload", "active");
@@ -663,13 +728,16 @@ runButton.onclick = async () => {
           }
         }
         setStep("policy", "done");
+        setStep("audit", "done");
       } catch (policyError) {
         policyWarning = policyError instanceof Error ? policyError.message : String(policyError);
         setStep("policy", "warn");
+        setStep("audit", "warn");
       }
     } else {
       policyWarning = "Step 22 could not run because Step 17 did not complete.";
       setStep("policy", "warn");
+      setStep("audit", "warn");
     }
 
     setStep("report", "active");
@@ -679,6 +747,7 @@ runButton.onclick = async () => {
     await renderEnhancement(id, enhancementResponse, enhancementWarning, enhancementViews);
     await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);
     renderDecisionPolicy(policyResponse, policyWarning);
+    renderAgentInvestigation(policyResponse, policyWarning);
     setStep("report", "done");
   } catch (error) {
     errorEl.textContent = error instanceof Error ? error.message : String(error);
