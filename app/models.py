@@ -112,11 +112,14 @@ class IssuesResponse(BaseModel):
     taxonomy: dict[str, Any] | None = None
     rooms: list[str] = Field(default_factory=list)
     candidate_findings: list[dict[str, Any]] = Field(default_factory=list)
+    raw_candidate_findings: list[dict[str, Any]] = Field(default_factory=list)
     issues: list[dict[str, Any]] = Field(default_factory=list)
+    raw_issues: list[dict[str, Any]] = Field(default_factory=list)
+    consolidation: dict[str, Any] | None = None
     report_s3_key: str | None = None
     note: str = (
-        "Step 17 returns structured candidate findings with room, category, description, "
-        "video timestamp, confidence, preliminary severity, and normalized bounding box."
+        "Step 24 consolidates repeated frame-level findings while preserving every raw "
+        "detection and evidence timestamp for auditability."
     )
 
 

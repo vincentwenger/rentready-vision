@@ -270,7 +270,7 @@ def test_service_persists_step17_report_and_metadata(monkeypatch) -> None:
 
     assert report["inspection_id"] == "example"
     assert report["source_manifest_s3_key"] == "inspections/example/manifest.json"
-    assert put_calls[0]["Key"] == "inspections/example/issues/step17-structured-findings.json"
+    assert put_calls[0]["Key"] == "inspections/example/issues/step24-consolidated-issues.json"
     assert updates[0][1]["issue_detection_status"] == "PROCESSING"
     assert updates[-1][1]["issue_detection_status"] == "COMPLETE"
     assert updates[-1][1]["issue_count"] == 0

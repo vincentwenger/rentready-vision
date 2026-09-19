@@ -61,6 +61,7 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Run the Step-17 schema-constrained candidate-finding detector over selected keyframes, including normalized bounding boxes for OpenCV follow-up, and persist auditable issue evidence.
 - Run Step-18 Agentic Vision follow-up: uncertain Step-17 evidence causes a targeted `inspect_interval()` SQS tool call on the same COOL/Graviton4 worker, followed by confidence revision and an accept/dismiss/human-approval action.
 - Run Step-21 `inspect_other_angle()`: geometrically match the Step-17 region across nearby frames, rank changed camera views, and ask AI whether the same issue is visible from multiple viewpoints.
+- Consolidate repeated frame-level observations into one physical issue using timestamp, room, category, whole-image, region, and semantic similarity while retaining every evidence timestamp.
 - Generate short-lived GET URLs for evidence frames.
 
 ## Local fallback versus production AWS path
@@ -519,6 +520,14 @@ Each policy run embeds the log in the Step-22 trace and stores a dedicated `step
 
 See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-7f65b61f061005d9e1fbc28b03e73542`, and implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with `ACCEPT_CANDIDATE`. The Step 23 evidence summary passed all **17/17** checks with `errors=[]`.
 
+## Step 24 issue consolidation -- LOCAL PASS
+
+Step 24 converts repeated frame observations into a user-facing physical-issue list. It combines bounded timestamp proximity, exact normalized room and category, OpenCV whole-image similarity, candidate-region similarity, and deterministic semantic similarity. Raw detections remain available for audit, while each consolidated issue retains every evidence timestamp, source issue ID, frame reference, bbox, confidence, pairwise score, and rejection reason.
+
+The implementation is conservative: room and category are hard gates; cluster duration and spatial continuity are bounded; and unavailable image bytes produce `null` visual similarity plus stricter metadata-only thresholds. The browser now renders consolidated issues and their evidence timeline. Local verification reduces five bathroom-vanity stain observations at `04:28`, `04:30`, `04:31`, `04:34`, and `04:36` to one issue while keeping a separate shower-ceiling stain distinct.
+
+See [`STEP24_ISSUE_CONSOLIDATION.md`](STEP24_ISSUE_CONSOLIDATION.md) and [`evaluation/step24/`](evaluation/step24/). A forced live AWS detection remains required before this milestone can be promoted to **LIVE AWS PASS**.
+
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in
@@ -531,6 +540,6 @@ written to `evaluation/step13/`.
 
 Step 17 extends the live-tested Step-16 Bedrock detector so every accepted AI candidate is machine-readable and directly actionable by later Agentic Vision tools. Each canonical candidate now includes `room`, `category`, `description`, exact video `timestamp`, `confidence`, `severity_candidate`, and a normalized top-left-origin `bbox` (`x`, `y`, `width`, `height`). The room vocabulary is fixed to Kitchen, Bathroom, Living room, Bedroom, Garage, Exterior, Hallway, and Unknown (normalized to snake case).
 
-The application preserves every structurally valid candidate in `candidate_findings`, including uncertain findings below the legacy 0.65 issue threshold, so Step 18 can decide whether to inspect them again. It rejects timestamps that do not match a submitted OpenCV keyframe and invalid/out-of-image boxes. `normalized_bbox_to_pixels(...)` converts a validated bbox into an OpenCV crop rectangle. New reports are written to `inspections/{inspection_id}/issues/step17-structured-findings.json`; candidates at or above the configured threshold are additionally promoted into enriched `issues` with frame/S3 traceability.
+The application preserves every structurally valid candidate, including uncertain findings below the legacy 0.65 issue threshold, so Step 18 can decide whether to inspect them again. It rejects timestamps that do not match a submitted OpenCV keyframe and invalid/out-of-image boxes. `normalized_bbox_to_pixels(...)` converts a validated bbox into an OpenCV crop rectangle. Step 17 originally wrote `inspections/{inspection_id}/issues/step17-structured-findings.json`; the current Step-24 report writes `step24-consolidated-issues.json`, retains the original detections in `raw_candidate_findings` and `raw_issues`, and exposes consolidated `candidate_findings` and `issues` for downstream use.
 
 Local verification on **September 8, 2026** passed all 15 Step-17 contract checks. The same day, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed the real AWS acceptance run against `us.amazon.nova-2-lite-v1:0`: three persisted keyframes were considered in one Bedrock batch, one structured `cleanliness` candidate was returned at timestamp `13.0` with confidence `0.8` and a normalized bbox, and the candidate was promoted to an enriched issue linked to source frame `2`. Bedrock request ID `1a9170ad-069c-4688-8c29-2be4f63f290d` proves the live invocation. The report is persisted at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json`, and `scripts/verify_step17_aws.py` returned `passed=true` with `errors=[]`. Step 17 is therefore **LIVE AWS PASS**. See `STEP17_STRUCTURED_JSON.md`, `evaluation/step17/structured_finding_contract.json`, `evaluation/step17/local_verification.json`, and `evaluation/step17/live/` for the contract and evidence.

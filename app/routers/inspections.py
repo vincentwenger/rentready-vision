@@ -298,8 +298,11 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         taxonomy=report.get("taxonomy"),
         rooms=report.get("rooms", []),
         candidate_findings=report.get("candidate_findings", []),
+        raw_candidate_findings=report.get("raw_candidate_findings", []),
         issues=report.get("issues", []),
-        report_s3_key=f"inspections/{inspection_id}/issues/step17-structured-findings.json",
+        raw_issues=report.get("raw_issues", []),
+        consolidation=report.get("consolidation"),
+        report_s3_key=f"inspections/{inspection_id}/issues/step24-consolidated-issues.json",
     )
 
 

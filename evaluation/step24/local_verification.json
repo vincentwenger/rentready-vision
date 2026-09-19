@@ -1,0 +1,46 @@
+{
+  "step": 24,
+  "verification_scope": "local_deterministic_issue_consolidation",
+  "generated_at": "2026-09-19T16:56:10.135594+00:00",
+  "version": "rentready-issue-consolidation/1.0",
+  "passed": true,
+  "checks_passed": 14,
+  "checks_total": 14,
+  "checks": {
+    "contract_has_six_requested_signals": true,
+    "five_repeated_detections_become_one_issue": true,
+    "four_duplicates_removed": true,
+    "all_evidence_timestamps_preserved": true,
+    "all_source_issue_ids_preserved": true,
+    "highest_confidence_evidence_is_representative": true,
+    "opencv_visual_comparisons_executed": true,
+    "different_region_stays_separate": true,
+    "different_region_rejection_is_auditable": true,
+    "missing_images_do_not_get_synthetic_similarity": true,
+    "strict_metadata_fallback_can_merge_exact_repeat": true,
+    "s3_report_path_is_step24_specific": true,
+    "browser_renders_consolidated_issues": true,
+    "browser_renders_evidence_timestamps": true
+  },
+  "errors": [],
+  "example": {
+    "raw_issue_count": 5,
+    "consolidated_issue_count": 1,
+    "description": "Possible staining near bathroom vanity",
+    "evidence_timestamps_seconds": [
+      268.0,
+      270.0,
+      271.0,
+      274.0,
+      276.0
+    ],
+    "evidence_timestamps_mm_ss": [
+      "04:28",
+      "04:30",
+      "04:31",
+      "04:34",
+      "04:36"
+    ]
+  },
+  "note": "Local PASS proves deterministic consolidation, OpenCV image/region comparison, negative separation, strict missing-image fallback, API persistence wiring, and browser rendering."
+}

@@ -183,10 +183,12 @@ function renderIssues(response, warning = null) {
     return;
   }
 
-  const findings = response?.candidate_findings ?? response?.issues ?? [];
-  const aboveThreshold = response?.issues?.length ?? 0;
+  const findings = response?.issues ?? response?.candidate_findings ?? [];
+  const consolidation = response?.consolidation ?? {};
+  const rawIssueCount = consolidation.raw_issue_count ?? response?.raw_issues?.length ?? findings.length;
+  const aboveThreshold = findings.length;
   const namedCount = response?.taxonomy?.named_category_count ?? 13;
-  note.textContent = `Step 17 · structured JSON + normalized bbox · ${namedCount} named categories + other · ${findings.length} candidate finding(s), ${aboveThreshold} above the issue threshold.`;
+  note.textContent = `Step 24 · issue consolidation using time, room, category, image, region and semantic similarity · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated issue(s) · ${namedCount} named categories + other.`;
   if (!findings.length) {
     const row = document.createElement("div");
     row.className = "issue-row";
@@ -206,7 +208,11 @@ function renderIssues(response, warning = null) {
     const meta = document.createElement("div");
     meta.className = "issue-meta";
     const bbox = issue.bbox ?? {};
-    meta.textContent = `Confidence ${(Number(issue.confidence) * 100).toFixed(0)}% · ${Number(issue.timestamp).toFixed(3)}s · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`;
+    const timestamps = Array.isArray(issue.evidence_timestamps) && issue.evidence_timestamps.length
+      ? issue.evidence_timestamps.map(value => formatTimestamp(Number(value))).join(", ")
+      : formatTimestamp(Number(issue.timestamp));
+    const observationCount = Number(issue.consolidated_from_count ?? 1);
+    meta.textContent = `Confidence ${(Number(issue.confidence) * 100).toFixed(0)}% · ${observationCount} evidence frame(s): ${timestamps} · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`;
     row.append(title, summary, meta);
     list.append(row);
   });

@@ -1,0 +1,11 @@
+{
+  "step": 24,
+  "generated_at": "2026-09-18T18:45:49Z",
+  "command": "GIT_COMMIT=step24-local-bundle pytest -q",
+  "passed": true,
+  "tests_passed": 107,
+  "tests_failed": 0,
+  "warnings": 1,
+  "warning_note": "Starlette emitted an existing TestClient/httpx deprecation warning.",
+  "source_archive_note": "GIT_COMMIT was supplied because the uploaded ZIP intentionally contained no .git directory."
+}

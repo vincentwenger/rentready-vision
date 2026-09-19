@@ -33,6 +33,7 @@ from .decision_policy import (
     next_investigation_step,
 )
 from .vision.issue_detector import REPORT_SCHEMA_VERSION, STRUCTURED_FINDING_VERSION, detect_visible_issues
+from .vision.issue_consolidator import CONSOLIDATION_VERSION
 from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
 from .vision.interval_inspector import inspect_interval
@@ -1393,10 +1394,14 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
             batch_size=settings.issue_detection_batch_size,
             max_keyframes=settings.issue_detection_max_keyframes,
             max_tokens=settings.issue_detection_max_tokens,
+            image_loader=lambda key: s3.get_object(
+                Bucket=settings.s3_bucket,
+                Key=key,
+            )["Body"].read(),
         )
         report["inspection_id"] = inspection_id
         report["source_manifest_s3_key"] = inspection.get("manifest_s3_key")
-        report_key = f"inspections/{inspection_id}/issues/step17-structured-findings.json"
+        report_key = f"inspections/{inspection_id}/issues/step24-consolidated-issues.json"
         s3.put_object(
             Bucket=settings.s3_bucket,
             Key=report_key,
@@ -1409,7 +1414,10 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
             issue_detection_error=None,
             issue_report_s3_key=report_key,
             issue_count=len(report.get("issues", [])),
+            raw_issue_count=len(report.get("raw_issues", [])),
             candidate_finding_count=len(report.get("candidate_findings", [])),
+            raw_candidate_finding_count=len(report.get("raw_candidate_findings", [])),
+            issue_consolidation_version=CONSOLIDATION_VERSION,
             issue_detection_model_id=settings.issue_detection_model_id,
             issue_taxonomy_version=TAXONOMY_VERSION,
             structured_finding_version=STRUCTURED_FINDING_VERSION,
@@ -1441,7 +1449,10 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
             "detector": None,
             "rooms": [],
             "candidate_findings": [],
+            "raw_candidate_findings": [],
             "issues": [],
+            "raw_issues": [],
+            "consolidation": None,
             "report_s3_key": None,
         }
     obj = s3.get_object(Bucket=settings.s3_bucket, Key=report_key)
@@ -1455,6 +1466,9 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
         "detector": report.get("detector"),
         "rooms": report.get("rooms", []),
         "candidate_findings": report.get("candidate_findings", []),
+        "raw_candidate_findings": report.get("raw_candidate_findings", []),
         "issues": report.get("issues", []),
+        "raw_issues": report.get("raw_issues", []),
+        "consolidation": report.get("consolidation"),
         "report_s3_key": report_key,
     }

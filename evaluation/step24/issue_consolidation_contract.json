@@ -1,0 +1,49 @@
+{
+  "version": "rentready-issue-consolidation/1.0",
+  "signals": [
+    "timestamp_similarity",
+    "room_similarity",
+    "category_similarity",
+    "image_similarity",
+    "region_similarity",
+    "semantic_similarity"
+  ],
+  "weights": {
+    "timestamp_similarity": 0.15,
+    "room_similarity": 0.15,
+    "category_similarity": 0.2,
+    "image_similarity": 0.15,
+    "region_similarity": 0.2,
+    "semantic_similarity": 0.15
+  },
+  "thresholds": {
+    "max_pair_gap_seconds": 12.0,
+    "max_cluster_span_seconds": 20.0,
+    "minimum_score": 0.68,
+    "minimum_semantic_similarity": 0.4,
+    "minimum_image_similarity": 0.55,
+    "minimum_region_similarity": 0.5,
+    "minimum_bbox_iou": 0.05,
+    "maximum_bbox_center_distance": 0.22,
+    "metadata_only_minimum_score": 0.78,
+    "metadata_only_minimum_semantic_similarity": 0.65,
+    "metadata_only_minimum_bbox_iou": 0.3
+  },
+  "hard_gates": [
+    "same normalized room",
+    "same issue category",
+    "pair timestamp gap within maximum",
+    "cluster timestamp span within maximum",
+    "spatial continuity through bbox overlap or center proximity"
+  ],
+  "image_similarity": "whole-frame HSV, dHash, and geometric ORB similarity",
+  "region_similarity": "candidate-crop visual similarity combined with normalized bbox IoU",
+  "semantic_similarity": "deterministic normalized-token and sequence similarity",
+  "fallback": "If image bytes cannot be loaded, merge only with stricter semantic, bbox, and aggregate-score thresholds. Missing visual evidence never receives a synthetic score.",
+  "auditability": {
+    "raw_detections_preserved": true,
+    "pairwise_signal_scores_preserved": true,
+    "all_evidence_timestamps_preserved": true,
+    "representative_is_highest_confidence": true
+  }
+}

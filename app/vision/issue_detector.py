@@ -13,10 +13,11 @@ from .issue_taxonomy import (
     category_group,
     taxonomy_payload,
 )
+from .issue_consolidator import CONSOLIDATION_VERSION, consolidate_issues
 
 TOOL_NAME = "report_visible_property_issues"
 STRUCTURED_FINDING_VERSION = "rentready-structured-finding/1.0"
-REPORT_SCHEMA_VERSION = "rentready-issue-report/2.0"
+REPORT_SCHEMA_VERSION = "rentready-issue-report/3.0"
 
 # Step 17 room vocabulary from the RentReady Vision development plan.
 ROOM_VALUES: tuple[str, ...] = (
@@ -463,8 +464,9 @@ def detect_visible_issues(
     batch_size: int = 8,
     max_keyframes: int = 120,
     max_tokens: int = 2500,
+    image_loader: Any | None = None,
 ) -> dict[str, Any]:
-    """Run the Step-17 structured candidate detector over OpenCV-selected keyframes."""
+    """Detect structured candidates, then consolidate repeated frame observations."""
     if not keyframes:
         return {
             "schema_version": REPORT_SCHEMA_VERSION,
@@ -480,7 +482,18 @@ def detect_visible_issues(
             "taxonomy": taxonomy_payload(),
             "rooms": list(ROOM_VALUES),
             "candidate_findings": [],
+            "raw_candidate_findings": [],
             "issues": [],
+            "raw_issues": [],
+            "consolidation": {
+                "version": CONSOLIDATION_VERSION,
+                "raw_candidate_count": 0,
+                "consolidated_candidate_count": 0,
+                "raw_issue_count": 0,
+                "consolidated_issue_count": 0,
+                "duplicate_observations_merged": 0,
+                "comparisons": [],
+            },
             "trace": [],
         }
 
@@ -567,10 +580,34 @@ def detect_visible_issues(
             issue["issue_id"],
         ),
     )
-    issues = [
+    raw_issues = [
         issue for issue in candidates
         if issue["issue_id"] in issues_by_id
     ]
+    consolidation = consolidate_issues(candidates, image_loader=image_loader)
+    consolidated_candidates = consolidation["issues"]
+    above_threshold_ids = {issue["issue_id"] for issue in raw_issues}
+    issues = [
+        issue
+        for issue in consolidated_candidates
+        if above_threshold_ids.intersection(issue.get("source_issue_ids") or [])
+    ]
+    consolidation_summary = {
+        key: value for key, value in consolidation.items() if key != "issues"
+    }
+    consolidation_summary.update(
+        {
+            "raw_candidate_count": len(candidates),
+            "consolidated_candidate_count": len(consolidated_candidates),
+            "candidate_duplicate_observations_merged": (
+                len(candidates) - len(consolidated_candidates)
+            ),
+            "raw_issue_count": len(raw_issues),
+            "consolidated_issue_count": len(issues),
+            "issue_duplicate_observations_merged": len(raw_issues) - len(issues),
+            "duplicate_observations_merged": len(raw_issues) - len(issues),
+        }
+    )
     return {
         "schema_version": REPORT_SCHEMA_VERSION,
         "structured_finding_version": STRUCTURED_FINDING_VERSION,
@@ -584,10 +621,16 @@ def detect_visible_issues(
             "max_keyframes": resolved_max_keyframes,
             "keyframes_considered": len(selected_frames),
             "batch_count": len(traces),
+            "consolidation_version": CONSOLIDATION_VERSION,
         },
         "taxonomy": taxonomy_payload(),
         "rooms": list(ROOM_VALUES),
-        "candidate_findings": [_candidate_view(candidate) for candidate in candidates],
+        "candidate_findings": [
+            _candidate_view(candidate) for candidate in consolidated_candidates
+        ],
+        "raw_candidate_findings": [_candidate_view(candidate) for candidate in candidates],
         "issues": issues,
+        "raw_issues": raw_issues,
+        "consolidation": consolidation_summary,
         "trace": traces,
     }

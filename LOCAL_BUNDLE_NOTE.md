@@ -1,20 +1,21 @@
 # Local bundle note
 
-This archive is the Step-21 RentReady Vision source/evidence bundle prepared on September 15, 2026.
+This archive is the Step 24 RentReady Vision source-and-evidence bundle prepared on September 18, 2026.
 
-- It preserves the completed live AWS evidence through Step 21.
-- It adds Step 21 Agent Tool 4, `inspect_other_angle()`, including OpenCV ORB/RANSAC region matching, viewpoint-change ranking, structured AI multi-view assessment, production SQS/COOL dispatch, private derived evidence, browser Frame A/B/C rendering, documentation, tests, and verification scripts.
-- Step 21 is **LIVE AWS PASS**: 8/8 focused tests, 30/30 Agent Tool 1–4 regression tests, 86/86 full-project tests, 20/20 local contract checks, and the official live AWS verifier passed.
-- Live AWS evidence uses inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-8d430190e1ad65696dcfdb045837caf6`, and commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8`. Three views were selected, multi-view evidence was confirmed, confidence increased from 0.80 to 0.95, and the verifier returned `passed=true` with `errors=[]`.
+- It includes completed implementation and live AWS evidence through Step 23, plus the locally verified Step 24 implementation.
+- Step 24 consolidates repeated frame-level detections with timestamp, room, category, image, region, and semantic similarity while preserving every raw observation and evidence timestamp.
+- Local verification passed all 14 Step 24 checks, and the complete project test suite passed 107 tests.
+- Live AWS validation passed all 17 Step 23 checks with zero errors for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-7f65b61f061005d9e1fbc28b03e73542`.
+- The validated implementation commit is `5426e42afce6d824993aba0d65a19aff4f5df987`. The final documentation and formatting commits are `c3a96e48045e6d6c5226e3a777c5ae62346ddcae` and `ea42f91b8c506d44b74832ecc13a8a3201957892`.
+- The live COOL 3.1 / OpenCV 5.1.0-dev Graviton4 worker inspected 15 nearby frames, raising confidence from 0.80 to 0.90 before returning `ACCEPT_CANDIDATE`.
 - The local `.env` file is intentionally excluded. Copy `.env.example` to `.env` and fill in local AWS values when running on another machine.
-- Terraform state, `terraform.tfvars`, AWS credentials, virtual environments, Python caches, and test caches are intentionally excluded.
+- Git metadata, Terraform state, `terraform.tfvars`, AWS credentials, virtual environments, Python caches, runtime scratch output, and test caches are intentionally excluded.
 
-Start with `STEP21_OTHER_ANGLE.md`. To re-check Step 21 locally, run:
+Start with `STEP24_ISSUE_CONSOLIDATION.md`. To re-check Step 24 locally, run:
 
 ```bash
-pytest -q tests/test_step21_other_angle.py
-python scripts/verify_step21_other_angle.py \
-  --output evaluation/step21/local_verification.json
+pytest -q tests/test_step24_issue_consolidation.py
+python scripts/verify_step24_issue_consolidation.py
 ```
 
-Expected verifier result: `passed=true`, `checks_passed=20`, `checks_total=20`, `errors=[]`.
+Expected verifier result: `passed=true`, `checks_passed=14`, `checks_total=14`, `errors=[]`. Step 24 is **LOCAL PASS**; run a forced detection on deployed code and capture AWS evidence before promoting it to **LIVE AWS PASS**. See `evaluation/step23/live_aws_verification.json` for the completed live AWS acceptance result through Step 23.
