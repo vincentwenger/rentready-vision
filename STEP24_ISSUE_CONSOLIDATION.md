@@ -1,6 +1,6 @@
 # Step 24 — Issue consolidation
 
-**Status: LOCAL PASS.** The implementation, deterministic verification, API persistence, and browser rendering are complete. A newly forced live AWS detection run is still required before this step can be labeled **LIVE AWS PASS**.
+**Status: LIVE AWS PASS.** The implementation, deterministic verification, API persistence, browser rendering, forced Bedrock invocation, S3 persistence, and DynamoDB metadata validation are complete.
 
 ## Goal
 
@@ -65,3 +65,13 @@ pytest -q tests/test_step24_issue_consolidation.py
 The deterministic acceptance case creates five related bathroom-vanity observations at `04:28`, `04:30`, `04:31`, `04:34`, and `04:36`. They consolidate into one issue while a visually and spatially distinct shower-ceiling stain remains separate. The verifier also proves the strict missing-image fallback and checks the API/browser wiring.
 
 Local evidence is stored in `evaluation/step24/`. This is intentionally labeled local evidence; it does not claim a Bedrock, S3, or deployed Graviton4 run.
+
+## Live AWS acceptance — September 19, 2026
+
+Inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed a forced Step 24 detection using implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`. Three persisted OpenCV keyframes were submitted to Amazon Nova 2 Lite in one batch. Bedrock request `fb854166-ad18-4533-aaf1-767673f01c76` produced one structured candidate.
+
+The application preserved the raw candidate and issue, returned one consolidated candidate and issue, and wrote schema `rentready-issue-report/3.0` with consolidation version `rentready-issue-consolidation/1.0` to `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step24-consolidated-issues.json`.
+
+DynamoDB recorded the run as `COMPLETE` with the same S3 key and consolidation version. The independent persistence verifier passed with `errors=[]`, and the Step 24 live summary passed all 12 checks. See `evaluation/step24/live/`.
+
+The short live video contains one detected issue, so duplicate reduction is demonstrated by the deterministic 5-to-1 acceptance case while the live run proves the complete Bedrock, S3, DynamoDB, API, and consolidation path.

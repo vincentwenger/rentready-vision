@@ -1,0 +1,212 @@
+{
+    "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "status":  "COMPLETE",
+    "taxonomy_version":  "rentready-issues/1.0",
+    "structured_finding_version":  "rentready-structured-finding/1.0",
+    "detector":  {
+                     "taxonomy_version":  "rentready-issues/1.0",
+                     "structured_finding_version":  "rentready-structured-finding/1.0",
+                     "model_id":  "us.amazon.nova-2-lite-v1:0",
+                     "confidence_threshold":  0.65,
+                     "batch_size":  8,
+                     "max_keyframes":  120,
+                     "keyframes_considered":  3,
+                     "batch_count":  1,
+                     "consolidation_version":  "rentready-issue-consolidation/1.0"
+                 },
+    "taxonomy":  {
+                     "version":  "rentready-issues/1.0",
+                     "named_category_count":  13,
+                     "groups":  {
+                                    "walls":  [
+                                                  "wall_hole",
+                                                  "wall_crack",
+                                                  "paint_damage",
+                                                  "wall_stain",
+                                                  "trim_damage"
+                                              ],
+                                    "flooring":  [
+                                                     "floor_damage",
+                                                     "floor_stain",
+                                                     "broken_tile"
+                                                 ],
+                                    "fixtures":  [
+                                                     "fixture_damage",
+                                                     "missing_hardware"
+                                                 ],
+                                    "general":  [
+                                                    "visible_staining",
+                                                    "cleanliness",
+                                                    "visible_damage"
+                                                ]
+                                },
+                     "escape_hatch":  "other"
+                 },
+    "rooms":  [
+                  "kitchen",
+                  "bathroom",
+                  "living_room",
+                  "bedroom",
+                  "garage",
+                  "exterior",
+                  "hallway",
+                  "unknown"
+              ],
+    "candidate_findings":  [
+                               {
+                                   "room":  "living_room",
+                                   "category":  "cleanliness",
+                                   "description":  "visible clutter and toys on the floor",
+                                   "timestamp":  13.0,
+                                   "confidence":  0.8,
+                                   "severity_candidate":  "review",
+                                   "bbox":  {
+                                                "x":  0.0,
+                                                "y":  0.5,
+                                                "width":  1.0,
+                                                "height":  0.5
+                                            }
+                               }
+                           ],
+    "raw_candidate_findings":  [
+                                   {
+                                       "room":  "living_room",
+                                       "category":  "cleanliness",
+                                       "description":  "visible clutter and toys on the floor",
+                                       "timestamp":  13.0,
+                                       "confidence":  0.8,
+                                       "severity_candidate":  "review",
+                                       "bbox":  {
+                                                    "x":  0.0,
+                                                    "y":  0.5,
+                                                    "width":  1.0,
+                                                    "height":  0.5
+                                                }
+                                   }
+                               ],
+    "issues":  [
+                   {
+                       "room":  "living_room",
+                       "category":  "cleanliness",
+                       "description":  "visible clutter and toys on the floor",
+                       "timestamp":  13.0,
+                       "confidence":  0.8,
+                       "severity_candidate":  "review",
+                       "bbox":  {
+                                    "x":  0.0,
+                                    "y":  0.5,
+                                    "width":  1.0,
+                                    "height":  0.5
+                                },
+                       "group":  "general",
+                       "other_label":  null,
+                       "evidence_frame_index":  2,
+                       "evidence":  {
+                                        "frame_index":  2,
+                                        "timestamp_seconds":  13.0,
+                                        "scene_index":  0,
+                                        "s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg"
+                                    },
+                       "issue_id":  "issue-5443f379d4abd19c",
+                       "representative_issue_id":  "issue-5443f379d4abd19c",
+                       "source_issue_ids":  [
+                                                "issue-5443f379d4abd19c"
+                                            ],
+                       "consolidated_from_count":  1,
+                       "evidence_timestamps":  [
+                                                   13.0
+                                               ],
+                       "supporting_frame_indices":  [
+                                                        2
+                                                    ],
+                       "supporting_evidence":  [
+                                                   {
+                                                       "source_issue_id":  "issue-5443f379d4abd19c",
+                                                       "timestamp":  13.0,
+                                                       "frame_index":  2,
+                                                       "scene_index":  0,
+                                                       "s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg",
+                                                       "bbox":  {
+                                                                    "x":  0.0,
+                                                                    "y":  0.5,
+                                                                    "width":  1.0,
+                                                                    "height":  0.5
+                                                                },
+                                                       "confidence":  0.8,
+                                                       "description":  "visible clutter and toys on the floor"
+                                                   }
+                                               ],
+                       "consolidation":  {
+                                             "version":  "rentready-issue-consolidation/1.0",
+                                             "representative_selection":  "highest_confidence_then_earliest_timestamp",
+                                             "pairwise_matches":  [
+
+                                                                  ]
+                                         }
+                   }
+               ],
+    "raw_issues":  [
+                       {
+                           "room":  "living_room",
+                           "category":  "cleanliness",
+                           "description":  "visible clutter and toys on the floor",
+                           "timestamp":  13.0,
+                           "confidence":  0.8,
+                           "severity_candidate":  "review",
+                           "bbox":  {
+                                        "x":  0.0,
+                                        "y":  0.5,
+                                        "width":  1.0,
+                                        "height":  0.5
+                                    },
+                           "group":  "general",
+                           "other_label":  null,
+                           "evidence_frame_index":  2,
+                           "evidence":  {
+                                            "frame_index":  2,
+                                            "timestamp_seconds":  13.0,
+                                            "scene_index":  0,
+                                            "s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/frames/frame_00002_0000013000ms_fallback.jpg"
+                                        },
+                           "issue_id":  "issue-5443f379d4abd19c"
+                       }
+                   ],
+    "consolidation":  {
+                          "version":  "rentready-issue-consolidation/1.0",
+                          "raw_issue_count":  1,
+                          "consolidated_issue_count":  1,
+                          "duplicate_observations_merged":  0,
+                          "visual_comparison_count":  0,
+                          "metadata_only_comparison_count":  0,
+                          "config":  {
+                                         "max_pair_gap_seconds":  12.0,
+                                         "max_cluster_span_seconds":  20.0,
+                                         "minimum_score":  0.68,
+                                         "minimum_semantic_similarity":  0.4,
+                                         "minimum_image_similarity":  0.55,
+                                         "minimum_region_similarity":  0.5,
+                                         "minimum_bbox_iou":  0.05,
+                                         "maximum_bbox_center_distance":  0.22,
+                                         "metadata_only_minimum_score":  0.78,
+                                         "metadata_only_minimum_semantic_similarity":  0.65,
+                                         "metadata_only_minimum_bbox_iou":  0.3
+                                     },
+                          "signal_weights":  {
+                                                 "timestamp_similarity":  0.15,
+                                                 "room_similarity":  0.15,
+                                                 "category_similarity":  0.2,
+                                                 "image_similarity":  0.15,
+                                                 "region_similarity":  0.2,
+                                                 "semantic_similarity":  0.15
+                                             },
+                          "comparisons":  [
+
+                                          ],
+                          "raw_candidate_count":  1,
+                          "consolidated_candidate_count":  1,
+                          "candidate_duplicate_observations_merged":  0,
+                          "issue_duplicate_observations_merged":  0
+                      },
+    "report_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step24-consolidated-issues.json",
+    "note":  "Step 24 consolidates repeated frame-level findings while preserving every raw detection and evidence timestamp for auditability."
+}

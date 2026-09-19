@@ -520,13 +520,13 @@ Each policy run embeds the log in the Step-22 trace and stores a dedicated `step
 
 See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-7f65b61f061005d9e1fbc28b03e73542`, and implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with `ACCEPT_CANDIDATE`. The Step 23 evidence summary passed all **17/17** checks with `errors=[]`.
 
-## Step 24 issue consolidation -- LOCAL PASS
+## Step 24 issue consolidation -- LIVE AWS PASS
 
 Step 24 converts repeated frame observations into a user-facing physical-issue list. It combines bounded timestamp proximity, exact normalized room and category, OpenCV whole-image similarity, candidate-region similarity, and deterministic semantic similarity. Raw detections remain available for audit, while each consolidated issue retains every evidence timestamp, source issue ID, frame reference, bbox, confidence, pairwise score, and rejection reason.
 
 The implementation is conservative: room and category are hard gates; cluster duration and spatial continuity are bounded; and unavailable image bytes produce `null` visual similarity plus stricter metadata-only thresholds. The browser now renders consolidated issues and their evidence timeline. Local verification reduces five bathroom-vanity stain observations at `04:28`, `04:30`, `04:31`, `04:34`, and `04:36` to one issue while keeping a separate shower-ceiling stain distinct.
 
-See [`STEP24_ISSUE_CONSOLIDATION.md`](STEP24_ISSUE_CONSOLIDATION.md) and [`evaluation/step24/`](evaluation/step24/). A forced live AWS detection remains required before this milestone can be promoted to **LIVE AWS PASS**.
+See [`STEP24_ISSUE_CONSOLIDATION.md`](STEP24_ISSUE_CONSOLIDATION.md), [`evaluation/step24/`](evaluation/step24/), and [`evaluation/step24/live/`](evaluation/step24/live/). Live AWS validation passed on **September 19, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` using implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`. The forced Bedrock run persisted the Step 24 report to S3, DynamoDB recorded `COMPLETE`, and the live acceptance summary passed all **12/12** checks with `errors=[]`. The short live video produced one issue; the deterministic verifier separately proves the five-to-one duplicate reduction case.
 
 ## Step 13 benchmark
 

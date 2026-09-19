@@ -1,0 +1,17 @@
+{
+  "step": 17,
+  "verification_scope": "live_aws_persisted_structured_findings",
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "passed": true,
+  "bucket": "rentready-vision-dev-081087819788",
+  "report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step24-consolidated-issues.json",
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "structured_finding_version": "rentready-structured-finding/1.0",
+  "keyframes_considered": 3,
+  "batch_count": 1,
+  "bedrock_request_ids": [
+    "fb854166-ad18-4533-aaf1-767673f01c76"
+  ],
+  "candidate_finding_count": 1,
+  "errors": []
+}

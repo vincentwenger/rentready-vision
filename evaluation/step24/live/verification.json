@@ -1,0 +1,54 @@
+{
+    "step":  24,
+    "verification_scope":  "live_aws_step24_issue_consolidation",
+    "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+    "implementation_commit":  "a00a08cacb7e235fb548ed1f64141ccde63fb1eb",
+    "generated_at":  "2026-09-19T17:03:38.423455+00:00",
+    "passed":  true,
+    "checks_passed":  12,
+    "checks_total":  12,
+    "checks":  {
+                   "api_response_complete":  true,
+                   "step24_s3_report_persisted":  true,
+                   "report_schema_v3":  true,
+                   "consolidation_version_recorded":  true,
+                   "detector_consolidation_version_recorded":  true,
+                   "raw_candidates_preserved":  true,
+                   "raw_issues_preserved":  true,
+                   "consolidated_candidates_returned":  true,
+                   "consolidated_issues_returned":  true,
+                   "bedrock_request_id_recorded":  true,
+                   "dynamodb_metadata_complete":  true,
+                   "independent_persistence_verifier_passed":  true
+               },
+    "aws":  {
+                "region":  "us-west-2",
+                "bucket":  "rentready-vision-dev-081087819788",
+                "table":  "rentready-vision-dev",
+                "report_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step24-consolidated-issues.json",
+                "model_id":  "us.amazon.nova-2-lite-v1:0",
+                "bedrock_request_id":  "fb854166-ad18-4533-aaf1-767673f01c76",
+                "keyframes_considered":  3,
+                "batch_count":  1
+            },
+    "result":  {
+                   "schema_version":  "rentready-issue-report/3.0",
+                   "consolidation_version":  "rentready-issue-consolidation/1.0",
+                   "raw_candidate_count":  1,
+                   "consolidated_candidate_count":  1,
+                   "raw_issue_count":  1,
+                   "consolidated_issue_count":  1
+               },
+    "evidence_files":  [
+                           "evaluation/step24/live/detect_response.json",
+                           "evaluation/step24/live/persisted_report.json",
+                           "evaluation/step24/live/aws_persistence_verification.json"
+                       ],
+    "limitations":  [
+                        "The existing short live video produced one finding, so this run validates the complete AWS persistence and consolidation path but does not naturally exercise duplicate reduction.",
+                        "The deterministic Step 24 verifier separately proves five repeated observations consolidate into one issue."
+                    ],
+    "errors":  [
+
+               ]
+}
