@@ -1,0 +1,27 @@
+{
+  "step": 25,
+  "generated_at": "2026-09-19T17:33:00Z",
+  "status": "LOCAL_PASS_AWS_PENDING",
+  "focused_tests": {
+    "command": "pytest -q tests/test_step25_severity_classification.py",
+    "passed": 7,
+    "failed": 0
+  },
+  "full_project_tests": {
+    "command": "pytest -q",
+    "passed": 114,
+    "failed": 0,
+    "warnings": 1,
+    "warning_note": "Existing Starlette TestClient deprecation warning for httpx compatibility."
+  },
+  "contract_verification": {
+    "command": "python scripts/verify_step25_severity_classification.py",
+    "passed_checks": 13,
+    "total_checks": 13,
+    "errors": []
+  },
+  "live_aws_validation": {
+    "status": "PENDING",
+    "note": "No Step-25 live AWS run is claimed by this local bundle."
+  }
+}

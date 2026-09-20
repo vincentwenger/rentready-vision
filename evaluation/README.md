@@ -1,5 +1,20 @@
 # Evaluation evidence and benchmark contracts
 
+## Current Step-25 status
+
+**Severity classification is LOCAL PASS; live AWS validation is pending.**
+
+Step 25 assigns every consolidated issue exactly one rental-readiness class: `Fix before renting`, `Review recommended`, or `Cosmetic`. The deterministic policy uses visible evidence only, ignores free-form preliminary model severity, and includes an explicit disclaimer that the result is not an official safety rating.
+
+Evidence is organized under:
+
+- `step25/severity_classification_contract.json` — the closed class set, examples, and guardrails;
+- `step25/local_verification.json` — deterministic 13/13 acceptance evidence;
+- `step25/test_summary.json` — 7/7 focused tests and 114/114 full-project tests;
+- `step25/README.md` — status and reproduction command.
+
+---
+
 ## Current Step-21 status
 
 **Agent Tool 4 `inspect_other_angle()` is LIVE AWS PASS (September 15, 2026).**

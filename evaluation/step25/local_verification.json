@@ -1,0 +1,82 @@
+{
+  "step": 25,
+  "verification_scope": "local_deterministic_severity_classification",
+  "generated_at": "2026-09-20T17:04:45.083288+00:00",
+  "version": "rentready-severity-classification/1.0",
+  "passed": true,
+  "checks_passed": 13,
+  "checks_total": 13,
+  "checks": {
+    "exactly_three_classes": true,
+    "all_requested_examples_match": true,
+    "all_outputs_belong_to_closed_class_set": true,
+    "model_candidate_cannot_create_fourth_class": true,
+    "unmapped_category_defaults_to_review": true,
+    "visible_evidence_guardrail_recorded": true,
+    "hidden_causes_not_inferred": true,
+    "not_official_safety_rating": true,
+    "disclaimer_is_explicit": true,
+    "report_schema_advanced": true,
+    "s3_report_path_is_step25_specific": true,
+    "browser_displays_three_classes": true,
+    "browser_displays_disclaimer": true
+  },
+  "errors": [],
+  "example_results": {
+    "obvious_physical_damage": {
+      "category": "visible_damage",
+      "description": "Obvious physical damage to door",
+      "severity": "Fix before renting",
+      "rule_id": "category:visible_damage"
+    },
+    "missing_protective_cover": {
+      "category": "other",
+      "description": "Missing protective cover on wall opening",
+      "severity": "Fix before renting",
+      "rule_id": "missing_protective_cover"
+    },
+    "broken_fixture": {
+      "category": "fixture_damage",
+      "description": "Broken bathroom fixture",
+      "severity": "Fix before renting",
+      "rule_id": "broken_condition"
+    },
+    "moisture_staining": {
+      "category": "visible_staining",
+      "description": "Possible moisture-related staining",
+      "severity": "Review recommended",
+      "rule_id": "possible_moisture_evidence"
+    },
+    "cracking": {
+      "category": "wall_crack",
+      "description": "Cracking requiring inspection",
+      "severity": "Review recommended",
+      "rule_id": "visible_cracking"
+    },
+    "paint_scuff": {
+      "category": "paint_damage",
+      "description": "Small paint scuff",
+      "severity": "Cosmetic",
+      "rule_id": "paint_scuff"
+    },
+    "minor_trim_damage": {
+      "category": "trim_damage",
+      "description": "Minor trim damage",
+      "severity": "Cosmetic",
+      "rule_id": "minor_trim_damage"
+    },
+    "cleanliness": {
+      "category": "cleanliness",
+      "description": "Cleanliness issue on counter",
+      "severity": "Cosmetic",
+      "rule_id": "cleanliness"
+    }
+  },
+  "class_counts": {
+    "Fix before renting": 3,
+    "Review recommended": 2,
+    "Cosmetic": 3
+  },
+  "disclaimer": "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety, code-compliance, or professional inspection rating.",
+  "note": "Local PASS proves the closed three-class policy, requested examples, fallback behavior, report/UI wiring, and non-safety-rating guardrail."
+}

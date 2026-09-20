@@ -301,8 +301,9 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         raw_candidate_findings=report.get("raw_candidate_findings", []),
         issues=report.get("issues", []),
         raw_issues=report.get("raw_issues", []),
+        severity_classification=report.get("severity_classification"),
         consolidation=report.get("consolidation"),
-        report_s3_key=f"inspections/{inspection_id}/issues/step24-consolidated-issues.json",
+        report_s3_key=f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json",
     )
 
 

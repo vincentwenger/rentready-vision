@@ -34,6 +34,11 @@ from .decision_policy import (
 )
 from .vision.issue_detector import REPORT_SCHEMA_VERSION, STRUCTURED_FINDING_VERSION, detect_visible_issues
 from .vision.issue_consolidator import CONSOLIDATION_VERSION
+from .vision.severity_classifier import (
+    SEVERITY_CLASSIFICATION_VERSION,
+    classification_summary,
+    classify_issues,
+)
 from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
 from .vision.interval_inspector import inspect_interval
@@ -1401,7 +1406,7 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
         )
         report["inspection_id"] = inspection_id
         report["source_manifest_s3_key"] = inspection.get("manifest_s3_key")
-        report_key = f"inspections/{inspection_id}/issues/step24-consolidated-issues.json"
+        report_key = f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json"
         s3.put_object(
             Bucket=settings.s3_bucket,
             Key=report_key,
@@ -1418,6 +1423,7 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
             candidate_finding_count=len(report.get("candidate_findings", [])),
             raw_candidate_finding_count=len(report.get("raw_candidate_findings", [])),
             issue_consolidation_version=CONSOLIDATION_VERSION,
+            severity_classification_version=SEVERITY_CLASSIFICATION_VERSION,
             issue_detection_model_id=settings.issue_detection_model_id,
             issue_taxonomy_version=TAXONOMY_VERSION,
             structured_finding_version=STRUCTURED_FINDING_VERSION,
@@ -1452,11 +1458,21 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
             "raw_candidate_findings": [],
             "issues": [],
             "raw_issues": [],
+            "severity_classification": classification_summary([]),
             "consolidation": None,
             "report_s3_key": None,
         }
     obj = s3.get_object(Bucket=settings.s3_bucket, Key=report_key)
     report = json.loads(obj["Body"].read())
+    issues = report.get("issues", [])
+    if any(not issue.get("severity") for issue in issues):
+        # Older persisted Step-24 reports remain readable after deployment. The
+        # next detector run writes a canonical Step-25 artifact, but GET can
+        # classify the already-consolidated visible issues immediately.
+        issues = classify_issues(issues)
+    severity_classification = (
+        report.get("severity_classification") or classification_summary(issues)
+    )
     return {
         "inspection_id": inspection_id,
         "status": inspection.get("issue_detection_status") or "COMPLETE",
@@ -1467,8 +1483,9 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
         "rooms": report.get("rooms", []),
         "candidate_findings": report.get("candidate_findings", []),
         "raw_candidate_findings": report.get("raw_candidate_findings", []),
-        "issues": report.get("issues", []),
+        "issues": issues,
         "raw_issues": report.get("raw_issues", []),
+        "severity_classification": severity_classification,
         "consolidation": report.get("consolidation"),
         "report_s3_key": report_key,
     }

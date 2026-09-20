@@ -1,0 +1,35 @@
+{
+  "version": "rentready-severity-classification/1.0",
+  "classes": [
+    "Fix before renting",
+    "Review recommended",
+    "Cosmetic"
+  ],
+  "class_count": 3,
+  "scope": "rental_readiness_prioritization_from_visible_evidence",
+  "not_an_official_safety_rating": true,
+  "disclaimer": "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety, code-compliance, or professional inspection rating.",
+  "policy": {
+    "fix_before_renting": [
+      "obvious physical damage",
+      "missing protective cover",
+      "broken fixture"
+    ],
+    "review_recommended": [
+      "possible moisture-related staining",
+      "cracking requiring inspection",
+      "uncertain or unmapped visible condition"
+    ],
+    "cosmetic": [
+      "paint scuff",
+      "minor trim damage",
+      "cleanliness"
+    ]
+  },
+  "guardrails": {
+    "visible_evidence_only": true,
+    "hidden_causes_not_inferred": true,
+    "model_severity_candidate_not_trusted": true,
+    "classification_is_deterministic": true
+  }
+}

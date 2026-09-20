@@ -148,7 +148,9 @@ def main() -> int:
             and metadata_fallback["visual_evidence_available"] is False
         ),
         "strict_metadata_fallback_can_merge_exact_repeat": metadata_fallback["merge"] is True,
-        "s3_report_path_is_step24_specific": "step24-consolidated-issues.json" in services,
+        "current_s3_report_preserves_consolidated_output": (
+            "step25-severity-classified-issues.json" in services
+        ),
         "browser_renders_consolidated_issues": "response?.issues ?? response?.candidate_findings" in browser,
         "browser_renders_evidence_timestamps": "evidence_timestamps" in browser,
     }

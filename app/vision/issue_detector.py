@@ -14,10 +14,15 @@ from .issue_taxonomy import (
     taxonomy_payload,
 )
 from .issue_consolidator import CONSOLIDATION_VERSION, consolidate_issues
+from .severity_classifier import (
+    SEVERITY_CLASSIFICATION_VERSION,
+    classification_summary,
+    classify_issues,
+)
 
 TOOL_NAME = "report_visible_property_issues"
 STRUCTURED_FINDING_VERSION = "rentready-structured-finding/1.0"
-REPORT_SCHEMA_VERSION = "rentready-issue-report/3.0"
+REPORT_SCHEMA_VERSION = "rentready-issue-report/4.0"
 
 # Step 17 room vocabulary from the RentReady Vision development plan.
 ROOM_VALUES: tuple[str, ...] = (
@@ -478,6 +483,8 @@ def detect_visible_issues(
                 "confidence_threshold": confidence_threshold,
                 "batch_size": batch_size,
                 "keyframes_considered": 0,
+                "consolidation_version": CONSOLIDATION_VERSION,
+                "severity_classification_version": SEVERITY_CLASSIFICATION_VERSION,
             },
             "taxonomy": taxonomy_payload(),
             "rooms": list(ROOM_VALUES),
@@ -485,6 +492,7 @@ def detect_visible_issues(
             "raw_candidate_findings": [],
             "issues": [],
             "raw_issues": [],
+            "severity_classification": classification_summary([]),
             "consolidation": {
                 "version": CONSOLIDATION_VERSION,
                 "raw_candidate_count": 0,
@@ -587,11 +595,11 @@ def detect_visible_issues(
     consolidation = consolidate_issues(candidates, image_loader=image_loader)
     consolidated_candidates = consolidation["issues"]
     above_threshold_ids = {issue["issue_id"] for issue in raw_issues}
-    issues = [
+    issues = classify_issues([
         issue
         for issue in consolidated_candidates
         if above_threshold_ids.intersection(issue.get("source_issue_ids") or [])
-    ]
+    ])
     consolidation_summary = {
         key: value for key, value in consolidation.items() if key != "issues"
     }
@@ -622,6 +630,7 @@ def detect_visible_issues(
             "keyframes_considered": len(selected_frames),
             "batch_count": len(traces),
             "consolidation_version": CONSOLIDATION_VERSION,
+            "severity_classification_version": SEVERITY_CLASSIFICATION_VERSION,
         },
         "taxonomy": taxonomy_payload(),
         "rooms": list(ROOM_VALUES),
@@ -631,6 +640,7 @@ def detect_visible_issues(
         "raw_candidate_findings": [_candidate_view(candidate) for candidate in candidates],
         "issues": issues,
         "raw_issues": raw_issues,
+        "severity_classification": classification_summary(issues),
         "consolidation": consolidation_summary,
         "trace": traces,
     }

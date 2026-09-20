@@ -46,6 +46,10 @@
     .issue-list { display: grid; gap: 10px; margin: 12px 0 24px; }
     .issue-row { padding: 13px 14px; border: 1px solid #dce3ee; border-radius: 12px; background: #f8fafc; }
     .issue-row strong { color: #172033; }
+    .severity-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: .76rem; font-weight: 700; }
+    .severity-fix { background: #fee2e2; color: #991b1b; }
+    .severity-review { background: #fef3c7; color: #92400e; }
+    .severity-cosmetic { background: #e0f2fe; color: #075985; }
     .issue-meta { margin-top: 5px; color: #64748b; font-size: .84rem; }
     .issue-note { color: #475569; font-size: .9rem; }
     .issue-warning { padding: 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; }
@@ -183,12 +187,16 @@ function renderIssues(response, warning = null) {
     return;
   }
 
-  const findings = response?.issues ?? response?.candidate_findings ?? [];
+  const severityOrder = {"Fix before renting": 0, "Review recommended": 1, "Cosmetic": 2};
+  const findings = [...(response?.issues ?? response?.candidate_findings ?? [])].sort(
+    (left, right) => (severityOrder[left.severity] ?? 1) - (severityOrder[right.severity] ?? 1)
+  );
   const consolidation = response?.consolidation ?? {};
   const rawIssueCount = consolidation.raw_issue_count ?? response?.raw_issues?.length ?? findings.length;
   const aboveThreshold = findings.length;
   const namedCount = response?.taxonomy?.named_category_count ?? 13;
-  note.textContent = `Step 24 · issue consolidation using time, room, category, image, region and semantic similarity · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated issue(s) · ${namedCount} named categories + other.`;
+  const disclaimer = response?.severity_classification?.disclaimer ?? "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety rating.";
+  note.textContent = `Step 25 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · ${namedCount} named categories + other. ${disclaimer}`;
   if (!findings.length) {
     const row = document.createElement("div");
     row.className = "issue-row";
@@ -202,7 +210,12 @@ function renderIssues(response, warning = null) {
     row.className = "issue-row";
     const title = document.createElement("strong");
     const label = issue.category === "other" && issue.other_label ? `${issue.category}: ${issue.other_label}` : issue.category;
-    title.textContent = `${label.replaceAll("_", " ")} · ${String(issue.severity_candidate ?? "review").replaceAll("_", " ")}`;
+    title.textContent = label.replaceAll("_", " ");
+    const severity = String(issue.severity ?? "Review recommended");
+    const badge = document.createElement("span");
+    badge.className = `severity-badge ${severity === "Fix before renting" ? "severity-fix" : severity === "Cosmetic" ? "severity-cosmetic" : "severity-review"}`;
+    badge.textContent = severity;
+    title.append(badge);
     const summary = document.createElement("div");
     summary.textContent = `${issue.description} — ${String(issue.room ?? "unknown").replaceAll("_", " ")}`;
     const meta = document.createElement("div");
