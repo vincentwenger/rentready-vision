@@ -46,6 +46,7 @@ from ..processing_jobs import (
 )
 from ..agentic_vision import choose_uncertain_candidate
 from ..action_log import ACTION_LOG_VERSION, action_log_document, agent_action
+from ..confidence import confidence_contract, confidence_label_or_none, with_confidence_labels
 from ..decision_policy import (
     DECISION_POLICY_VERSION,
     INVESTIGATE_CANDIDATE,
@@ -79,6 +80,15 @@ def _validate_video(filename: str, content_type: str) -> None:
         raise HTTPException(status_code=400, detail=f"Unsupported content type. Allowed: {sorted(ALLOWED_CONTENT_TYPES)}")
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {sorted(ALLOWED_EXTENSIONS)}")
+
+
+def _present_issue_report(report: dict) -> dict:
+    """Add display labels on a copy while preserving stored numeric confidence."""
+    presented = dict(report)
+    for field in ("candidate_findings", "raw_candidate_findings", "issues", "raw_issues"):
+        presented[field] = with_confidence_labels(report.get(field, []))
+    presented["confidence_scale"] = confidence_contract()
+    return presented
 
 
 @router.post("", response_model=CreateInspectionResponse, status_code=status.HTTP_201_CREATED)
@@ -289,6 +299,7 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         report = detect_issues_for_inspection(inspection_id, force=force)
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    presented = _present_issue_report(report)
     return IssuesResponse(
         inspection_id=inspection_id,
         status="COMPLETE",
@@ -297,12 +308,13 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         detector=report.get("detector"),
         taxonomy=report.get("taxonomy"),
         rooms=report.get("rooms", []),
-        candidate_findings=report.get("candidate_findings", []),
-        raw_candidate_findings=report.get("raw_candidate_findings", []),
-        issues=report.get("issues", []),
-        raw_issues=report.get("raw_issues", []),
+        candidate_findings=presented["candidate_findings"],
+        raw_candidate_findings=presented["raw_candidate_findings"],
+        issues=presented["issues"],
+        raw_issues=presented["raw_issues"],
         severity_classification=report.get("severity_classification"),
         consolidation=report.get("consolidation"),
+        confidence_scale=presented["confidence_scale"],
         report_s3_key=f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json",
     )
 
@@ -311,7 +323,7 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
 def get_issues(inspection_id: str) -> IssuesResponse:
     _require_inspection(inspection_id)
     report = load_issues_report(inspection_id)
-    return IssuesResponse(**report)
+    return IssuesResponse(**_present_issue_report(report))
 
 
 @router.get("/{inspection_id}/frames/{frame_index}/url")
@@ -1268,6 +1280,9 @@ def get_other_angle_views(inspection_id: str) -> dict:
         "multi_view_confirmed": trace.get("multi_view_confirmed"),
         "confidence_before": trace.get("confidence_before"),
         "confidence_after": trace.get("confidence_after"),
+        "confidence_before_label": confidence_label_or_none(trace.get("confidence_before")),
+        "confidence_after_label": confidence_label_or_none(trace.get("confidence_after")),
+        "confidence_scale": confidence_contract(),
         "action": trace.get("action"),
         "original_overwritten": (trace.get("evidence_preservation") or {}).get("original_overwritten"),
         "expires_in_seconds": settings.presigned_url_ttl_seconds,
@@ -1329,7 +1344,17 @@ def get_agent_action_log(inspection_id: str) -> dict:
         action_log = json.loads(log_obj["Body"].read())
     if action_log.get("schema_version") != ACTION_LOG_VERSION:
         raise HTTPException(status_code=409, detail="Latest action log has an unsupported schema")
-    return action_log
+    presented = dict(action_log)
+    presented["actions"] = [
+        {
+            **action,
+            "confidence_before_label": confidence_label_or_none(action.get("confidence_before")),
+            "confidence_after_label": confidence_label_or_none(action.get("confidence_after")),
+        }
+        for action in action_log.get("actions", [])
+    ]
+    presented["confidence_scale"] = confidence_contract()
+    return presented
 
 
 @router.get("/{inspection_id}/agent")
@@ -1343,6 +1368,9 @@ def get_agentic_vision_status(inspection_id: str) -> dict:
         "tool_call": item.get("agentic_tool_call"),
         "confidence_before": item.get("agentic_confidence_before"),
         "confidence_after": item.get("agentic_confidence_after"),
+        "confidence_before_label": confidence_label_or_none(item.get("agentic_confidence_before")),
+        "confidence_after_label": confidence_label_or_none(item.get("agentic_confidence_after")),
+        "confidence_scale": confidence_contract(),
         "action": item.get("agentic_action"),
         "trace_s3_key": item.get("agentic_trace_s3_key"),
         "error": item.get("agentic_error"),

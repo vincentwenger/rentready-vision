@@ -537,6 +537,14 @@ The API report and browser explicitly state that this is a visible-evidence rent
 
 Local verification covers all eight requested examples plus the closed-class, fallback, model-label isolation, persistence-path, UI, and disclaimer guardrails. See [`STEP25_SEVERITY_CLASSIFICATION.md`](STEP25_SEVERITY_CLASSIFICATION.md) and [`evaluation/step25/`](evaluation/step25/). Live AWS validation passed 15/15 checks using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`. Amazon Nova 2 Lite processed three keyframes in one batch, and Bedrock request `738f2e87-ef01-40e2-8359-334579f91891` produced one visible cleanliness issue classified as **Cosmetic**. The schema-v4 report was persisted to S3, DynamoDB recorded the Step 25 metadata, the GET API matched the persisted report, and the browser exposed the three classes plus the non-safety-rating disclaimer.
 
+## Step 26 user-facing confidence — LOCAL PASS
+
+Step 26 keeps numerical confidence as the internal source of truth while presenting **Low**, **Medium**, or **High** to users. The initial display bands are Low for `0.00–<0.60`, Medium for `0.60–<0.80`, and High for `0.80–1.00`; exact `0.60` is Medium and exact `0.80` is High.
+
+The mapping is centralized and presentation-only. Stored reports, policy calculations, agent traces, and audit records retain their numeric values. API issue records add `confidence_label` without replacing `confidence`, expose the versioned scale contract, and the browser uses categorical confidence across issue cards and agent evidence views. Step 22 decision thresholds remain independent and unchanged.
+
+See [`STEP26_CONFIDENCE.md`](STEP26_CONFIDENCE.md) and [`evaluation/step26/`](evaluation/step26/). Live AWS validation is not required because Step 26 does not alter the AWS, Bedrock, OpenCV, persistence, or decision paths.
+
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

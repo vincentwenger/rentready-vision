@@ -126,6 +126,11 @@ def test_detect_issues_endpoint_runs_step17_detector(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "COMPLETE"
     assert response.json()["candidate_findings"][0]["bbox"]["width"] == 0.24
+    assert response.json()["candidate_findings"][0]["confidence"] == 0.63
+    assert response.json()["candidate_findings"][0]["confidence_label"] == "Medium"
+    assert response.json()["issues"][0]["confidence_label"] == "Medium"
+    assert response.json()["confidence_scale"]["labels"] == ["Low", "Medium", "High"]
+    assert response.json()["confidence_scale"]["internal_numeric_confidence_retained"] is True
 
 
 def test_planned_upload_endpoint_is_documented() -> None:

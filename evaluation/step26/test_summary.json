@@ -1,0 +1,32 @@
+{
+  "step": 26,
+  "generated_at": "2026-09-20T17:42:00+00:00",
+  "status": "LOCAL_PASS",
+  "focused_tests": {
+    "command": "pytest -q tests/test_step26_confidence.py",
+    "passed": 17,
+    "failed": 0
+  },
+  "api_integration_tests": {
+    "command": "pytest -q tests/test_step26_confidence.py tests/test_api.py",
+    "passed": 22,
+    "failed": 0
+  },
+  "full_project_tests": {
+    "command": "pytest -q",
+    "passed": 131,
+    "failed": 0,
+    "warnings": 2,
+    "warning_note": "Dependency deprecation warnings from FastAPI/Starlette test compatibility; no test failures."
+  },
+  "contract_verification": {
+    "command": "python scripts/verify_step26_confidence.py",
+    "passed_checks": 13,
+    "total_checks": 13,
+    "errors": []
+  },
+  "live_aws_validation": {
+    "status": "NOT_REQUIRED",
+    "reason": "Presentation-only change; numeric AWS, Bedrock, OpenCV, persistence, and policy paths are unchanged."
+  }
+}

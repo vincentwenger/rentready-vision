@@ -1,0 +1,27 @@
+{
+  "version": "rentready-confidence-display/1.0",
+  "labels": [
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "bands": [
+    {
+      "label": "Low",
+      "minimum_inclusive": 0.0,
+      "maximum_exclusive": 0.6
+    },
+    {
+      "label": "Medium",
+      "minimum_inclusive": 0.6,
+      "maximum_exclusive": 0.8
+    },
+    {
+      "label": "High",
+      "minimum_inclusive": 0.8,
+      "maximum_inclusive": 1.0
+    }
+  ],
+  "internal_numeric_confidence_retained": true,
+  "scope": "presentation_only"
+}

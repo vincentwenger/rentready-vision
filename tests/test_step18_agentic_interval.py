@@ -159,8 +159,8 @@ def test_browser_demo_exposes_agentic_loop() -> None:
     html = (Path(__file__).resolve().parents[1] / "web" / "index.html").read_text(encoding="utf-8")
     assert 'id="step-agent"' in html
     assert '/agent/run' in html
-    assert 'confidence_before=' in html
-    assert 'confidence_after=' in html
+    assert 'confidence=${confidenceLabel(before' in html
+    assert '→ ${confidenceLabel(after' in html
     assert 'ACTION' in html
 
 

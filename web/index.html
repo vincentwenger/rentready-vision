@@ -50,6 +50,10 @@
     .severity-fix { background: #fee2e2; color: #991b1b; }
     .severity-review { background: #fef3c7; color: #92400e; }
     .severity-cosmetic { background: #e0f2fe; color: #075985; }
+    .confidence-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .76rem; font-weight: 700; }
+    .confidence-high { background: #dcfce7; color: #166534; }
+    .confidence-medium { background: #fef3c7; color: #92400e; }
+    .confidence-low { background: #fee2e2; color: #991b1b; }
     .issue-meta { margin-top: 5px; color: #64748b; font-size: .84rem; }
     .issue-note { color: #475569; font-size: .9rem; }
     .issue-warning { padding: 12px; border-radius: 10px; background: #fff7ed; color: #9a3412; }
@@ -148,6 +152,38 @@
 const runButton = document.getElementById("run");
 const errorEl = document.getElementById("error");
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+let activeConfidenceScale = {
+  bands: [
+    {label: "Low", minimum_inclusive: 0.0, maximum_exclusive: 0.60},
+    {label: "Medium", minimum_inclusive: 0.60, maximum_exclusive: 0.80},
+    {label: "High", minimum_inclusive: 0.80, maximum_inclusive: 1.0}
+  ]
+};
+
+function setConfidenceScale(scale) {
+  if (Array.isArray(scale?.bands) && scale.bands.length === 3) activeConfidenceScale = scale;
+}
+
+function confidenceLabel(value, suppliedLabel = null) {
+  if (["Low", "Medium", "High"].includes(suppliedLabel)) return suppliedLabel;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0 || numeric > 1) return "Unknown";
+  const band = activeConfidenceScale.bands.find(candidate => {
+    const aboveMinimum = numeric >= Number(candidate.minimum_inclusive ?? 0);
+    const belowExclusive = candidate.maximum_exclusive == null || numeric < Number(candidate.maximum_exclusive);
+    const belowInclusive = candidate.maximum_inclusive == null || numeric <= Number(candidate.maximum_inclusive);
+    return aboveMinimum && belowExclusive && belowInclusive;
+  });
+  return band?.label ?? "Unknown";
+}
+
+function confidenceBadge(value, suppliedLabel = null) {
+  const label = confidenceLabel(value, suppliedLabel);
+  const badge = document.createElement("span");
+  badge.className = `confidence-badge confidence-${label.toLowerCase()}`;
+  badge.textContent = label;
+  return badge;
+}
 
 function formatTimestamp(seconds) {
   const value = Math.max(0, Math.round(Number(seconds) || 0));
@@ -178,6 +214,7 @@ function renderIssues(response, warning = null) {
   const list = document.getElementById("issues");
   const note = document.getElementById("issue-note");
   list.replaceChildren();
+  setConfidenceScale(response?.confidence_scale);
   if (warning) {
     note.textContent = "OpenCV evidence processing completed, but Step 17 structured finding detection could not run.";
     const row = document.createElement("div");
@@ -196,7 +233,7 @@ function renderIssues(response, warning = null) {
   const aboveThreshold = findings.length;
   const namedCount = response?.taxonomy?.named_category_count ?? 13;
   const disclaimer = response?.severity_classification?.disclaimer ?? "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety rating.";
-  note.textContent = `Step 25 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · ${namedCount} named categories + other. ${disclaimer}`;
+  note.textContent = `Step 26 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · confidence shown as Low, Medium, or High. ${disclaimer}`;
   if (!findings.length) {
     const row = document.createElement("div");
     row.className = "issue-row";
@@ -225,7 +262,11 @@ function renderIssues(response, warning = null) {
       ? issue.evidence_timestamps.map(value => formatTimestamp(Number(value))).join(", ")
       : formatTimestamp(Number(issue.timestamp));
     const observationCount = Number(issue.consolidated_from_count ?? 1);
-    meta.textContent = `Confidence ${(Number(issue.confidence) * 100).toFixed(0)}% · ${observationCount} evidence frame(s): ${timestamps} · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`;
+    meta.append(
+      document.createTextNode("Confidence "),
+      confidenceBadge(issue.confidence, issue.confidence_label),
+      document.createTextNode(` · ${observationCount} evidence frame(s): ${timestamps} · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`)
+    );
     row.append(title, summary, meta);
     list.append(row);
   });
@@ -259,11 +300,11 @@ function renderAgentic(response, warning = null) {
   const frameCount = trace.interval_result?.returned_frame_count;
   note.textContent = "Step 18 · visual uncertainty caused a second targeted OpenCV workload on the production COOL/Graviton4 path.";
   text.textContent = [
-    `PERCEPTION  confidence=${before ?? "n/a"}`,
+    `PERCEPTION  confidence=${confidenceLabel(before, response.confidence_before_label)}`,
     `DECISION    Need additional temporal evidence`,
     `CALL        inspect_interval(video_id=${args.video_id ?? "n/a"}, timestamp=${args.timestamp ?? "n/a"}, before=${args.seconds_before ?? "n/a"}, after=${args.seconds_after ?? "n/a"}, fps=${args.sample_fps ?? "n/a"})`,
     `OPENCV      runtime=${runtime}${frameCount == null ? "" : ` · returned_frames=${frameCount}`}`,
-    `REASSESS    confidence_before=${before ?? "n/a"} → confidence_after=${after ?? "n/a"}`,
+    `REASSESS    confidence=${confidenceLabel(before, response.confidence_before_label)} → ${confidenceLabel(after, response.confidence_after_label)}`,
     `ACTION      ${action}`
   ].join("\n");
   box.append(text);
@@ -318,9 +359,10 @@ async function renderOtherAngles(id, response, warning = null, suppliedViews = n
     return;
   }
   const result = suppliedViews ?? await api(`/inspections/${id}/agent/other-angle/views`);
+  setConfidenceScale(result.confidence_scale);
   const assessment = result.multi_view_assessment ?? {};
   note.textContent = result.multi_view_confirmed
-    ? `Visible in multiple viewpoints · confidence ${result.confidence_before ?? "n/a"} → ${result.confidence_after ?? "n/a"}. ${assessment.evidence_summary ?? ""}`
+    ? `Visible in multiple viewpoints · confidence ${confidenceLabel(result.confidence_before, result.confidence_before_label)} → ${confidenceLabel(result.confidence_after, result.confidence_after_label)}. ${assessment.evidence_summary ?? ""}`
     : `Multiple viewpoints did not conclusively confirm the visible issue · action ${result.action ?? "review"}. ${assessment.evidence_summary ?? ""}`;
   (result.views ?? []).forEach(view => {
     const figure = document.createElement("figure");
@@ -349,14 +391,13 @@ function renderDecisionPolicy(response, warning = null) {
   }
   const trace = response?.trace ?? response ?? {};
   const policy = trace.final_policy ?? trace.initial_policy ?? response?.policy ?? {};
-  const thresholds = policy.thresholds ?? trace.thresholds ?? {};
   const steps = trace.steps ?? [];
   note.textContent = "Step 22 · deterministic confidence routing with a safety override and a bounded evidence investigation.";
   text.textContent = [
-    `THRESHOLDS  accept > ${thresholds.accept_when_greater_than ?? 0.85} · investigate ${thresholds.investigate_minimum_inclusive ?? 0.50}–${thresholds.investigate_maximum_inclusive ?? 0.85}`,
+    "DISPLAY     confidence uses Low · Medium · High",
     `SAFETY      sensitive=${trace.safety_sensitive ?? policy.safety_sensitive ?? false} · override=${trace.safety_override_applied ?? policy.safety_override_applied ?? false}`,
     ...steps.map(step => `STEP ${step.sequence}      ${step.stage}${step.tool ? ` → ${step.tool}` : ""}`),
-    `CONFIDENCE  ${trace.confidence_before ?? policy.confidence ?? "n/a"} → ${trace.confidence_after ?? policy.confidence ?? "n/a"}`,
+    `CONFIDENCE  ${confidenceLabel(trace.confidence_before ?? policy.confidence)} → ${confidenceLabel(trace.confidence_after ?? policy.confidence)}`,
     `ACTION      ${trace.action ?? policy.route ?? response?.decision ?? "pending"}`
   ].join("\n");
   box.append(text);
@@ -409,7 +450,7 @@ function renderAgentInvestigation(response, warning = null) {
         : action.reason;
     const meta = document.createElement("p");
     meta.className = "investigation-meta";
-    meta.textContent = `time ${Number(action.input_timestamp).toFixed(1)}s · confidence ${Math.round(Number(action.confidence_before) * 100)}% → ${Math.round(Number(action.confidence_after) * 100)}%`;
+    meta.textContent = `time ${Number(action.input_timestamp).toFixed(1)}s · confidence ${confidenceLabel(action.confidence_before, action.confidence_before_label)} → ${confidenceLabel(action.confidence_after, action.confidence_after_label)}`;
     event.append(index, title, reason, meta);
     flow.append(event);
   });

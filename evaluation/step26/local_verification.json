@@ -1,0 +1,36 @@
+{
+  "step": 26,
+  "verification_scope": "local_confidence_presentation",
+  "generated_at": "2026-09-20T17:50:01.452197+00:00",
+  "version": "rentready-confidence-display/1.0",
+  "passed": true,
+  "checks_passed": 13,
+  "checks_total": 13,
+  "checks": {
+    "low_band_examples": true,
+    "medium_band_examples": true,
+    "high_band_examples": true,
+    "closed_label_set": true,
+    "numeric_value_retained": true,
+    "source_record_not_mutated": true,
+    "mapping_is_presentation_only": true,
+    "api_contract_exposed": true,
+    "api_findings_include_label": true,
+    "browser_uses_categorical_confidence": true,
+    "browser_issue_badge_uses_label": true,
+    "browser_hides_numeric_percentages": true,
+    "decision_policy_is_unchanged": true
+  },
+  "errors": [],
+  "boundary_examples": {
+    "0.00": "Low",
+    "0.59": "Low",
+    "0.60": "Medium",
+    "0.79": "Medium",
+    "0.80": "High",
+    "1.00": "High"
+  },
+  "numeric_confidence_example": 0.7345,
+  "display_label_example": "Medium",
+  "note": "Local PASS proves the Low/Medium/High boundary mapping, presentation-only API/UI wiring, and preservation of numeric confidence for internal logic."
+}

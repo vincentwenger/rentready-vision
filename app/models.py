@@ -117,10 +117,11 @@ class IssuesResponse(BaseModel):
     raw_issues: list[dict[str, Any]] = Field(default_factory=list)
     severity_classification: dict[str, Any] | None = None
     consolidation: dict[str, Any] | None = None
+    confidence_scale: dict[str, Any] | None = None
     report_s3_key: str | None = None
     note: str = (
-        "Step 25 assigns one of three rental-readiness classes to each consolidated issue. "
-        "The classification is not an official safety rating."
+        "Step 26 presents confidence as Low, Medium, or High while retaining numeric "
+        "confidence internally. Severity is not an official safety rating."
     )
 
 
