@@ -2,7 +2,7 @@
 
 ## Current Step-25 status
 
-**Severity classification is LOCAL PASS; live AWS validation is pending.**
+**Severity classification is LIVE AWS PASS (September 20, 2026).**
 
 Step 25 assigns every consolidated issue exactly one rental-readiness class: `Fix before renting`, `Review recommended`, or `Cosmetic`. The deterministic policy uses visible evidence only, ignores free-form preliminary model severity, and includes an explicit disclaimer that the result is not an official safety rating.
 
@@ -11,7 +11,12 @@ Evidence is organized under:
 - `step25/severity_classification_contract.json` — the closed class set, examples, and guardrails;
 - `step25/local_verification.json` — deterministic 13/13 acceptance evidence;
 - `step25/test_summary.json` — 7/7 focused tests and 114/114 full-project tests;
-- `step25/README.md` — status and reproduction command.
+- `step25/README.md` — status and reproduction command;
+- `step25/live/detect_response.json` — forced live detection response;
+- `step25/live/persisted_report.json` — schema-v4 report retrieved from S3;
+- `step25/live/get_response.json` — API retrieval response;
+- `step25/live/dynamodb_metadata.json` — persisted DynamoDB metadata;
+- `step25/live/verification.json` — official 15/15 live acceptance result.
 
 ---
 

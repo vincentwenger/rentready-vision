@@ -1,13 +1,18 @@
 # Local bundle note
 
-This is the Step 25 RentReady Vision source-and-evidence bundle updated on September 19, 2026.
+This is the Step 25 RentReady Vision source-and-evidence bundle updated on September 20, 2026.
 
 - It includes the completed Step 25 implementation plus all prior Step 24 local and live AWS evidence.
 - Step 25 assigns exactly `Fix before renting`, `Review recommended`, or `Cosmetic` after issue consolidation.
 - The final classification is deterministic, uses visible evidence only, ignores arbitrary preliminary model severity labels, and explicitly states that it is not an official safety rating.
 - Local verification passed all 13 Step 25 checks, the dedicated suite passed 7 tests, and the complete project suite passed 114 tests with one existing deprecation warning.
 - The current report schema is `rentready-issue-report/4.0`; new runs persist `step25-severity-classified-issues.json` and record `rentready-severity-classification/1.0` in DynamoDB.
-- Step 25 live AWS validation has not yet been run and is not claimed by this bundle.
+- Step 25 is **LIVE AWS PASS** using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and implementation commit `b2ff60232979fa5a903ff57b757d3e83a4818f17`.
+- Amazon Nova 2 Lite processed three keyframes in one batch under Bedrock request `738f2e87-ef01-40e2-8359-334579f91891`.
+- S3 persisted schema `rentready-issue-report/4.0` at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json`.
+- DynamoDB recorded `COMPLETE`, the Step 25 report key, and classification version `rentready-severity-classification/1.0`.
+- The GET API matched the persisted report, the browser contained the three allowed classes and disclaimer, and live verification passed 15/15 checks with `errors=[]`.
+- The live video produced one `cleanliness` issue classified as `Cosmetic`; local deterministic evidence separately proves all three classes.
 - Step 24 remains **LIVE AWS PASS**: it consolidates repeated detections using timestamp, room, category, image, region, and semantic similarity while preserving every raw observation and evidence timestamp.
 - Live AWS validation used inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`.
 - Amazon Nova 2 Lite processed three persisted OpenCV keyframes in one batch under Bedrock request `fb854166-ad18-4533-aaf1-767673f01c76`.
@@ -27,4 +32,4 @@ python scripts/verify_step25_severity_classification.py
 
 Expected local verifier result: `passed=true`, `checks_passed=13`, `checks_total=13`, and `errors=[]`.
 
-Step 25 is **LOCAL PASS; live AWS validation pending**. Step 24 is **LIVE AWS PASS**; see `evaluation/step24/live/` for its captured API response, persisted S3 report, independent AWS verification, and 12/12 live acceptance summary.
+Step 25 is **LIVE AWS PASS**; see `evaluation/step25/live/` for the forced detection response, persisted S3 report, DynamoDB metadata, GET API response, and 15/15 verification summary. Step 24 remains **LIVE AWS PASS**; see `evaluation/step24/live/` for its captured evidence and 12/12 live acceptance summary.

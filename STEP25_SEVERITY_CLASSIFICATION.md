@@ -2,7 +2,7 @@
 
 ## Status
 
-**LOCAL PASS. Live AWS validation has not yet been run for Step 25.**
+**LIVE AWS PASS.** Local verification and live validation against Amazon Bedrock, S3, and DynamoDB are complete.
 
 ## Goal
 
@@ -59,13 +59,18 @@ The deterministic verifier passes **13/13** checks across the eight requested ex
 
 Evidence is written to `evaluation/step25/`.
 
-## Live AWS acceptance criteria
+## Live AWS acceptance - September 20, 2026
 
-Step 25 can be marked **LIVE AWS PASS** after a forced detection run proves that:
+Step 25 passed live AWS validation using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and implementation commit `b2ff60232979fa5a903ff57b757d3e83a4818f17`.
 
-- the persisted S3 report uses schema `rentready-issue-report/4.0`;
-- every consolidated issue has one allowed `severity` value;
-- the report includes the Step-25 classification contract and disclaimer;
-- DynamoDB records `rentready-severity-classification/1.0`;
-- the API returns the same classified issues and Step-25 S3 key;
-- the browser displays only the three allowed classes and the disclaimer.
+- Amazon Nova 2 Lite processed three persisted keyframes in one batch.
+- Bedrock request ID: `738f2e87-ef01-40e2-8359-334579f91891`.
+- S3 report: `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json`.
+- The persisted report uses schema `rentready-issue-report/4.0` and classification version `rentready-severity-classification/1.0`.
+- The live video produced one visible `cleanliness` issue, classified as **Cosmetic**.
+- DynamoDB recorded status `COMPLETE` and the Step 25 report metadata.
+- The GET API response matched the persisted S3 report.
+- The browser contains all three allowed classes and the explicit non-safety-rating disclaimer.
+- Live verification passed **15/15 checks** with no errors.
+
+The live video exercised the Cosmetic class. The deterministic local verifier separately proves all three classes and the requested example mappings. This classification is rental-readiness prioritization based only on visible evidence; it is not an official safety rating.

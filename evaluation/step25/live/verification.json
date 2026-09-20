@@ -1,0 +1,63 @@
+{
+  "step": 25,
+  "verification_scope": "live_aws_step25_severity_classification",
+  "inspection_id": "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+  "implementation_commit": "b2ff60232979fa5a903ff57b757d3e83a4818f17",
+  "generated_at": "2026-09-20T17:10:57.507733+00:00",
+  "verified_at": "2026-09-20T17:13:55.576392+00:00",
+  "passed": true,
+  "checks_passed": 15,
+  "checks_total": 15,
+  "checks": {
+    "api_response_complete": true,
+    "step25_s3_report_persisted": true,
+    "report_schema_v4": true,
+    "classification_version_recorded": true,
+    "detector_classification_version_recorded": true,
+    "exactly_three_classes": true,
+    "all_issues_use_allowed_classes": true,
+    "classified_issue_count_matches": true,
+    "visible_cleanliness_classified_cosmetic": true,
+    "non_safety_rating_guardrail_recorded": true,
+    "disclaimer_is_explicit": true,
+    "bedrock_request_id_recorded": true,
+    "dynamodb_metadata_complete": true,
+    "get_api_matches_persisted_report": true,
+    "browser_has_three_classes_and_disclaimer": true
+  },
+  "aws": {
+    "region": "us-west-2",
+    "bucket": "rentready-vision-dev-081087819788",
+    "table": "rentready-vision-dev",
+    "report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "bedrock_request_id": "738f2e87-ef01-40e2-8359-334579f91891",
+    "keyframes_considered": 3,
+    "batch_count": 1
+  },
+  "result": {
+    "schema_version": "rentready-issue-report/4.0",
+    "classification_version": "rentready-severity-classification/1.0",
+    "allowed_classes": [
+      "Fix before renting",
+      "Review recommended",
+      "Cosmetic"
+    ],
+    "classified_issue_count": 1,
+    "observed_category": "cleanliness",
+    "observed_severity": "Cosmetic",
+    "not_an_official_safety_rating": true
+  },
+  "evidence_files": [
+    "evaluation/step25/live/detect_response.json",
+    "evaluation/step25/live/persisted_report.json",
+    "evaluation/step25/live/get_response.json",
+    "evaluation/step25/live/dynamodb_metadata.json"
+  ],
+  "limitations": [
+    "The short live video produced one cleanliness issue and therefore exercised the Cosmetic class.",
+    "The deterministic local verifier separately proves all three classes and the requested example mappings.",
+    "The Step 25 API ran locally against live Bedrock, S3, and DynamoDB; EC2 was not required for this post-processing step."
+  ],
+  "errors": []
+}

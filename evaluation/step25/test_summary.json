@@ -1,27 +1,47 @@
 {
-  "step": 25,
-  "generated_at": "2026-09-19T17:33:00Z",
-  "status": "LOCAL_PASS_AWS_PENDING",
-  "focused_tests": {
-    "command": "pytest -q tests/test_step25_severity_classification.py",
-    "passed": 7,
-    "failed": 0
-  },
-  "full_project_tests": {
-    "command": "pytest -q",
-    "passed": 114,
-    "failed": 0,
-    "warnings": 1,
-    "warning_note": "Existing Starlette TestClient deprecation warning for httpx compatibility."
-  },
-  "contract_verification": {
-    "command": "python scripts/verify_step25_severity_classification.py",
-    "passed_checks": 13,
-    "total_checks": 13,
-    "errors": []
-  },
-  "live_aws_validation": {
-    "status": "PENDING",
-    "note": "No Step-25 live AWS run is claimed by this local bundle."
-  }
+    "step":  25,
+    "generated_at":  "2026-09-20T17:13:55.576392+00:00",
+    "status":  "LIVE_AWS_PASS",
+    "focused_tests":  {
+                          "command":  "pytest -q tests/test_step25_severity_classification.py",
+                          "passed":  7,
+                          "failed":  0
+                      },
+    "full_project_tests":  {
+                               "command":  "pytest -q",
+                               "passed":  114,
+                               "failed":  0,
+                               "warnings":  1,
+                               "warning_note":  "Existing Starlette TestClient deprecation warning for httpx compatibility."
+                           },
+    "contract_verification":  {
+                                  "command":  "python scripts/verify_step25_severity_classification.py",
+                                  "passed_checks":  13,
+                                  "total_checks":  13,
+                                  "errors":  [
+
+                                             ]
+                              },
+    "live_aws_validation":  {
+                                "status":  "PASS",
+                                "verified_at":  "2026-09-20T17:13:55.576392+00:00",
+                                "inspection_id":  "96a7a795-498f-4c6c-96d5-ad3a4d0027b3",
+                                "implementation_commit":  "b2ff60232979fa5a903ff57b757d3e83a4818f17",
+                                "region":  "us-west-2",
+                                "bucket":  "rentready-vision-dev-081087819788",
+                                "table":  "rentready-vision-dev",
+                                "model_id":  "us.amazon.nova-2-lite-v1:0",
+                                "bedrock_request_id":  "738f2e87-ef01-40e2-8359-334579f91891",
+                                "report_s3_key":  "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json",
+                                "schema_version":  "rentready-issue-report/4.0",
+                                "classification_version":  "rentready-severity-classification/1.0",
+                                "observed_category":  "cleanliness",
+                                "observed_severity":  "Cosmetic",
+                                "passed_checks":  15,
+                                "total_checks":  15,
+                                "errors":  [
+
+                                           ],
+                                "note":  "The live video exercised Cosmetic; deterministic local verification proves all three allowed classes."
+                            }
 }

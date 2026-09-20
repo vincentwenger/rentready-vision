@@ -529,13 +529,13 @@ The implementation is conservative: room and category are hard gates; cluster du
 
 See [`STEP24_ISSUE_CONSOLIDATION.md`](STEP24_ISSUE_CONSOLIDATION.md), [`evaluation/step24/`](evaluation/step24/), and [`evaluation/step24/live/`](evaluation/step24/live/). Live AWS validation passed on **September 19, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` using implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`. The forced Bedrock run persisted the Step 24 report to S3, DynamoDB recorded `COMPLETE`, and the live acceptance summary passed all **12/12** checks with `errors=[]`. The short live video produced one issue; the deterministic verifier separately proves the five-to-one duplicate reduction case.
 
-## Step 25 severity classification — LOCAL PASS
+## Step 25 severity classification — LIVE AWS PASS
 
 Step 25 assigns exactly one of three rental-readiness classes to every consolidated issue: **Fix before renting**, **Review recommended**, or **Cosmetic**. The deterministic classifier runs after Step-24 consolidation, records its rule and rationale, ignores the detector's free-form preliminary severity label, and uses the cautious review class for unknown future categories.
 
 The API report and browser explicitly state that this is a visible-evidence rental-readiness prioritization—not an official safety, code-compliance, or professional inspection rating. Final issues are sorted Fix → Review → Cosmetic and persisted with schema `rentready-issue-report/4.0` at `step25-severity-classified-issues.json`.
 
-Local verification covers all eight requested examples plus the closed-class, fallback, model-label isolation, persistence-path, UI, and disclaimer guardrails. See [`STEP25_SEVERITY_CLASSIFICATION.md`](STEP25_SEVERITY_CLASSIFICATION.md) and [`evaluation/step25/`](evaluation/step25/). Live AWS validation is still pending.
+Local verification covers all eight requested examples plus the closed-class, fallback, model-label isolation, persistence-path, UI, and disclaimer guardrails. See [`STEP25_SEVERITY_CLASSIFICATION.md`](STEP25_SEVERITY_CLASSIFICATION.md) and [`evaluation/step25/`](evaluation/step25/). Live AWS validation passed 15/15 checks using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`. Amazon Nova 2 Lite processed three keyframes in one batch, and Bedrock request `738f2e87-ef01-40e2-8359-334579f91891` produced one visible cleanliness issue classified as **Cosmetic**. The schema-v4 report was persisted to S3, DynamoDB recorded the Step 25 metadata, the GET API matched the persisted report, and the browser exposed the three classes plus the non-safety-rating disclaimer.
 
 ## Step 13 benchmark
 

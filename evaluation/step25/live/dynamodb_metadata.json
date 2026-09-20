@@ -1,0 +1,12 @@
+{
+  "issue_detection_status": "COMPLETE",
+  "issue_report_s3_key": "inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json",
+  "issue_report_schema_version": "rentready-issue-report/4.0",
+  "severity_classification_version": "rentready-severity-classification/1.0",
+  "issue_consolidation_version": "rentready-issue-consolidation/1.0",
+  "issue_count": 1,
+  "raw_issue_count": 1,
+  "candidate_finding_count": 1,
+  "raw_candidate_finding_count": 1,
+  "issue_detection_completed_at": "2026-09-20T17:10:57.507733+00:00"
+}
