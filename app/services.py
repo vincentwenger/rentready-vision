@@ -12,6 +12,7 @@ from .aws import bedrock_runtime, s3
 from .config import get_settings
 from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
+from .responsible_language import responsible_language_contract, responsible_records
 from .runtime_evidence import collect_runtime_evidence
 from .telemetry import CloudWatchTelemetry, PeakMemorySampler
 from .action_log import ACTION_LOG_VERSION, action_log_document, agent_action
@@ -1459,12 +1460,13 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
             "issues": [],
             "raw_issues": [],
             "severity_classification": classification_summary([]),
+            "responsible_language": responsible_language_contract(),
             "consolidation": None,
             "report_s3_key": None,
         }
     obj = s3.get_object(Bucket=settings.s3_bucket, Key=report_key)
     report = json.loads(obj["Body"].read())
-    issues = report.get("issues", [])
+    issues = responsible_records(report.get("issues", []))
     if any(not issue.get("severity") for issue in issues):
         # Older persisted Step-24 reports remain readable after deployment. The
         # next detector run writes a canonical Step-25 artifact, but GET can
@@ -1481,11 +1483,12 @@ def load_issues_report(inspection_id: str) -> dict[str, Any]:
         "taxonomy": report.get("taxonomy") or taxonomy_payload(),
         "detector": report.get("detector"),
         "rooms": report.get("rooms", []),
-        "candidate_findings": report.get("candidate_findings", []),
-        "raw_candidate_findings": report.get("raw_candidate_findings", []),
+        "candidate_findings": responsible_records(report.get("candidate_findings", [])),
+        "raw_candidate_findings": responsible_records(report.get("raw_candidate_findings", [])),
         "issues": issues,
-        "raw_issues": report.get("raw_issues", []),
+        "raw_issues": responsible_records(report.get("raw_issues", [])),
         "severity_classification": severity_classification,
+        "responsible_language": responsible_language_contract(),
         "consolidation": report.get("consolidation"),
         "report_s3_key": report_key,
     }

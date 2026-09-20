@@ -1,0 +1,33 @@
+{
+  "step": 27,
+  "verification_scope": "local_responsible_language_policy",
+  "generated_at": "2026-09-20T18:12:46.658300+00:00",
+  "version": "rentready-responsible-language/1.0",
+  "passed": true,
+  "checks_passed": 15,
+  "checks_total": 15,
+  "checks": {
+    "mold_claim_rewritten": true,
+    "electrical_claim_rewritten": true,
+    "structural_claim_rewritten": true,
+    "safe_outputs_pass_policy": true,
+    "legacy_payload_protected": true,
+    "legacy_source_not_mutated": true,
+    "closed_three_rule_contract": true,
+    "model_prompt_guardrail": true,
+    "detector_ingress_guardrail": true,
+    "persisted_trace_is_policy_safe": true,
+    "agent_summary_guardrail": true,
+    "api_egress_guardrail": true,
+    "public_policy_contract": true,
+    "browser_disclosure": true,
+    "human_review_preserved": true
+  },
+  "errors": [],
+  "safe_outputs": {
+    "visible_discoloration": "Visible discoloration may warrant inspection for moisture or other causes.",
+    "electrical_damage": "Visible electrical fixture appears damaged. Qualified inspection recommended.",
+    "visible_cracking": "Visible cracking detected. Human inspection recommended to determine significance."
+  },
+  "note": "Local PASS proves prompt, ingress, safe persisted trace plus original-payload hashing, API-egress, legacy-report, agent-summary, UI-disclosure, and human-review safeguards without requiring an AWS workload."
+}

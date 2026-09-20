@@ -1,0 +1,34 @@
+{
+  "version": "rentready-responsible-language/1.0",
+  "scope": "all_user_facing_property_condition_text",
+  "principles": [
+    "describe only visible conditions",
+    "do not diagnose hidden causes",
+    "do not determine electrical safety",
+    "do not determine structural significance",
+    "recommend qualified or human inspection when significance is uncertain"
+  ],
+  "rules": [
+    {
+      "id": "no_mold_diagnosis",
+      "safe_output": "Visible discoloration may warrant inspection for moisture or other causes.",
+      "human_review": true
+    },
+    {
+      "id": "no_electrical_safety_determination",
+      "safe_output": "Visible electrical fixture appears damaged. Qualified inspection recommended.",
+      "human_review": true
+    },
+    {
+      "id": "no_structural_significance_determination",
+      "safe_output": "Visible cracking detected. Human inspection recommended to determine significance.",
+      "human_review": true
+    }
+  ],
+  "defense_in_depth": {
+    "model_prompt": true,
+    "ingress_sanitizer": true,
+    "api_egress_sanitizer": true,
+    "legacy_report_protection": true
+  }
+}

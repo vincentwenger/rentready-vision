@@ -118,10 +118,11 @@ class IssuesResponse(BaseModel):
     severity_classification: dict[str, Any] | None = None
     consolidation: dict[str, Any] | None = None
     confidence_scale: dict[str, Any] | None = None
+    responsible_language: dict[str, Any] | None = None
     report_s3_key: str | None = None
     note: str = (
-        "Step 26 presents confidence as Low, Medium, or High while retaining numeric "
-        "confidence internally. Severity is not an official safety rating."
+        "Step 27 describes visible conditions without diagnosing hidden causes or determining "
+        "electrical safety or structural significance. Qualified human inspection remains essential."
     )
 
 

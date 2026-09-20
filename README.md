@@ -63,6 +63,7 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Run Step-21 `inspect_other_angle()`: geometrically match the Step-17 region across nearby frames, rank changed camera views, and ask AI whether the same issue is visible from multiple viewpoints.
 - Consolidate repeated frame-level observations into one physical issue using timestamp, room, category, whole-image, region, and semantic similarity while retaining every evidence timestamp.
 - Classify each consolidated issue as exactly **Fix before renting**, **Review recommended**, or **Cosmetic**, with an explicit visible-evidence-only disclaimer that this is not an official safety rating.
+- Apply a deterministic responsible-language policy before persistence and again at the public API boundary: describe visible conditions, never diagnose mold, never determine electrical safety, never label cracking as structural, and preserve qualified human review.
 - Generate short-lived GET URLs for evidence frames.
 
 ## Local fallback versus production AWS path
@@ -544,6 +545,14 @@ Step 26 keeps numerical confidence as the internal source of truth while present
 The mapping is centralized and presentation-only. Stored reports, policy calculations, agent traces, and audit records retain their numeric values. API issue records add `confidence_label` without replacing `confidence`, expose the versioned scale contract, and the browser uses categorical confidence across issue cards and agent evidence views. Step 22 decision thresholds remain independent and unchanged.
 
 See [`STEP26_CONFIDENCE.md`](STEP26_CONFIDENCE.md) and [`evaluation/step26/`](evaluation/step26/). Live AWS validation is not required because Step 26 does not alter the AWS, Bedrock, OpenCV, persistence, or decision paths.
+
+## Step 27 responsible-language policy — LOCAL PASS
+
+Step 27 adds the versioned `rentready-responsible-language/1.0` policy layer. Unsupported mold diagnoses are rewritten as visible discoloration that may warrant inspection for moisture or other causes. Electrical safety conclusions are rewritten as visible fixture damage with qualified inspection recommended. Structural conclusions are rewritten as visible cracking with human inspection recommended to determine significance.
+
+The guardrail is enforced in model prompts, before findings enter identity/consolidation/persistence, after agent evidence-summary generation, and again at the API boundary for legacy reports and public traces. Each presented issue carries an audit marker, and the issue response exposes the complete policy contract. Confidence, severity, OpenCV evidence, and Step-22 routing are unchanged.
+
+See [`STEP27_RESPONSIBLE_LANGUAGE.md`](STEP27_RESPONSIBLE_LANGUAGE.md) and [`evaluation/step27/`](evaluation/step27/). Local deterministic verification is sufficient because the policy does not change the AWS/COOL/OpenCV workload.
 
 ## Step 13 benchmark
 

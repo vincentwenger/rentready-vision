@@ -233,7 +233,8 @@ function renderIssues(response, warning = null) {
   const aboveThreshold = findings.length;
   const namedCount = response?.taxonomy?.named_category_count ?? 13;
   const disclaimer = response?.severity_classification?.disclaimer ?? "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety rating.";
-  note.textContent = `Step 26 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · confidence shown as Low, Medium, or High. ${disclaimer}`;
+  const languageVersion = response?.responsible_language?.version ?? "rentready-responsible-language/1.0";
+  note.textContent = `Step 27 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · confidence shown as Low, Medium, or High. Visible conditions only; hidden causes, electrical safety, and structural significance require qualified human inspection. Policy ${languageVersion}. ${disclaimer}`;
   if (!findings.length) {
     const row = document.createElement("div");
     row.className = "issue-row";

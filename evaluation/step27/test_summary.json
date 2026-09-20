@@ -1,0 +1,33 @@
+{
+  "step": 27,
+  "generated_at": "2026-09-20T18:04:00+00:00",
+  "status": "LOCAL_PASS",
+  "focused_tests": {
+    "command": "pytest -q tests/test_step27_responsible_language.py",
+    "passed": 16,
+    "failed": 0
+  },
+  "boundary_regression_tests": {
+    "command": "pytest -q tests/test_step16_issue_detector.py tests/test_step17_structured_findings.py tests/test_step24_issue_consolidation.py tests/test_step25_severity_classification.py tests/test_step26_confidence.py tests/test_step27_responsible_language.py tests/test_api.py",
+    "passed": 63,
+    "failed": 0,
+    "warnings": 1
+  },
+  "full_project_tests": {
+    "command": "pytest -q",
+    "passed": 147,
+    "failed": 0,
+    "warnings": 1,
+    "warning_note": "Dependency deprecation warning from FastAPI/Starlette test compatibility; no test failures. The extracted archive test supplied GIT_COMMIT because distributable ZIPs intentionally omit .git metadata."
+  },
+  "contract_verification": {
+    "command": "python scripts/verify_step27_responsible_language.py",
+    "passed_checks": 15,
+    "total_checks": 15,
+    "errors": []
+  },
+  "live_aws_validation": {
+    "status": "NOT_REQUIRED",
+    "reason": "Deterministic policy layer; AWS, COOL, OpenCV, evidence selection, and confidence routing are unchanged."
+  }
+}

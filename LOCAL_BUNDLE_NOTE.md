@@ -1,35 +1,37 @@
 # Local bundle note
 
-This is the Step 25 RentReady Vision source-and-evidence bundle updated on September 20, 2026.
+This is the Step 27 RentReady Vision source-and-evidence bundle updated on
+September 20, 2026.
 
-- It includes the completed Step 25 implementation plus all prior Step 24 local and live AWS evidence.
-- Step 25 assigns exactly `Fix before renting`, `Review recommended`, or `Cosmetic` after issue consolidation.
-- The final classification is deterministic, uses visible evidence only, ignores arbitrary preliminary model severity labels, and explicitly states that it is not an official safety rating.
-- Local verification passed all 13 Step 25 checks, the dedicated suite passed 7 tests, and the complete project suite passed 114 tests with one existing deprecation warning.
-- The current report schema is `rentready-issue-report/4.0`; new runs persist `step25-severity-classified-issues.json` and record `rentready-severity-classification/1.0` in DynamoDB.
-- Step 25 is **LIVE AWS PASS** using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and implementation commit `b2ff60232979fa5a903ff57b757d3e83a4818f17`.
-- Amazon Nova 2 Lite processed three keyframes in one batch under Bedrock request `738f2e87-ef01-40e2-8359-334579f91891`.
-- S3 persisted schema `rentready-issue-report/4.0` at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step25-severity-classified-issues.json`.
-- DynamoDB recorded `COMPLETE`, the Step 25 report key, and classification version `rentready-severity-classification/1.0`.
-- The GET API matched the persisted report, the browser contained the three allowed classes and disclaimer, and live verification passed 15/15 checks with `errors=[]`.
-- The live video produced one `cleanliness` issue classified as `Cosmetic`; local deterministic evidence separately proves all three classes.
-- Step 24 remains **LIVE AWS PASS**: it consolidates repeated detections using timestamp, room, category, image, region, and semantic similarity while preserving every raw observation and evidence timestamp.
-- Live AWS validation used inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`.
-- Amazon Nova 2 Lite processed three persisted OpenCV keyframes in one batch under Bedrock request `fb854166-ad18-4533-aaf1-767673f01c76`.
-- The Step 24 report was persisted to `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step24-consolidated-issues.json`.
-- DynamoDB recorded `COMPLETE`, consolidation version `rentready-issue-consolidation/1.0`, one raw issue, and one consolidated issue.
-- The independent persistence verifier passed with `errors=[]`, and the Step 24 live acceptance summary passed all 12 checks.
-- The short live video produced one issue, so duplicate reduction is proven separately by the deterministic five-to-one acceptance case.
+- It includes the completed Step 27 implementation plus all prior local and live AWS evidence.
+- Step 27 adds the versioned `rentready-responsible-language/1.0` policy layer.
+- Model prompts prohibit unsupported mold diagnoses, electrical safety determinations, and structural-significance conclusions.
+- A deterministic ingress sanitizer applies safe observational wording before identity, consolidation, classification, and persistence.
+- Agent evidence summaries are sanitized immediately after model tool output.
+- Persisted Bedrock traces retain a policy-safe payload plus the SHA-256 digest of the exact original payload.
+- The public API applies the policy again to current and legacy reports and public agent traces.
+- Each presented finding includes the policy version, transformation flag, applied rule IDs, and human-review marker.
+- The browser discloses that hidden causes, electrical safety, and structural significance require qualified human inspection.
+- Numeric confidence, severity classes, bounding boxes, timestamps, OpenCV evidence, and Step-22 decision thresholds are unchanged.
+- Focused Step 27 tests passed `16/16`; deterministic verification passed `15/15` with `errors=[]`.
+- The detector/API/severity/confidence regression suite passed `63/63` with one dependency deprecation warning.
+- The complete project suite passed `147/147` with the same single dependency deprecation warning.
+- Live AWS validation is not required because Step 27 does not alter the AWS, COOL, or OpenCV workload.
 - The local `.env` file is intentionally excluded. Copy `.env.example` to `.env` and fill in local AWS values when running on another machine.
 - Git metadata, Terraform state, `terraform.tfvars`, AWS credentials, virtual environments, Python caches, runtime scratch output, and test caches are intentionally excluded.
 
-Start with `STEP25_SEVERITY_CLASSIFICATION.md`. To re-check Step 25 locally, run:
+Start with `STEP27_RESPONSIBLE_LANGUAGE.md`. To re-check Step 27 locally, run:
 
 ```bash
-pytest -q tests/test_step25_severity_classification.py
-python scripts/verify_step25_severity_classification.py
+pytest -q tests/test_step27_responsible_language.py
+python scripts/verify_step27_responsible_language.py
+pytest -q
 ```
 
-Expected local verifier result: `passed=true`, `checks_passed=13`, `checks_total=13`, and `errors=[]`.
+The full-suite runtime-evidence test expects either Git metadata or the
+`GIT_COMMIT` environment variable. Because distributable ZIPs intentionally
+exclude `.git`, set `GIT_COMMIT` to the source commit when testing an extracted
+archive.
 
-Step 25 is **LIVE AWS PASS**; see `evaluation/step25/live/` for the forced detection response, persisted S3 report, DynamoDB metadata, GET API response, and 15/15 verification summary. Step 24 remains **LIVE AWS PASS**; see `evaluation/step24/live/` for its captured evidence and 12/12 live acceptance summary.
+Step 25 remains **LIVE AWS PASS**; see `evaluation/step25/live/`. Steps 24, 23,
+22, 21, and 20 retain their previously captured live AWS evidence.

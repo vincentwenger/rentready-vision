@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from typing import Any, Iterable
 import json
 
+from .responsible_language import responsible_text
+
 AGENTIC_TRACE_VERSION = "rentready-agentic-vision/1.0"
 INTERVAL_REASSESS_TOOL = "reassess_interval_evidence"
 OTHER_ANGLE_REASSESS_TOOL = "reassess_other_angle_evidence"
@@ -128,7 +130,10 @@ def reassess_interval_batches(
             )
         response = bedrock_client.converse(
             modelId=model_id,
-            system=[{"text": "You are a conservative visual evidence reviewer. Do not infer hidden defects."}],
+            system=[{"text": (
+                "You are a conservative visual evidence reviewer. Do not infer hidden defects, "
+                "diagnose mold, determine electrical safety, or label cracking as structural."
+            )}],
             messages=[{"role": "user", "content": content}],
             inferenceConfig={"maxTokens": int(max_tokens), "temperature": 0, "topP": 0.1},
             toolConfig=_tool_schema(),
@@ -141,7 +146,7 @@ def reassess_interval_batches(
                 "frame_count": len(batch),
                 "confidence": round(confidence, 4),
                 "visible_in_multiple_frames": bool(payload.get("visible_in_multiple_frames")),
-                "evidence_summary": str(payload.get("evidence_summary") or "").strip()[:600],
+                "evidence_summary": responsible_text(payload.get("evidence_summary"))[0][:600],
                 "bedrock_request_id": (response.get("ResponseMetadata") or {}).get("RequestId"),
                 "usage": response.get("usage"),
                 "metrics": response.get("metrics"),
@@ -251,7 +256,8 @@ def reassess_other_angle_evidence(
             {
                 "text": (
                     "You are a conservative visual evidence reviewer. Separate geometric match "
-                    "from visible defect confirmation and never infer hidden damage."
+                    "from visible defect confirmation and never infer hidden damage, diagnose mold, "
+                    "determine electrical safety, or label cracking as structural."
                 )
             }
         ],
@@ -275,7 +281,7 @@ def reassess_other_angle_evidence(
         "confidence_after": round(confidence, 4),
         "same_region_or_object": bool(payload.get("same_region_or_object")),
         "visible_in_multiple_viewpoints": bool(payload.get("visible_in_multiple_viewpoints")),
-        "evidence_summary": str(payload.get("evidence_summary") or "").strip()[:800],
+        "evidence_summary": responsible_text(payload.get("evidence_summary"))[0][:800],
         "bedrock_request_id": (response.get("ResponseMetadata") or {}).get("RequestId"),
         "usage": response.get("usage"),
         "metrics": response.get("metrics"),
@@ -332,7 +338,10 @@ def verify_candidate_image(
     )
     response = bedrock_client.converse(
         modelId=model_id,
-        system=[{"text": "You are a conservative visual evidence reviewer. Never infer hidden defects."}],
+        system=[{"text": (
+            "You are a conservative visual evidence reviewer. Never infer hidden defects, "
+            "diagnose mold, determine electrical safety, or label cracking as structural."
+        )}],
         messages=[
             {
                 "role": "user",
@@ -364,7 +373,7 @@ def verify_candidate_image(
     return {
         "confidence_after": round(confidence, 4),
         "candidate_visible": bool(payload.get("candidate_visible")),
-        "evidence_summary": str(payload.get("evidence_summary") or "").strip()[:800],
+        "evidence_summary": responsible_text(payload.get("evidence_summary"))[0][:800],
         "evidence_label": str(evidence_label),
         "image_s3_key": str(image_s3_key),
         "bedrock_request_id": (response.get("ResponseMetadata") or {}).get("RequestId"),

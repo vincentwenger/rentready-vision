@@ -19,6 +19,12 @@ from .severity_classifier import (
     classification_summary,
     classify_issues,
 )
+from ..responsible_language import (
+    RESPONSIBLE_LANGUAGE_VERSION,
+    responsible_language_contract,
+    responsible_payload,
+    responsible_text,
+)
 
 TOOL_NAME = "report_visible_property_issues"
 STRUCTURED_FINDING_VERSION = "rentready-structured-finding/1.0"
@@ -68,7 +74,16 @@ Category precedence:
 - Use other only when a clearly visible issue does not fit any named category. If other
   is used, a concise other_label may be supplied.
 
-Report a physical issue once per best evidence frame. Do not invent timestamps or boxes."""
+Report a physical issue once per best evidence frame. Do not invent timestamps or boxes.
+
+Responsible-language rules are mandatory:
+- Never diagnose mold. Describe only visible discoloration and recommend inspection for
+  moisture or other causes.
+- Never state that electrical wiring or a fixture is safe or unsafe. Describe only visible
+  damage and recommend a qualified inspection.
+- Never call cracking structural or determine its significance. Describe only visible
+  cracking and recommend human inspection to determine significance.
+These rules apply regardless of model confidence."""
 
 
 def utc_now() -> str:
@@ -367,7 +382,8 @@ def _normalize_finding(
     if bbox is None:
         return None
 
-    description = " ".join(str(raw.get("description") or "").split())[:180]
+    description, language_rules = responsible_text(raw.get("description"))
+    description = description[:180]
     if len(description) < 3:
         return None
 
@@ -405,6 +421,12 @@ def _normalize_finding(
             "timestamp_seconds": timestamp,
             "scene_index": int(frame.get("scene_index") or 0),
             "s3_key": str(frame["s3_key"]),
+        },
+        "responsible_language": {
+            "version": RESPONSIBLE_LANGUAGE_VERSION,
+            "transformed": bool(language_rules),
+            "applied_rules": language_rules,
+            "human_review_preserved": True,
         },
     }
     enriched["issue_id"] = _candidate_identity(candidate, frame_index=frame_index)
@@ -485,6 +507,7 @@ def detect_visible_issues(
                 "keyframes_considered": 0,
                 "consolidation_version": CONSOLIDATION_VERSION,
                 "severity_classification_version": SEVERITY_CLASSIFICATION_VERSION,
+                "responsible_language_version": RESPONSIBLE_LANGUAGE_VERSION,
             },
             "taxonomy": taxonomy_payload(),
             "rooms": list(ROOM_VALUES),
@@ -493,6 +516,7 @@ def detect_visible_issues(
             "issues": [],
             "raw_issues": [],
             "severity_classification": classification_summary([]),
+            "responsible_language": responsible_language_contract(),
             "consolidation": {
                 "version": CONSOLIDATION_VERSION,
                 "raw_candidate_count": 0,
@@ -538,6 +562,10 @@ def detect_visible_issues(
             toolConfig=_tool_schema(),
         )
         tool_input = _extract_tool_input(response)
+        raw_tool_input_sha256 = hashlib.sha256(
+            json.dumps(tool_input, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        policy_safe_tool_input = responsible_payload(tool_input)
         batch_frame_map = {int(frame["index"]): frame for frame in batch}
         accepted_candidates = 0
         above_threshold = 0
@@ -574,7 +602,12 @@ def detect_visible_issues(
                 "stop_reason": response.get("stopReason"),
                 "usage": response.get("usage"),
                 "metrics": response.get("metrics"),
-                "raw_tool_input": tool_input,
+                # Persist a policy-safe audit representation. The digest proves
+                # the exact original model payload without retaining prohibited
+                # user-facing conclusions in the stored report.
+                "raw_tool_input": policy_safe_tool_input,
+                "raw_tool_input_sha256": raw_tool_input_sha256,
+                "responsible_language_version": RESPONSIBLE_LANGUAGE_VERSION,
                 "accepted_candidate_count": accepted_candidates,
                 "above_threshold_issue_count": above_threshold,
             }
@@ -631,6 +664,7 @@ def detect_visible_issues(
             "batch_count": len(traces),
             "consolidation_version": CONSOLIDATION_VERSION,
             "severity_classification_version": SEVERITY_CLASSIFICATION_VERSION,
+            "responsible_language_version": RESPONSIBLE_LANGUAGE_VERSION,
         },
         "taxonomy": taxonomy_payload(),
         "rooms": list(ROOM_VALUES),
@@ -641,6 +675,7 @@ def detect_visible_issues(
         "issues": issues,
         "raw_issues": raw_issues,
         "severity_classification": classification_summary(issues),
+        "responsible_language": responsible_language_contract(),
         "consolidation": consolidation_summary,
         "trace": traces,
     }
