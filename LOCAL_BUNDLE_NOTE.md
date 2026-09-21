@@ -1,30 +1,28 @@
 # Local bundle note
 
-This is the Step 27 RentReady Vision source-and-evidence bundle updated on
-September 20, 2026.
+This is the Step 28 RentReady Vision source-and-evidence bundle updated on
+September 21, 2026.
 
-- It includes the completed Step 27 implementation plus all prior local and live AWS evidence.
-- Step 27 adds the versioned `rentready-responsible-language/1.0` policy layer.
-- Model prompts prohibit unsupported mold diagnoses, electrical safety determinations, and structural-significance conclusions.
-- A deterministic ingress sanitizer applies safe observational wording before identity, consolidation, classification, and persistence.
-- Agent evidence summaries are sanitized immediately after model tool output.
-- Persisted Bedrock traces retain a policy-safe payload plus the SHA-256 digest of the exact original payload.
-- The public API applies the policy again to current and legacy reports and public agent traces.
-- Each presented finding includes the policy version, transformation flag, applied rule IDs, and human-review marker.
-- The browser discloses that hidden causes, electrical safety, and structural significance require qualified human inspection.
+- It includes the completed Step 28 implementation plus all prior local and live AWS evidence.
+- Step 28 adds the versioned `rentready-polished-report/1.0` presentation contract.
+- The main dashboard now shows the property label, Rental Readiness score, and all three severity totals.
+- Issue cards are grouped by room and contain responsible titles and descriptions, categorical confidence, evidence ranges, representative images, recommended actions, and original-video timestamp links.
+- The requested three-fix/four-review/five-cosmetic example deterministically scores `78/100`.
+- The existing OpenCV metrics, runtime identity, agent traces, scene evidence, and selected frames remain available under the technical audit disclosure.
+- The report inherits Step 27 responsible-language protection and states that the visible-condition score is not an official safety rating.
 - Numeric confidence, severity classes, bounding boxes, timestamps, OpenCV evidence, and Step-22 decision thresholds are unchanged.
-- Focused Step 27 tests passed `16/16`; deterministic verification passed `15/15` with `errors=[]`.
-- The detector/API/severity/confidence regression suite passed `63/63` with one dependency deprecation warning.
-- The complete project suite passed `147/147` with the same single dependency deprecation warning.
-- Live AWS validation is not required because Step 27 does not alter the AWS, COOL, or OpenCV workload.
+- Focused Step 28 tests passed `5/5`; deterministic verification passed `11/11` with `errors=[]`.
+- The Step 24–28/API presentation regression suite passed `58/58` with one dependency deprecation warning.
+- The complete project suite passed `153/153` with the same single dependency deprecation warning.
+- Live AWS validation is not required because Step 28 does not alter the AWS, COOL, Bedrock, or OpenCV workload.
 - The local `.env` file is intentionally excluded. Copy `.env.example` to `.env` and fill in local AWS values when running on another machine.
 - Git metadata, Terraform state, `terraform.tfvars`, AWS credentials, virtual environments, Python caches, runtime scratch output, and test caches are intentionally excluded.
 
-Start with `STEP27_RESPONSIBLE_LANGUAGE.md`. To re-check Step 27 locally, run:
+Start with `STEP28_POLISHED_REPORT.md`. To re-check Step 28 locally, run:
 
 ```bash
-pytest -q tests/test_step27_responsible_language.py
-python scripts/verify_step27_responsible_language.py
+pytest -q tests/test_step28_polished_report.py
+python scripts/verify_step28_polished_report.py
 pytest -q
 ```
 

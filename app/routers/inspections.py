@@ -52,6 +52,7 @@ from ..responsible_language import (
     responsible_payload,
     responsible_records,
 )
+from ..polished_report import build_polished_report
 from ..decision_policy import (
     DECISION_POLICY_VERSION,
     INVESTIGATE_CANDIDATE,
@@ -87,13 +88,16 @@ def _validate_video(filename: str, content_type: str) -> None:
         raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {sorted(ALLOWED_EXTENSIONS)}")
 
 
-def _present_issue_report(report: dict) -> dict:
+def _present_issue_report(report: dict, *, property_label: str | None = None) -> dict:
     """Apply public language and confidence policy without mutating stored evidence."""
     presented = dict(report)
     for field in ("candidate_findings", "raw_candidate_findings", "issues", "raw_issues"):
         presented[field] = with_confidence_labels(responsible_records(report.get(field, [])))
     presented["confidence_scale"] = confidence_contract()
     presented["responsible_language"] = responsible_language_contract()
+    presented["polished_report"] = build_polished_report(
+        presented["issues"], property_label=property_label
+    )
     return presented
 
 
@@ -305,7 +309,7 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         report = detect_issues_for_inspection(inspection_id, force=force)
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    presented = _present_issue_report(report)
+    presented = _present_issue_report(report, property_label=item.get("property_label"))
     return IssuesResponse(
         inspection_id=inspection_id,
         status="COMPLETE",
@@ -322,15 +326,18 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         consolidation=report.get("consolidation"),
         confidence_scale=presented["confidence_scale"],
         responsible_language=presented["responsible_language"],
+        polished_report=presented["polished_report"],
         report_s3_key=f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json",
     )
 
 
 @router.get("/{inspection_id}/issues", response_model=IssuesResponse)
 def get_issues(inspection_id: str) -> IssuesResponse:
-    _require_inspection(inspection_id)
+    item = _require_inspection(inspection_id)
     report = load_issues_report(inspection_id)
-    return IssuesResponse(**_present_issue_report(report))
+    return IssuesResponse(
+        **_present_issue_report(report, property_label=item.get("property_label"))
+    )
 
 
 @router.get("/{inspection_id}/frames/{frame_index}/url")
@@ -340,6 +347,21 @@ def get_frame_url(inspection_id: str, frame_index: int) -> dict:
     if not matches:
         raise HTTPException(status_code=404, detail="Keyframe not found")
     key = matches[0]["s3_key"]
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.s3_bucket, "Key": key},
+        ExpiresIn=settings.presigned_url_ttl_seconds,
+    )
+    return {"url": url, "expires_in_seconds": settings.presigned_url_ttl_seconds}
+
+
+@router.get("/{inspection_id}/video/url")
+def get_video_url(inspection_id: str) -> dict:
+    """Return a short-lived URL used by report timestamp links."""
+    item = _require_inspection(inspection_id)
+    key = item.get("original_s3_key")
+    if not key:
+        raise HTTPException(status_code=409, detail="Inspection has no original video")
     url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},

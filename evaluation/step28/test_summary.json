@@ -1,0 +1,33 @@
+{
+  "step": 28,
+  "generated_at": "2026-09-21T00:00:00+00:00",
+  "status": "LOCAL_PASS",
+  "focused_tests": {
+    "command": "pytest -q tests/test_step28_polished_report.py",
+    "passed": 5,
+    "failed": 0
+  },
+  "presentation_regression_tests": {
+    "command": "pytest -q tests/test_step24_issue_consolidation.py tests/test_step25_severity_classification.py tests/test_step26_confidence.py tests/test_step27_responsible_language.py tests/test_step28_polished_report.py tests/test_api.py",
+    "passed": 58,
+    "failed": 0,
+    "warnings": 1
+  },
+  "full_project_tests": {
+    "command": "pytest -q",
+    "passed": 153,
+    "failed": 0,
+    "warnings": 1,
+    "warning_note": "Pre-existing Starlette/httpx dependency deprecation warning; no test failures. The extracted archive test supplied GIT_COMMIT because distributable ZIPs intentionally omit .git metadata."
+  },
+  "contract_verification": {
+    "command": "python scripts/verify_step28_polished_report.py",
+    "passed_checks": 11,
+    "total_checks": 11,
+    "errors": []
+  },
+  "live_aws_validation": {
+    "status": "NOT_REQUIRED",
+    "reason": "Deterministic presentation layer over already validated issue reports and S3 evidence; AWS, COOL, Bedrock, OpenCV, persistence, and decision paths are unchanged."
+  }
+}

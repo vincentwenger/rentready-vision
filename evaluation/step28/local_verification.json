@@ -1,0 +1,32 @@
+{
+  "step": 28,
+  "verification_scope": "local_polished_report_contract_and_browser",
+  "passed": true,
+  "checks_passed": 11,
+  "checks_total": 11,
+  "checks": {
+    "versioned_report_contract": true,
+    "property_label_present": true,
+    "requested_example_scores_78": true,
+    "three_severity_counts_present": true,
+    "room_grouping_present": true,
+    "evidence_range_present": true,
+    "recommended_actions_present": true,
+    "report_image_surface_present": true,
+    "video_timestamp_link_present": true,
+    "technical_evidence_retained": true,
+    "visible_evidence_disclaimer_present": true
+  },
+  "example": {
+    "property_label": "123 Main Street",
+    "score": 78,
+    "counts": {
+      "Fix before renting": 3,
+      "Review recommended": 4,
+      "Cosmetic": 5
+    },
+    "room_count": 1,
+    "issue_count": 12
+  },
+  "errors": []
+}

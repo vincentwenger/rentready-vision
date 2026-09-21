@@ -72,7 +72,52 @@
     .other-angles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 12px 0 24px; }
     .other-angles img { aspect-ratio: 16/9; object-fit: contain; }
     .derived-label { color: #9a3412; font-weight: 700; }
-    @media (max-width: 600px) { .methods { columns: 1; } .comparison { grid-template-columns: 1fr; } }
+    .report-masthead { padding-bottom: 24px; border-bottom: 1px solid #e2e8f0; }
+    .report-brand { margin: 0; color: #166534; font-size: .86rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .report-property { margin: 6px 0 0; font-size: clamp(1.65rem, 4vw, 2.5rem); letter-spacing: -.035em; }
+    .readiness-summary { display: grid; grid-template-columns: minmax(180px, .65fr) 1.35fr; gap: 24px; align-items: center; padding: 24px 0; }
+    .score-label { color: #64748b; font-size: .86rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .readiness-score { margin-top: 4px; font-size: clamp(2.6rem, 8vw, 4.3rem); font-weight: 850; letter-spacing: -.06em; line-height: 1; }
+    .readiness-score .score-value { color: #172033; }
+    .readiness-score .score-maximum { color: #64748b; font-size: .38em; font-weight: 700; letter-spacing: -.02em; }
+    .severity-counts { display: grid; gap: 8px; }
+    .severity-count { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-radius: 12px; font-weight: 750; }
+    .severity-count span:first-child { font-size: 1.05rem; }
+    .severity-count-fix { color: #991b1b; background: #fef2f2; }
+    .severity-count-review { color: #9a3412; background: #fff7ed; }
+    .severity-count-cosmetic { color: #854d0e; background: #fefce8; }
+    .report-disclaimer { margin: 0 0 28px; color: #64748b; font-size: .83rem; line-height: 1.5; }
+    .room-section { margin: 28px 0 34px; }
+    .room-heading { margin: 0 0 14px; font-size: 1.35rem; }
+    .report-issues { display: grid; gap: 18px; }
+    .report-issue { overflow: hidden; border: 1px solid #dce3ee; border-radius: 16px; background: #fff; box-shadow: 0 8px 22px rgba(26, 43, 72, .055); }
+    .report-issue-body { padding: 18px; }
+    .report-issue-title { margin: 0; font-size: 1.12rem; }
+    .report-issue-meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin: 8px 0 0; color: #475569; font-size: .88rem; font-weight: 700; }
+    .severity-dot { width: 9px; height: 9px; border-radius: 50%; background: #d97706; }
+    .severity-dot-fix { background: #dc2626; }
+    .severity-dot-cosmetic { background: #ca8a04; }
+    .report-description { margin: 12px 0 0; color: #475569; line-height: 1.55; }
+    .evidence-label, .action-label { margin: 18px 0 5px; color: #64748b; font-size: .75rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .evidence-range { margin: 0 0 10px; font-weight: 800; }
+    .report-evidence-image { width: 100%; max-height: 460px; object-fit: contain; display: block; background: #e2e8f0; }
+    .evidence-unavailable { display: grid; min-height: 180px; place-items: center; padding: 24px; color: #64748b; background: #f1f5f9; text-align: center; }
+    .evidence-summary, .recommended-action { margin: 12px 0 0; line-height: 1.6; }
+    .video-link { width: auto; margin-top: 16px; padding: 10px 13px; background: #166534; font-size: .9rem; }
+    .empty-report { padding: 28px; border: 1px dashed #94a3b8; border-radius: 14px; color: #475569; background: #f8fafc; text-align: center; }
+    .technical-report { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+    .technical-report > summary { font-size: 1rem; }
+    .video-panel { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 22px; background: rgba(15, 23, 42, .82); }
+    .video-shell { width: min(980px, 100%); padding: 14px; border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, .34); }
+    .video-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 2px 12px; font-weight: 800; }
+    .video-close { width: auto; margin: 0; padding: 7px 11px; color: #334155; background: #e2e8f0; }
+    #report-video { width: 100%; max-height: 72vh; display: block; border-radius: 10px; background: #0f172a; }
+    @media (max-width: 600px) {
+      .methods { columns: 1; }
+      .comparison, .readiness-summary { grid-template-columns: 1fr; }
+      .readiness-summary { gap: 18px; }
+      .report-issue-body { padding: 15px; }
+    }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -106,11 +151,27 @@
       <li class="step" id="step-angle"><span class="mark">○</span><span>Searching nearby frames for other camera viewpoints</span></li>
       <li class="step" id="step-policy"><span class="mark">○</span><span>Applying the confidence and evidence decision policy</span></li>
       <li class="step" id="step-audit"><span class="mark">○</span><span>Persisting the agent action audit trail</span></li>
-      <li class="step" id="step-report"><span class="mark">○</span><span>Creating frame report</span></li>
+      <li class="step" id="step-report"><span class="mark">○</span><span>Building the polished rental-readiness report</span></li>
     </ul>
   </section>
 
   <section class="card" id="results" hidden>
+    <div class="report-masthead">
+      <p class="report-brand">RentReady Vision</p>
+      <h2 class="report-property" id="report-property">Property inspection</h2>
+    </div>
+    <div class="readiness-summary">
+      <div>
+        <div class="score-label" id="score-label">Rental Readiness</div>
+        <div class="readiness-score"><span class="score-value" id="readiness-score-value">—</span> <span class="score-maximum">/ 100</span></div>
+      </div>
+      <div class="severity-counts" id="severity-counts"></div>
+    </div>
+    <p class="report-disclaimer" id="report-disclaimer"></p>
+    <div id="report-rooms"></div>
+
+    <details class="technical-report">
+    <summary>Technical evidence and audit trail</summary>
     <h2>OpenCV evidence-quality report</h2>
     <p id="summary"></p>
     <h3>Frame-reduction evidence</h3>
@@ -146,7 +207,18 @@
     <div class="scene-list" id="scenes"></div>
     <h3>Selected inspection frames</h3>
     <div class="grid" id="frames"></div>
+    </details>
   </section>
+
+  <div class="video-panel" id="video-panel" hidden>
+    <div class="video-shell">
+      <div class="video-toolbar">
+        <span id="video-title">Walkthrough video</span>
+        <button class="video-close" id="video-close" type="button">Close</button>
+      </div>
+      <video id="report-video" controls preload="metadata"></video>
+    </div>
+  </div>
 
 <script>
 const runButton = document.getElementById("run");
@@ -210,67 +282,184 @@ function setStep(name, state) {
   element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : state === "warn" ? "!" : "○";
 }
 
-function renderIssues(response, warning = null) {
-  const list = document.getElementById("issues");
-  const note = document.getElementById("issue-note");
-  list.replaceChildren();
+let activeVideoUrl = null;
+
+async function openVideoAt(inspectionId, seconds, label) {
+  const panel = document.getElementById("video-panel");
+  const video = document.getElementById("report-video");
+  document.getElementById("video-title").textContent = `Walkthrough at ${label}`;
+  if (!activeVideoUrl) activeVideoUrl = (await api(`/inspections/${inspectionId}/video/url`)).url;
+  if (video.src !== activeVideoUrl) video.src = activeVideoUrl;
+  const seek = () => {
+    video.currentTime = Math.max(0, Number(seconds) || 0);
+    video.play().catch(() => {});
+  };
+  if (video.readyState >= 1) seek();
+  else video.addEventListener("loadedmetadata", seek, {once: true});
+  panel.hidden = false;
+}
+
+document.getElementById("video-close").onclick = () => {
+  const video = document.getElementById("report-video");
+  video.pause();
+  document.getElementById("video-panel").hidden = true;
+};
+
+function reportCount(label, count, className, symbol) {
+  const row = document.createElement("div");
+  row.className = `severity-count ${className}`;
+  const icon = document.createElement("span");
+  icon.textContent = symbol;
+  const text = document.createElement("span");
+  text.textContent = `${count} ${label}`;
+  row.append(icon, text);
+  return row;
+}
+
+async function renderReportIssue(inspectionId, issue) {
+  const card = document.createElement("article");
+  card.className = "report-issue";
+  const body = document.createElement("div");
+  body.className = "report-issue-body";
+  const title = document.createElement("h3");
+  title.className = "report-issue-title";
+  title.textContent = issue.title;
+  const meta = document.createElement("div");
+  meta.className = "report-issue-meta";
+  const severity = String(issue.severity ?? "Review recommended");
+  const dot = document.createElement("span");
+  dot.className = `severity-dot ${severity === "Fix before renting" ? "severity-dot-fix" : severity === "Cosmetic" ? "severity-dot-cosmetic" : ""}`;
+  meta.append(
+    dot,
+    document.createTextNode(`${severity} · `),
+    confidenceBadge(issue.confidence, issue.confidence_label),
+    document.createTextNode(" confidence")
+  );
+  const description = document.createElement("p");
+  description.className = "report-description";
+  description.textContent = issue.description;
+  const evidenceLabel = document.createElement("p");
+  evidenceLabel.className = "evidence-label";
+  evidenceLabel.textContent = "Evidence";
+  const start = formatTimestamp(issue.evidence_start_seconds);
+  const end = formatTimestamp(issue.evidence_end_seconds);
+  const range = document.createElement("p");
+  range.className = "evidence-range";
+  range.textContent = `${start} — ${end}`;
+  body.append(title, meta, description, evidenceLabel, range);
+  card.append(body);
+
+  const frameIndex = issue.representative_frame_index;
+  if (Number.isInteger(frameIndex)) {
+    try {
+      const image = await api(`/inspections/${inspectionId}/frames/${frameIndex}/url`);
+      const img = document.createElement("img");
+      img.className = "report-evidence-image";
+      img.src = image.url;
+      img.alt = `${issue.title} evidence at ${formatTimestamp(issue.representative_timestamp_seconds)}`;
+      img.loading = "lazy";
+      card.append(img);
+    } catch (_) {
+      const unavailable = document.createElement("div");
+      unavailable.className = "evidence-unavailable";
+      unavailable.textContent = "Evidence image is temporarily unavailable.";
+      card.append(unavailable);
+    }
+  }
+
+  const footer = document.createElement("div");
+  footer.className = "report-issue-body";
+  const evidenceSummary = document.createElement("p");
+  evidenceSummary.className = "evidence-summary";
+  evidenceSummary.textContent = issue.evidence_summary;
+  const actionLabel = document.createElement("p");
+  actionLabel.className = "action-label";
+  actionLabel.textContent = "Recommended action";
+  const action = document.createElement("p");
+  action.className = "recommended-action";
+  action.textContent = issue.recommended_action;
+  const videoButton = document.createElement("button");
+  videoButton.type = "button";
+  videoButton.className = "video-link";
+  const timestamp = Number(issue.representative_timestamp_seconds) || 0;
+  const timestampLabel = formatTimestamp(timestamp);
+  videoButton.textContent = `▶ View in video at ${timestampLabel}`;
+  videoButton.onclick = () => openVideoAt(inspectionId, timestamp, timestampLabel).catch(error => {
+    videoButton.textContent = error instanceof Error ? error.message : String(error);
+  });
+  footer.append(evidenceSummary, actionLabel, action, videoButton);
+  card.append(footer);
+  return card;
+}
+
+async function renderIssues(response, warning = null, inspectionId = null) {
+  const technicalList = document.getElementById("issues");
+  const technicalNote = document.getElementById("issue-note");
+  const roomsElement = document.getElementById("report-rooms");
+  const countsElement = document.getElementById("severity-counts");
+  technicalList.replaceChildren();
+  roomsElement.replaceChildren();
+  countsElement.replaceChildren();
   setConfidenceScale(response?.confidence_scale);
-  if (warning) {
-    note.textContent = "OpenCV evidence processing completed, but Step 17 structured finding detection could not run.";
+  const sourceFindings = response?.issues ?? response?.candidate_findings ?? [];
+  const sourceEvidenceTimestampCount = sourceFindings.reduce(
+    (count, issue) => count + (Array.isArray(issue.evidence_timestamps) ? issue.evidence_timestamps.length : 1),
+    0
+  );
+
+  if (warning || !response?.polished_report) {
+    document.getElementById("report-property").textContent = "Property inspection";
+    document.getElementById("readiness-score-value").textContent = "—";
+    document.getElementById("report-disclaimer").textContent = "A report could not be completed from the available evidence.";
     const row = document.createElement("div");
     row.className = "issue-warning";
-    row.textContent = warning;
-    list.append(row);
+    row.textContent = warning || "The polished report contract is unavailable.";
+    roomsElement.append(row);
+    technicalNote.textContent = "Structured finding detection did not complete.";
+    technicalList.append(row.cloneNode(true));
     return;
   }
 
-  const severityOrder = {"Fix before renting": 0, "Review recommended": 1, "Cosmetic": 2};
-  const findings = [...(response?.issues ?? response?.candidate_findings ?? [])].sort(
-    (left, right) => (severityOrder[left.severity] ?? 1) - (severityOrder[right.severity] ?? 1)
+  const report = response.polished_report;
+  document.getElementById("report-property").textContent = report.property_label;
+  document.getElementById("score-label").textContent = report.score_label;
+  document.getElementById("readiness-score-value").textContent = report.score;
+  document.getElementById("report-disclaimer").textContent = report.disclaimer;
+  countsElement.append(
+    reportCount("Fix Before Renting", report.counts["Fix before renting"] ?? 0, "severity-count-fix", "●"),
+    reportCount("Review Recommended", report.counts["Review recommended"] ?? 0, "severity-count-review", "●"),
+    reportCount("Cosmetic", report.counts.Cosmetic ?? 0, "severity-count-cosmetic", "●")
   );
-  const consolidation = response?.consolidation ?? {};
-  const rawIssueCount = consolidation.raw_issue_count ?? response?.raw_issues?.length ?? findings.length;
-  const aboveThreshold = findings.length;
-  const namedCount = response?.taxonomy?.named_category_count ?? 13;
-  const disclaimer = response?.severity_classification?.disclaimer ?? "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety rating.";
-  const languageVersion = response?.responsible_language?.version ?? "rentready-responsible-language/1.0";
-  note.textContent = `Step 27 · ${rawIssueCount} frame-level detection(s) → ${aboveThreshold} consolidated and classified issue(s) · confidence shown as Low, Medium, or High. Visible conditions only; hidden causes, electrical safety, and structural significance require qualified human inspection. Policy ${languageVersion}. ${disclaimer}`;
-  if (!findings.length) {
-    const row = document.createElement("div");
-    row.className = "issue-row";
-    row.textContent = "No visible issue met the detector confidence threshold in the selected evidence frames.";
-    list.append(row);
-    return;
+
+  if (!report.rooms.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-report";
+    empty.textContent = "No visible issue met the reporting threshold in the selected evidence frames.";
+    roomsElement.append(empty);
   }
 
-  findings.forEach(issue => {
-    const row = document.createElement("div");
-    row.className = "issue-row";
-    const title = document.createElement("strong");
-    const label = issue.category === "other" && issue.other_label ? `${issue.category}: ${issue.other_label}` : issue.category;
-    title.textContent = label.replaceAll("_", " ");
-    const severity = String(issue.severity ?? "Review recommended");
-    const badge = document.createElement("span");
-    badge.className = `severity-badge ${severity === "Fix before renting" ? "severity-fix" : severity === "Cosmetic" ? "severity-cosmetic" : "severity-review"}`;
-    badge.textContent = severity;
-    title.append(badge);
-    const summary = document.createElement("div");
-    summary.textContent = `${issue.description} — ${String(issue.room ?? "unknown").replaceAll("_", " ")}`;
-    const meta = document.createElement("div");
-    meta.className = "issue-meta";
-    const bbox = issue.bbox ?? {};
-    const timestamps = Array.isArray(issue.evidence_timestamps) && issue.evidence_timestamps.length
-      ? issue.evidence_timestamps.map(value => formatTimestamp(Number(value))).join(", ")
-      : formatTimestamp(Number(issue.timestamp));
-    const observationCount = Number(issue.consolidated_from_count ?? 1);
-    meta.append(
-      document.createTextNode("Confidence "),
-      confidenceBadge(issue.confidence, issue.confidence_label),
-      document.createTextNode(` · ${observationCount} evidence frame(s): ${timestamps} · bbox (${bbox.x}, ${bbox.y}, ${bbox.width}, ${bbox.height})`)
-    );
-    row.append(title, summary, meta);
-    list.append(row);
-  });
+  for (const room of report.rooms) {
+    const section = document.createElement("section");
+    section.className = "room-section";
+    const heading = document.createElement("h2");
+    heading.className = "room-heading";
+    heading.textContent = room.name;
+    const issueList = document.createElement("div");
+    issueList.className = "report-issues";
+    const cards = await Promise.all(room.issues.map(issue => renderReportIssue(inspectionId, issue)));
+    issueList.append(...cards);
+    section.append(heading, issueList);
+    roomsElement.append(section);
+  }
+
+  const rawIssueCount = response?.consolidation?.raw_issue_count ?? response?.raw_issues?.length ?? sourceFindings.length;
+  const languageVersion = response?.responsible_language?.version ?? "rentready-responsible-language/1.0";
+  const safetyDisclosure = "Step 27: visible conditions only; hidden causes, electrical safety, and structural significance require qualified human inspection. This is not an official safety rating.";
+  technicalNote.textContent = `Step 28 · ${rawIssueCount} frame-level detection(s) with ${sourceEvidenceTimestampCount} evidence timestamp(s) → ${report.issue_count} room-grouped issue(s) · policy ${languageVersion}. ${safetyDisclosure}`;
+  const technicalRow = document.createElement("div");
+  technicalRow.className = "issue-row";
+  technicalRow.textContent = `Report ${report.version} · readiness ${report.score}/100 · ${report.issue_count} visible issue(s).`;
+  technicalList.append(technicalRow);
 }
 
 function renderAgentic(response, warning = null) {
@@ -604,6 +793,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
+  activeVideoUrl = null;
   ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "audit", "report"].forEach(name => setStep(name, null));
 
   try {
@@ -803,7 +993,7 @@ runButton.onclick = async () => {
 
     setStep("report", "active");
     await renderResults(id, frames);
-    renderIssues(issueResponse, issueWarning);
+    await renderIssues(issueResponse, issueWarning, id);
     renderAgentic(agentResponse, agentWarning);
     await renderEnhancement(id, enhancementResponse, enhancementWarning, enhancementViews);
     await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);

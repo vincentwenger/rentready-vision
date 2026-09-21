@@ -131,6 +131,31 @@ def test_detect_issues_endpoint_runs_step17_detector(monkeypatch) -> None:
     assert response.json()["issues"][0]["confidence_label"] == "Medium"
     assert response.json()["confidence_scale"]["labels"] == ["Low", "Medium", "High"]
     assert response.json()["confidence_scale"]["internal_numeric_confidence_retained"] is True
+    assert response.json()["polished_report"]["version"] == "rentready-polished-report/1.0"
+    assert response.json()["polished_report"]["issue_count"] == 1
+
+
+def test_video_url_supports_polished_report_timestamp_links(monkeypatch) -> None:
+    monkeypatch.setattr(
+        inspection_routes,
+        "_require_inspection",
+        lambda inspection_id: {
+            "inspection_id": inspection_id,
+            "status": "COMPLETE",
+            "original_s3_key": f"inspections/{inspection_id}/original/walkthrough.mp4",
+        },
+    )
+    monkeypatch.setattr(
+        inspection_routes.s3,
+        "generate_presigned_url",
+        lambda *args, **kwargs: "https://example.test/walkthrough.mp4",
+    )
+
+    response = client.get("/inspections/example/video/url")
+
+    assert response.status_code == 200
+    assert response.json()["url"] == "https://example.test/walkthrough.mp4"
+    assert response.json()["expires_in_seconds"] > 0
 
 
 def test_planned_upload_endpoint_is_documented() -> None:
@@ -138,3 +163,4 @@ def test_planned_upload_endpoint_is_documented() -> None:
     assert "/inspections/{inspection_id}/upload" in schema["paths"]
     assert "/inspections/{inspection_id}/issues" in schema["paths"]
     assert "/inspections/{inspection_id}/issues/detect" in schema["paths"]
+    assert "/inspections/{inspection_id}/video/url" in schema["paths"]

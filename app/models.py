@@ -119,6 +119,7 @@ class IssuesResponse(BaseModel):
     consolidation: dict[str, Any] | None = None
     confidence_scale: dict[str, Any] | None = None
     responsible_language: dict[str, Any] | None = None
+    polished_report: dict[str, Any] | None = None
     report_s3_key: str | None = None
     note: str = (
         "Step 27 describes visible conditions without diagnosing hidden causes or determining "

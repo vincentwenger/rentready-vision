@@ -1,0 +1,45 @@
+{
+  "version": "rentready-polished-report/1.0",
+  "score": {
+    "label": "Rental Readiness",
+    "minimum": 0,
+    "maximum": 100,
+    "deduction_per_issue": {
+      "Fix before renting": 5.0,
+      "Review recommended": 1.5,
+      "Cosmetic": 0.2
+    },
+    "rounding": "nearest whole number, half up",
+    "example": {
+      "counts": {
+        "Fix before renting": 3,
+        "Review recommended": 4,
+        "Cosmetic": 5
+      },
+      "score": 78
+    },
+    "not_an_official_safety_rating": true
+  },
+  "issue_card": {
+    "required_fields": [
+      "room",
+      "title",
+      "severity",
+      "confidence_label",
+      "evidence_start_seconds",
+      "evidence_end_seconds",
+      "representative_timestamp_seconds",
+      "representative_frame_index",
+      "evidence_summary",
+      "recommended_action"
+    ],
+    "evidence_image_source": "existing keyframe short-lived URL",
+    "video_link_source": "original walkthrough short-lived URL"
+  },
+  "guardrails": {
+    "uses_step27_safe_descriptions": true,
+    "preserves_numeric_confidence": true,
+    "preserves_technical_audit_view": true,
+    "visible_evidence_only": true
+  }
+}

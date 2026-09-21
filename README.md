@@ -64,6 +64,7 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Consolidate repeated frame-level observations into one physical issue using timestamp, room, category, whole-image, region, and semantic similarity while retaining every evidence timestamp.
 - Classify each consolidated issue as exactly **Fix before renting**, **Review recommended**, or **Cosmetic**, with an explicit visible-evidence-only disclaimer that this is not an official safety rating.
 - Apply a deterministic responsible-language policy before persistence and again at the public API boundary: describe visible conditions, never diagnose mold, never determine electrical safety, never label cracking as structural, and preserve qualified human review.
+- Build a polished, room-grouped rental-readiness report with a transparent 0–100 score, severity totals, evidence images and ranges, recommended actions, and links that seek the original walkthrough to each issue timestamp.
 - Generate short-lived GET URLs for evidence frames.
 
 ## Local fallback versus production AWS path
@@ -553,6 +554,14 @@ Step 27 adds the versioned `rentready-responsible-language/1.0` policy layer. Un
 The guardrail is enforced in model prompts, before findings enter identity/consolidation/persistence, after agent evidence-summary generation, and again at the API boundary for legacy reports and public traces. Each presented issue carries an audit marker, and the issue response exposes the complete policy contract. Confidence, severity, OpenCV evidence, and Step-22 routing are unchanged.
 
 See [`STEP27_RESPONSIBLE_LANGUAGE.md`](STEP27_RESPONSIBLE_LANGUAGE.md) and [`evaluation/step27/`](evaluation/step27/). Local deterministic verification is sufficient because the policy does not change the AWS/COOL/OpenCV workload.
+
+## Step 28 polished rental-readiness report — LOCAL PASS
+
+Step 28 makes the property report the primary dashboard. It shows the property label, a transparent **Rental Readiness** score, counts for all three Step-25 classes, and room-grouped issue cards with categorical confidence, evidence ranges, representative images, responsible descriptions, recommended actions, and timestamp links into the original walkthrough. The technical OpenCV and agent audit view remains available in a disclosure below the report.
+
+The versioned `rentready-polished-report/1.0` contract is deterministic and does not change stored evidence, AWS processing, confidence, severity, or responsible-language policy. The score begins at 100 and deducts 5 points per Fix Before Renting issue, 1.5 per Review Recommended issue, and 0.2 per Cosmetic issue; therefore the requested 3/4/5 example is exactly **78/100**. It is explicitly a visible-condition prioritization index, not a safety rating.
+
+See [`STEP28_POLISHED_REPORT.md`](STEP28_POLISHED_REPORT.md) and [`evaluation/step28/`](evaluation/step28/). Live AWS validation is not required because this step presents previously validated evidence through the existing short-lived S3 URL pattern.
 
 ## Step 13 benchmark
 
