@@ -149,7 +149,7 @@ def test_browser_contains_complete_polished_report_surface() -> None:
         "Fix Before Renting",
         "Review Recommended",
         "Recommended action",
-        "View in video at",
+        "View at",
         "Technical evidence and audit trail",
         "report-evidence-image",
         "openVideoAt",

@@ -1,0 +1,29 @@
+{
+  "step": 29,
+  "verification_scope": "local_clickable_issue_timestamp_controls",
+  "passed": true,
+  "checks_passed": 11,
+  "checks_total": 11,
+  "checks": {
+    "control_added_to_every_report_issue": true,
+    "requested_view_at_label_present": true,
+    "representative_timestamp_is_source": true,
+    "timestamp_formats_271_as_04_31": true,
+    "video_seeks_to_issue_timestamp": true,
+    "video_play_starts_after_seek": true,
+    "original_walkthrough_endpoint_used": true,
+    "video_prepared_before_click": true,
+    "cache_scoped_to_inspection": true,
+    "keyboard_accessible_button": true,
+    "accessible_issue_specific_label": true
+  },
+  "example": {
+    "issue_timestamp_seconds": 271,
+    "control_label": "View at 04:31",
+    "player_action": [
+      "video.currentTime = 271",
+      "video.play()"
+    ]
+  },
+  "errors": []
+}

@@ -1,0 +1,30 @@
+{
+  "step": 29,
+  "feature": "clickable_issue_evidence",
+  "control": {
+    "label_pattern": "View at MM:SS",
+    "example_timestamp_seconds": 271,
+    "example_label": "View at 04:31",
+    "one_per_report_issue": true,
+    "keyboard_accessible": true,
+    "issue_specific_accessible_label": true
+  },
+  "behavior": {
+    "timestamp_source": "representative_timestamp_seconds",
+    "video_source": "immutable original walkthrough short-lived URL",
+    "on_click": [
+      "open video panel",
+      "set video.currentTime to issue timestamp",
+      "call video.play"
+    ],
+    "cache_scope": "inspection_id"
+  },
+  "unchanged": [
+    "stored evidence",
+    "issue timestamps",
+    "polished report contract",
+    "AWS and COOL processing",
+    "Bedrock model output",
+    "decision policy"
+  ]
+}

@@ -62,7 +62,7 @@ def main() -> None:
             for issue in room["issues"]
         ),
         "report_image_surface_present": "report-evidence-image" in html,
-        "video_timestamp_link_present": "View in video at" in html
+        "video_timestamp_link_present": "View at" in html
         and "/video/url" in html,
         "technical_evidence_retained": "Technical evidence and audit trail" in html,
         "visible_evidence_disclaimer_present": report["scoring"][

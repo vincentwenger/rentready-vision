@@ -12,7 +12,7 @@ frame-processing dashboard. The primary view contains:
 - the Step-27-safe issue title and description;
 - categorical confidence, an evidence time range, and a representative image;
 - a condition-specific recommended action; and
-- a **View in video** control that loads the original walkthrough and seeks to
+- a **View at MM:SS** control that loads the original walkthrough and seeks to
   the representative issue timestamp.
 
 The OpenCV metrics, runtime identity, agent traces, decision policy, scene list,

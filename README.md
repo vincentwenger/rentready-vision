@@ -563,6 +563,26 @@ The versioned `rentready-polished-report/1.0` contract is deterministic and does
 
 See [`STEP28_POLISHED_REPORT.md`](STEP28_POLISHED_REPORT.md) and [`evaluation/step28/`](evaluation/step28/). Live AWS validation is not required because this step presents previously validated evidence through the existing short-lived S3 URL pattern.
 
+## Step 29 clickable issue evidence — LOCAL PASS
+
+Step 29 gives every room-grouped issue card a **View at MM:SS** control. For the
+canonical `271`-second example, the label is **View at 04:31**. Selecting it
+opens the original walkthrough, sets `video.currentTime` to the issue's
+representative timestamp, and starts playback so a judge can verify the AI
+claim against its source evidence immediately.
+
+The original video is prepared once per inspection for responsive playback,
+and the cache is explicitly keyed by inspection ID so a later inspection cannot
+reuse an earlier walkthrough. The native button includes an issue-specific
+accessible label and visible keyboard focus. Step 29 changes only browser
+presentation behavior; stored evidence and all processing contracts are
+unchanged.
+
+See [`STEP29_CLICKABLE_ISSUES.md`](STEP29_CLICKABLE_ISSUES.md) and
+[`evaluation/step29/`](evaluation/step29/). Live AWS validation is not required
+because this step uses the original-video endpoint already covered by the Step
+28 API test.
+
 ## Step 13 benchmark
 
 The controlled stock-OpenCV-vs-COOL performance harness is documented in

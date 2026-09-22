@@ -104,6 +104,8 @@
     .evidence-unavailable { display: grid; min-height: 180px; place-items: center; padding: 24px; color: #64748b; background: #f1f5f9; text-align: center; }
     .evidence-summary, .recommended-action { margin: 12px 0 0; line-height: 1.6; }
     .video-link { width: auto; margin-top: 16px; padding: 10px 13px; background: #166534; font-size: .9rem; }
+    .video-link:hover { background: #14532d; }
+    .video-link:focus-visible { outline: 3px solid #86efac; outline-offset: 3px; }
     .empty-report { padding: 28px; border: 1px dashed #94a3b8; border-radius: 14px; color: #475569; background: #f8fafc; text-align: center; }
     .technical-report { margin-top: 32px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
     .technical-report > summary { font-size: 1rem; }
@@ -282,21 +284,68 @@ function setStep(name, state) {
   element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : state === "warn" ? "!" : "○";
 }
 
+let activeVideoInspectionId = null;
 let activeVideoUrl = null;
+let activeVideoUrlPromise = null;
 
-async function openVideoAt(inspectionId, seconds, label) {
+function resetReportVideo() {
+  const video = document.getElementById("report-video");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  activeVideoInspectionId = null;
+  activeVideoUrl = null;
+  activeVideoUrlPromise = null;
+}
+
+async function prepareReportVideo(inspectionId) {
+  if (!inspectionId) throw new Error("The walkthrough video is unavailable.");
+  if (activeVideoInspectionId !== inspectionId) {
+    resetReportVideo();
+    activeVideoInspectionId = inspectionId;
+  }
+  if (!activeVideoUrlPromise) {
+    activeVideoUrlPromise = api(`/inspections/${inspectionId}/video/url`)
+      .then(response => {
+        activeVideoUrl = response.url;
+        const video = document.getElementById("report-video");
+        video.src = activeVideoUrl;
+        video.load();
+        return activeVideoUrl;
+      })
+      .catch(error => {
+        activeVideoUrlPromise = null;
+        throw error;
+      });
+  }
+  return activeVideoUrlPromise;
+}
+
+function seekAndPlayVideo(video, seconds) {
+  const timestamp = Math.max(0, Number(seconds) || 0);
+  video.currentTime = timestamp;
+  return video.play();
+}
+
+function openVideoAt(inspectionId, seconds, label) {
   const panel = document.getElementById("video-panel");
   const video = document.getElementById("report-video");
   document.getElementById("video-title").textContent = `Walkthrough at ${label}`;
-  if (!activeVideoUrl) activeVideoUrl = (await api(`/inspections/${inspectionId}/video/url`)).url;
-  if (video.src !== activeVideoUrl) video.src = activeVideoUrl;
-  const seek = () => {
-    video.currentTime = Math.max(0, Number(seconds) || 0);
-    video.play().catch(() => {});
-  };
-  if (video.readyState >= 1) seek();
-  else video.addEventListener("loadedmetadata", seek, {once: true});
   panel.hidden = false;
+
+  const playAtIssue = () => {
+    if (video.readyState >= 1) return seekAndPlayVideo(video, seconds);
+    return new Promise((resolve, reject) => {
+      video.addEventListener("loadedmetadata", () => {
+        seekAndPlayVideo(video, seconds).then(resolve).catch(reject);
+      }, {once: true});
+    });
+  };
+
+  if (activeVideoInspectionId === inspectionId && activeVideoUrl) {
+    return playAtIssue();
+  }
+  return prepareReportVideo(inspectionId).then(playAtIssue);
 }
 
 document.getElementById("video-close").onclick = () => {
@@ -383,7 +432,8 @@ async function renderReportIssue(inspectionId, issue) {
   videoButton.className = "video-link";
   const timestamp = Number(issue.representative_timestamp_seconds) || 0;
   const timestampLabel = formatTimestamp(timestamp);
-  videoButton.textContent = `▶ View in video at ${timestampLabel}`;
+  videoButton.textContent = `View at ${timestampLabel}`;
+  videoButton.setAttribute("aria-label", `View ${issue.title} in the walkthrough at ${timestampLabel}`);
   videoButton.onclick = () => openVideoAt(inspectionId, timestamp, timestampLabel).catch(error => {
     videoButton.textContent = error instanceof Error ? error.message : String(error);
   });
@@ -421,6 +471,11 @@ async function renderIssues(response, warning = null, inspectionId = null) {
   }
 
   const report = response.polished_report;
+  if (inspectionId && report.issue_count > 0) {
+    prepareReportVideo(inspectionId).catch(() => {
+      // The issue controls retry on click and surface any error in place.
+    });
+  }
   document.getElementById("report-property").textContent = report.property_label;
   document.getElementById("score-label").textContent = report.score_label;
   document.getElementById("readiness-score-value").textContent = report.score;
@@ -793,7 +848,7 @@ runButton.onclick = async () => {
   errorEl.style.display = "none";
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
-  activeVideoUrl = null;
+  resetReportVideo();
   ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "audit", "report"].forEach(name => setStep(name, null));
 
   try {
