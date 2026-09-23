@@ -1,0 +1,27 @@
+{
+  "step": 30,
+  "feature": "rental_preparation_checklist",
+  "source": "final verified issues after consolidation, responsible-language handling, and severity classification",
+  "title": "Rental Preparation Checklist",
+  "sections": [
+    "FIX BEFORE RENTING",
+    "REVIEW",
+    "COSMETIC"
+  ],
+  "allowed_statuses": [
+    "Open",
+    "In progress",
+    "Resolved"
+  ],
+  "default_status": "Open",
+  "persistence": "inspection metadata keyed by issue_id",
+  "contractor_management_included": false,
+  "excluded_fields": [
+    "contractor",
+    "assignee",
+    "bid",
+    "invoice",
+    "schedule",
+    "work order"
+  ]
+}

@@ -65,6 +65,7 @@ This project implements the walking skeleton plus substantive OpenCV evidence pr
 - Classify each consolidated issue as exactly **Fix before renting**, **Review recommended**, or **Cosmetic**, with an explicit visible-evidence-only disclaimer that this is not an official safety rating.
 - Apply a deterministic responsible-language policy before persistence and again at the public API boundary: describe visible conditions, never diagnose mold, never determine electrical safety, never label cracking as structural, and preserve qualified human review.
 - Build a polished, room-grouped rental-readiness report with a transparent 0–100 score, severity totals, evidence images and ranges, recommended actions, and links that seek the original walkthrough to each issue timestamp.
+- Automatically turn final verified issues into a three-section Rental Preparation Checklist with Open, In progress, and Resolved status tracking.
 - Generate short-lived GET URLs for evidence frames.
 
 ## Local fallback versus production AWS path
@@ -310,6 +311,7 @@ the competition submission.
 - `GET /inspections/{id}/frames/{frame_index}/url`
 - `POST /inspections/{id}/issues/detect`
 - `GET /inspections/{id}/issues`
+- `PATCH /inspections/{id}/checklist/items/{issue_id}`
 
 ## Setup
 
@@ -582,6 +584,26 @@ See [`STEP29_CLICKABLE_ISSUES.md`](STEP29_CLICKABLE_ISSUES.md) and
 [`evaluation/step29/`](evaluation/step29/). Live AWS validation is not required
 because this step uses the original-video endpoint already covered by the Step
 28 API test.
+
+## Step 30 rental preparation checklist — LOCAL PASS
+
+Step 30 converts the final consolidated, classified, and language-safe issue
+collection into a versioned `rentready-repair-checklist/1.0` contract. Tasks
+are grouped under **FIX BEFORE RENTING**, **REVIEW**, and **COSMETIC**, and every
+task defaults to **Open**. The only allowed workflow states are **Open**, **In
+progress**, and **Resolved**.
+
+Checklist status is persisted by stable `issue_id` on the inspection through
+`PATCH /inspections/{inspection_id}/checklist/items/{issue_id}`. Raw detections
+and candidate findings are not converted into checklist tasks. Contractor
+management remains explicitly out of scope: no assignee, contractor, bid,
+invoice, work-order, or scheduling model was added.
+
+See [`STEP30_REPAIR_CHECKLIST.md`](STEP30_REPAIR_CHECKLIST.md) and
+[`evaluation/step30/`](evaluation/step30/) for the contract and local
+verification evidence. Live AWS validation is not required because the
+deterministic checklist is built from the already validated issue report and
+uses the existing inspection-metadata update path.
 
 ## Step 13 benchmark
 

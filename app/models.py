@@ -120,11 +120,21 @@ class IssuesResponse(BaseModel):
     confidence_scale: dict[str, Any] | None = None
     responsible_language: dict[str, Any] | None = None
     polished_report: dict[str, Any] | None = None
+    repair_checklist: dict[str, Any] | None = None
     report_s3_key: str | None = None
     note: str = (
         "Step 27 describes visible conditions without diagnosing hidden causes or determining "
         "electrical safety or structural significance. Qualified human inspection remains essential."
     )
+
+
+class UpdateChecklistItemRequest(BaseModel):
+    status: str
+
+
+class RepairChecklistResponse(BaseModel):
+    inspection_id: str
+    repair_checklist: dict[str, Any]
 
 
 class AgenticRunRequest(BaseModel):

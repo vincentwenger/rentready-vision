@@ -87,6 +87,21 @@
     .severity-count-review { color: #9a3412; background: #fff7ed; }
     .severity-count-cosmetic { color: #854d0e; background: #fefce8; }
     .report-disclaimer { margin: 0 0 28px; color: #64748b; font-size: .83rem; line-height: 1.5; }
+    .checklist-block { margin: 4px 0 36px; padding: 22px; border: 1px solid #dce3ee; border-radius: 16px; background: #f8fafc; }
+    .checklist-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 18px; margin-bottom: 18px; }
+    .checklist-header h2 { margin: 0; font-size: 1.4rem; }
+    .checklist-summary { margin: 0; color: #64748b; font-size: .88rem; font-weight: 700; }
+    .checklist-sections { display: grid; gap: 20px; }
+    .checklist-section h3 { margin: 0 0 9px; color: #475569; font-size: .78rem; letter-spacing: .1em; }
+    .checklist-items { display: grid; gap: 8px; }
+    .checklist-item { display: grid; grid-template-columns: 24px minmax(0, 1fr) 132px; gap: 10px; align-items: center; padding: 11px 12px; border: 1px solid #dce3ee; border-radius: 11px; background: #fff; }
+    .checklist-box { color: #64748b; font-size: 1.18rem; line-height: 1; }
+    .checklist-item[data-status="Resolved"] .checklist-box { color: #166534; }
+    .checklist-item[data-status="Resolved"] .checklist-text { color: #64748b; text-decoration: line-through; }
+    .checklist-text { color: #172033; font-weight: 650; }
+    .checklist-status { width: 100%; padding: 8px 9px; border: 1px solid #94a3b8; border-radius: 8px; color: #172033; background: #fff; font: inherit; font-size: .86rem; font-weight: 700; }
+    .checklist-status:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+    .checklist-empty { margin: 0; color: #64748b; font-size: .9rem; }
     .room-section { margin: 28px 0 34px; }
     .room-heading { margin: 0 0 14px; font-size: 1.35rem; }
     .report-issues { display: grid; gap: 18px; }
@@ -119,6 +134,8 @@
       .comparison, .readiness-summary { grid-template-columns: 1fr; }
       .readiness-summary { gap: 18px; }
       .report-issue-body { padding: 15px; }
+      .checklist-item { grid-template-columns: 24px minmax(0, 1fr); }
+      .checklist-status { grid-column: 2; }
     }
     [hidden] { display: none !important; }
   </style>
@@ -153,7 +170,7 @@
       <li class="step" id="step-angle"><span class="mark">○</span><span>Searching nearby frames for other camera viewpoints</span></li>
       <li class="step" id="step-policy"><span class="mark">○</span><span>Applying the confidence and evidence decision policy</span></li>
       <li class="step" id="step-audit"><span class="mark">○</span><span>Persisting the agent action audit trail</span></li>
-      <li class="step" id="step-report"><span class="mark">○</span><span>Building the polished rental-readiness report</span></li>
+      <li class="step" id="step-report"><span class="mark">○</span><span>Building the report and rental preparation checklist</span></li>
     </ul>
   </section>
 
@@ -170,6 +187,13 @@
       <div class="severity-counts" id="severity-counts"></div>
     </div>
     <p class="report-disclaimer" id="report-disclaimer"></p>
+    <section class="checklist-block" aria-labelledby="checklist-title">
+      <div class="checklist-header">
+        <h2 id="checklist-title">Rental Preparation Checklist</h2>
+        <p class="checklist-summary" id="checklist-summary"></p>
+      </div>
+      <div class="checklist-sections" id="repair-checklist"></div>
+    </section>
     <div id="report-rooms"></div>
 
     <details class="technical-report">
@@ -365,6 +389,82 @@ function reportCount(label, count, className, symbol) {
   return row;
 }
 
+async function renderRepairChecklist(inspectionId, checklist) {
+  const container = document.getElementById("repair-checklist");
+  const summary = document.getElementById("checklist-summary");
+  container.replaceChildren();
+
+  if (!checklist) {
+    summary.textContent = "Checklist unavailable";
+    const message = document.createElement("p");
+    message.className = "checklist-empty";
+    message.textContent = "The rental preparation checklist could not be built.";
+    container.append(message);
+    return;
+  }
+
+  const resolved = Number(checklist.status_counts?.Resolved ?? 0);
+  summary.textContent = `${resolved} of ${checklist.item_count} resolved`;
+  if (!checklist.item_count) {
+    const message = document.createElement("p");
+    message.className = "checklist-empty";
+    message.textContent = "No verified issues require a rental preparation task.";
+    container.append(message);
+    return;
+  }
+
+  for (const checklistSection of checklist.sections) {
+    if (!checklistSection.items.length) continue;
+    const section = document.createElement("section");
+    section.className = "checklist-section";
+    const heading = document.createElement("h3");
+    heading.textContent = checklistSection.title;
+    const items = document.createElement("div");
+    items.className = "checklist-items";
+
+    for (const item of checklistSection.items) {
+      const row = document.createElement("div");
+      row.className = "checklist-item";
+      row.dataset.status = item.status;
+      const box = document.createElement("span");
+      box.className = "checklist-box";
+      box.setAttribute("aria-hidden", "true");
+      box.textContent = item.status === "Resolved" ? "☑" : "☐";
+      const text = document.createElement("span");
+      text.className = "checklist-text";
+      text.textContent = item.text;
+      const select = document.createElement("select");
+      select.className = "checklist-status";
+      select.setAttribute("aria-label", `Status for ${item.text}`);
+      for (const status of checklist.allowed_statuses) {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        option.selected = status === item.status;
+        select.append(option);
+      }
+      select.onchange = async () => {
+        select.disabled = true;
+        try {
+          const updated = await api(
+            `/inspections/${inspectionId}/checklist/items/${encodeURIComponent(item.issue_id)}`,
+            {method: "PATCH", body: JSON.stringify({status: select.value})}
+          );
+          await renderRepairChecklist(inspectionId, updated.repair_checklist);
+        } catch (error) {
+          select.value = item.status;
+          select.disabled = false;
+          window.alert(error instanceof Error ? error.message : String(error));
+        }
+      };
+      row.append(box, text, select);
+      items.append(row);
+    }
+    section.append(heading, items);
+    container.append(section);
+  }
+}
+
 async function renderReportIssue(inspectionId, issue) {
   const card = document.createElement("article");
   card.className = "report-issue";
@@ -467,6 +567,7 @@ async function renderIssues(response, warning = null, inspectionId = null) {
     roomsElement.append(row);
     technicalNote.textContent = "Structured finding detection did not complete.";
     technicalList.append(row.cloneNode(true));
+    await renderRepairChecklist(inspectionId, null);
     return;
   }
 
@@ -485,6 +586,7 @@ async function renderIssues(response, warning = null, inspectionId = null) {
     reportCount("Review Recommended", report.counts["Review recommended"] ?? 0, "severity-count-review", "●"),
     reportCount("Cosmetic", report.counts.Cosmetic ?? 0, "severity-count-cosmetic", "●")
   );
+  await renderRepairChecklist(inspectionId, response.repair_checklist);
 
   if (!report.rooms.length) {
     const empty = document.createElement("div");

@@ -1,0 +1,21 @@
+{
+  "step": 30,
+  "verification_scope": "local_repair_checklist_contract_and_browser",
+  "passed": true,
+  "checks_passed": 11,
+  "checks_total": 11,
+  "checks": {
+    "title_matches": true,
+    "three_requested_sections": true,
+    "requested_tasks_generated": true,
+    "only_requested_statuses": true,
+    "saved_statuses_applied": true,
+    "resolved_item_checked": true,
+    "verified_issue_source_declared": true,
+    "contractor_management_excluded": true,
+    "browser_renders_checkboxes": true,
+    "browser_updates_status": true,
+    "status_endpoint_used": true
+  },
+  "errors": []
+}

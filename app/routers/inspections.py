@@ -32,6 +32,8 @@ from ..models import (
     InspectionStatus,
     IssuesResponse,
     OtherAngleRunRequest,
+    RepairChecklistResponse,
+    UpdateChecklistItemRequest,
     UploadCompleteRequest,
     UploadUrlResponse,
 )
@@ -53,6 +55,10 @@ from ..responsible_language import (
     responsible_records,
 )
 from ..polished_report import build_polished_report
+from ..repair_checklist import (
+    ALLOWED_CHECKLIST_STATUSES,
+    build_repair_checklist,
+)
 from ..decision_policy import (
     DECISION_POLICY_VERSION,
     INVESTIGATE_CANDIDATE,
@@ -88,7 +94,12 @@ def _validate_video(filename: str, content_type: str) -> None:
         raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {sorted(ALLOWED_EXTENSIONS)}")
 
 
-def _present_issue_report(report: dict, *, property_label: str | None = None) -> dict:
+def _present_issue_report(
+    report: dict,
+    *,
+    property_label: str | None = None,
+    checklist_statuses: dict[str, str] | None = None,
+) -> dict:
     """Apply public language and confidence policy without mutating stored evidence."""
     presented = dict(report)
     for field in ("candidate_findings", "raw_candidate_findings", "issues", "raw_issues"):
@@ -97,6 +108,9 @@ def _present_issue_report(report: dict, *, property_label: str | None = None) ->
     presented["responsible_language"] = responsible_language_contract()
     presented["polished_report"] = build_polished_report(
         presented["issues"], property_label=property_label
+    )
+    presented["repair_checklist"] = build_repair_checklist(
+        presented["issues"], statuses=checklist_statuses
     )
     return presented
 
@@ -309,7 +323,11 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         report = detect_issues_for_inspection(inspection_id, force=force)
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    presented = _present_issue_report(report, property_label=item.get("property_label"))
+    presented = _present_issue_report(
+        report,
+        property_label=item.get("property_label"),
+        checklist_statuses=item.get("repair_checklist_statuses"),
+    )
     return IssuesResponse(
         inspection_id=inspection_id,
         status="COMPLETE",
@@ -327,6 +345,7 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         confidence_scale=presented["confidence_scale"],
         responsible_language=presented["responsible_language"],
         polished_report=presented["polished_report"],
+        repair_checklist=presented["repair_checklist"],
         report_s3_key=f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json",
     )
 
@@ -336,7 +355,51 @@ def get_issues(inspection_id: str) -> IssuesResponse:
     item = _require_inspection(inspection_id)
     report = load_issues_report(inspection_id)
     return IssuesResponse(
-        **_present_issue_report(report, property_label=item.get("property_label"))
+        **_present_issue_report(
+            report,
+            property_label=item.get("property_label"),
+            checklist_statuses=item.get("repair_checklist_statuses"),
+        )
+    )
+
+
+@router.patch(
+    "/{inspection_id}/checklist/items/{issue_id}",
+    response_model=RepairChecklistResponse,
+)
+def update_checklist_item(
+    inspection_id: str,
+    issue_id: str,
+    payload: UpdateChecklistItemRequest,
+) -> RepairChecklistResponse:
+    item = _require_inspection(inspection_id)
+    if payload.status not in ALLOWED_CHECKLIST_STATUSES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Status must be one of: {', '.join(ALLOWED_CHECKLIST_STATUSES)}",
+        )
+
+    report = load_issues_report(inspection_id)
+    presented = _present_issue_report(
+        report,
+        property_label=item.get("property_label"),
+        checklist_statuses=item.get("repair_checklist_statuses"),
+    )
+    issue_ids = {
+        checklist_item["issue_id"]
+        for section in presented["repair_checklist"]["sections"]
+        for checklist_item in section["items"]
+    }
+    if issue_id not in issue_ids:
+        raise HTTPException(status_code=404, detail="Checklist item not found")
+
+    statuses = dict(item.get("repair_checklist_statuses") or {})
+    statuses[issue_id] = payload.status
+    update_inspection(inspection_id, repair_checklist_statuses=statuses)
+    checklist = build_repair_checklist(presented["issues"], statuses=statuses)
+    return RepairChecklistResponse(
+        inspection_id=inspection_id,
+        repair_checklist=checklist,
     )
 
 
