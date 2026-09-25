@@ -1,0 +1,22 @@
+{
+    "source":  "evaluation/step13/comparison_table.md",
+    "ec2_rate_usd_per_hour":  0.7181,
+    "stock_wall_clock_mean_seconds":  161.719,
+    "cool_wall_clock_mean_seconds":  150.696,
+    "cool_wall_clock_improvement_percent":  6.817,
+    "stock_sampled_frames_per_second":  6.511,
+    "cool_sampled_frames_per_second":  6.988,
+    "sampled_throughput_improvement_percent":  7.324,
+    "stock_source_frames_per_second":  195.253,
+    "cool_source_frames_per_second":  209.552,
+    "stock_cost_per_walkthrough_usd":  0.032258,
+    "cool_cost_per_walkthrough_usd":  0.03006,
+    "cost_reduction_percent":  6.814,
+    "stock_successful_runs":  "5/5",
+    "cool_successful_runs":  "5/5",
+    "retained_frames_stock":  74,
+    "retained_frames_cool":  74,
+    "scenes_stock":  54,
+    "scenes_cool":  54,
+    "output_equivalence":  "PASS"
+}

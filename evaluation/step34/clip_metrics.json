@@ -1,0 +1,18 @@
+{
+    "evaluation_level":  "clip-level defect presence",
+    "test_property":  "mozart_house",
+    "test_videos":  23,
+    "clean_videos":  15,
+    "defect_videos":  8,
+    "true_positives":  0,
+    "true_negatives":  15,
+    "false_positives":  0,
+    "false_negatives":  8,
+    "accuracy_percent":  65.217,
+    "recall_percent":  0,
+    "precision_percent":  null,
+    "precision_note":  "Undefined because TP + FP = 0; the detector made no positive predictions.",
+    "specificity_percent":  100,
+    "false_positives_per_video":  0,
+    "false_positives_per_clean_video":  0
+}
