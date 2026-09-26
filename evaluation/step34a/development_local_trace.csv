@@ -1,0 +1,9 @@
+video,source_group,category,start,end,sampled_visible,strict_quality_preserved,dedupe_preserved,selected_keyframe_visible,first_permanent_pre_ai_loss_point,candidate_identified,candidate_confidence,removed_by_confidence,removed_by_consolidation,rejected_by_policy,final_report_present,reinspection_visible_frames
+defect_09_quimby_water_drip.mp4,quimby,water_dripping,1.8,2.1,True,True,False,False,deduplication,,,,,,,2
+defect_09_quimby_water_drip.mp4,quimby,water_dripping,15.23,15.55,False,False,False,False,sampling,,,,,,,1
+defect_10_toilet_base_displacement.mp4,quimby,toilet_base_displacement,0.5,4.5,True,False,False,True,,,,,,,,25
+defect_11_bathtub_rim_crack.mp4,quimby,bathtub_rim_crack,1.0,3.8,True,False,False,True,,,,,,,,17
+defect_12_drywall_patch_baseboard.mp4,quimby,unfinished_drywall_patch,0.5,5.0,True,False,False,True,,,,,,,,26
+defect_13_vanity_mounting_damage.mp4,quimby,cabinet_mounting_damage,1.0,4.2,True,True,True,True,,,,,,,,19
+defect_14_wall_hole_below_window.mp4,quimby,drywall_hole,1.2,3.2,True,False,False,True,,,,,,,,13
+defect_15_compass_unfinished_wall_patch.mp4,compass_house,unfinished_wall_patch_paint,0.5,2.5,True,False,False,True,,,,,,,,12

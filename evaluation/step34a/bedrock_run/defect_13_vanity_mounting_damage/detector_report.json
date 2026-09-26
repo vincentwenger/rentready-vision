@@ -1,0 +1,350 @@
+{
+  "schema_version": "rentready-issue-report/4.0",
+  "structured_finding_version": "rentready-structured-finding/1.0",
+  "generated_at": "2026-09-26T16:38:23.713692+00:00",
+  "detector": {
+    "taxonomy_version": "rentready-issues/1.0",
+    "structured_finding_version": "rentready-structured-finding/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "confidence_threshold": 0.65,
+    "batch_size": 8,
+    "max_keyframes": 120,
+    "keyframes_considered": 3,
+    "batch_count": 1,
+    "consolidation_version": "rentready-issue-consolidation/1.0",
+    "severity_classification_version": "rentready-severity-classification/1.0",
+    "responsible_language_version": "rentready-responsible-language/1.0"
+  },
+  "taxonomy": {
+    "version": "rentready-issues/1.0",
+    "named_category_count": 13,
+    "groups": {
+      "walls": [
+        "wall_hole",
+        "wall_crack",
+        "paint_damage",
+        "wall_stain",
+        "trim_damage"
+      ],
+      "flooring": [
+        "floor_damage",
+        "floor_stain",
+        "broken_tile"
+      ],
+      "fixtures": [
+        "fixture_damage",
+        "missing_hardware"
+      ],
+      "general": [
+        "visible_staining",
+        "cleanliness",
+        "visible_damage"
+      ]
+    },
+    "escape_hatch": "other"
+  },
+  "rooms": [
+    "kitchen",
+    "bathroom",
+    "living_room",
+    "bedroom",
+    "garage",
+    "exterior",
+    "hallway",
+    "unknown"
+  ],
+  "candidate_findings": [
+    {
+      "room": "bathroom",
+      "category": "visible_damage",
+      "description": "small hole in wall cabinet near toilet",
+      "timestamp": 1.0,
+      "confidence": 0.85,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6,
+        "y": 0.2,
+        "width": 0.05,
+        "height": 0.05
+      }
+    }
+  ],
+  "raw_candidate_findings": [
+    {
+      "room": "bathroom",
+      "category": "visible_damage",
+      "description": "small hole in wall cabinet near toilet",
+      "timestamp": 1.0,
+      "confidence": 0.85,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6,
+        "y": 0.2,
+        "width": 0.05,
+        "height": 0.05
+      }
+    }
+  ],
+  "issues": [
+    {
+      "room": "bathroom",
+      "category": "visible_damage",
+      "description": "small hole in wall cabinet near toilet",
+      "timestamp": 1.0,
+      "confidence": 0.85,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6,
+        "y": 0.2,
+        "width": 0.05,
+        "height": 0.05
+      },
+      "group": "general",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "evaluation-diagnostics/step34a/keyframes/defect_13_vanity_mounting_damage/frame_00001_0000001000ms_fallback.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-bdaea8a9689ae01f",
+      "representative_issue_id": "issue-bdaea8a9689ae01f",
+      "source_issue_ids": [
+        "issue-bdaea8a9689ae01f"
+      ],
+      "consolidated_from_count": 1,
+      "evidence_timestamps": [
+        1.0
+      ],
+      "supporting_frame_indices": [
+        1
+      ],
+      "supporting_evidence": [
+        {
+          "source_issue_id": "issue-bdaea8a9689ae01f",
+          "timestamp": 1.0,
+          "frame_index": 1,
+          "scene_index": 0,
+          "s3_key": "evaluation-diagnostics/step34a/keyframes/defect_13_vanity_mounting_damage/frame_00001_0000001000ms_fallback.jpg",
+          "bbox": {
+            "x": 0.6,
+            "y": 0.2,
+            "width": 0.05,
+            "height": 0.05
+          },
+          "confidence": 0.85,
+          "description": "small hole in wall cabinet near toilet"
+        }
+      ],
+      "consolidation": {
+        "version": "rentready-issue-consolidation/1.0",
+        "representative_selection": "highest_confidence_then_earliest_timestamp",
+        "pairwise_matches": []
+      },
+      "severity": "Fix before renting",
+      "severity_classification": {
+        "version": "rentready-severity-classification/1.0",
+        "class": "Fix before renting",
+        "rule_id": "hole_or_puncture",
+        "rationale": "Visible wording indicates physical damage, breakage, or a missing protective part.",
+        "basis": "visible_evidence_only",
+        "disclaimer": "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety, code-compliance, or professional inspection rating."
+      }
+    }
+  ],
+  "raw_issues": [
+    {
+      "room": "bathroom",
+      "category": "visible_damage",
+      "description": "small hole in wall cabinet near toilet",
+      "timestamp": 1.0,
+      "confidence": 0.85,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6,
+        "y": 0.2,
+        "width": 0.05,
+        "height": 0.05
+      },
+      "group": "general",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "evaluation-diagnostics/step34a/keyframes/defect_13_vanity_mounting_damage/frame_00001_0000001000ms_fallback.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-bdaea8a9689ae01f"
+    }
+  ],
+  "severity_classification": {
+    "version": "rentready-severity-classification/1.0",
+    "classes": [
+      "Fix before renting",
+      "Review recommended",
+      "Cosmetic"
+    ],
+    "class_count": 3,
+    "scope": "rental_readiness_prioritization_from_visible_evidence",
+    "not_an_official_safety_rating": true,
+    "disclaimer": "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety, code-compliance, or professional inspection rating.",
+    "policy": {
+      "fix_before_renting": [
+        "obvious physical damage",
+        "missing protective cover",
+        "broken fixture"
+      ],
+      "review_recommended": [
+        "possible moisture-related staining",
+        "cracking requiring inspection",
+        "uncertain or unmapped visible condition"
+      ],
+      "cosmetic": [
+        "paint scuff",
+        "minor trim damage",
+        "cleanliness"
+      ]
+    },
+    "guardrails": {
+      "visible_evidence_only": true,
+      "hidden_causes_not_inferred": true,
+      "model_severity_candidate_not_trusted": true,
+      "classification_is_deterministic": true
+    },
+    "classified_issue_count": 1,
+    "counts": {
+      "Fix before renting": 1,
+      "Review recommended": 0,
+      "Cosmetic": 0
+    }
+  },
+  "responsible_language": {
+    "version": "rentready-responsible-language/1.0",
+    "scope": "all_user_facing_property_condition_text",
+    "principles": [
+      "describe only visible conditions",
+      "do not diagnose hidden causes",
+      "do not determine electrical safety",
+      "do not determine structural significance",
+      "recommend qualified or human inspection when significance is uncertain"
+    ],
+    "rules": [
+      {
+        "id": "no_mold_diagnosis",
+        "safe_output": "Visible discoloration may warrant inspection for moisture or other causes.",
+        "human_review": true
+      },
+      {
+        "id": "no_electrical_safety_determination",
+        "safe_output": "Visible electrical fixture appears damaged. Qualified inspection recommended.",
+        "human_review": true
+      },
+      {
+        "id": "no_structural_significance_determination",
+        "safe_output": "Visible cracking detected. Human inspection recommended to determine significance.",
+        "human_review": true
+      }
+    ],
+    "defense_in_depth": {
+      "model_prompt": true,
+      "ingress_sanitizer": true,
+      "api_egress_sanitizer": true,
+      "legacy_report_protection": true
+    }
+  },
+  "consolidation": {
+    "version": "rentready-issue-consolidation/1.0",
+    "raw_issue_count": 1,
+    "consolidated_issue_count": 1,
+    "duplicate_observations_merged": 0,
+    "visual_comparison_count": 0,
+    "metadata_only_comparison_count": 0,
+    "config": {
+      "max_pair_gap_seconds": 12.0,
+      "max_cluster_span_seconds": 20.0,
+      "minimum_score": 0.68,
+      "minimum_semantic_similarity": 0.4,
+      "minimum_image_similarity": 0.55,
+      "minimum_region_similarity": 0.5,
+      "minimum_bbox_iou": 0.05,
+      "maximum_bbox_center_distance": 0.22,
+      "metadata_only_minimum_score": 0.78,
+      "metadata_only_minimum_semantic_similarity": 0.65,
+      "metadata_only_minimum_bbox_iou": 0.3
+    },
+    "signal_weights": {
+      "timestamp_similarity": 0.15,
+      "room_similarity": 0.15,
+      "category_similarity": 0.2,
+      "image_similarity": 0.15,
+      "region_similarity": 0.2,
+      "semantic_similarity": 0.15
+    },
+    "comparisons": [],
+    "raw_candidate_count": 1,
+    "consolidated_candidate_count": 1,
+    "candidate_duplicate_observations_merged": 0,
+    "issue_duplicate_observations_merged": 0
+  },
+  "trace": [
+    {
+      "batch_number": 1,
+      "frame_indices": [
+        0,
+        1,
+        2
+      ],
+      "frame_timestamps": [
+        0.0,
+        1.0,
+        3.0
+      ],
+      "bedrock_request_id": "f9fbd3e7-728c-4603-85a5-a83b781e2714",
+      "stop_reason": "tool_use",
+      "usage": {
+        "inputTokens": 2550,
+        "outputTokens": 110,
+        "totalTokens": 2660
+      },
+      "metrics": {
+        "latencyMs": 4595
+      },
+      "raw_tool_input": {
+        "findings": [
+          {
+            "room": "bathroom",
+            "category": "visible_damage",
+            "description": "small hole in wall cabinet near toilet",
+            "timestamp": 1.0,
+            "confidence": 0.85,
+            "severity_candidate": "review",
+            "bbox": {
+              "x": 0.6,
+              "y": 0.2,
+              "width": 0.05,
+              "height": 0.05
+            }
+          }
+        ]
+      },
+      "raw_tool_input_sha256": "bb69de51000021ed27d02b7f9521ada7bbe90be808981315f93a2d38993ca4d0",
+      "responsible_language_version": "rentready-responsible-language/1.0",
+      "accepted_candidate_count": 1,
+      "above_threshold_issue_count": 1
+    }
+  ]
+}

@@ -1,0 +1,898 @@
+{
+  "summary": {
+    "step": "34A",
+    "scope": "Compass + Quimby development positives only",
+    "mozart_house_used": false,
+    "thresholds_prompts_or_detector_logic_changed": false,
+    "development_positive_clips": 7,
+    "annotated_intervals": 8,
+    "intervals_visible_in_1hz_samples": 7,
+    "intervals_preserved_by_strict_quality_filter": 2,
+    "intervals_preserved_after_deduplication": 1,
+    "intervals_represented_in_selected_keyframes": 6,
+    "intervals_with_targeted_reinspection_evidence": 8,
+    "clips_reaching_ai_with_annotated_defect_keyframe": 6,
+    "clips_lost_before_ai": 1,
+    "bedrock_stage_measured": false,
+    "local_conclusion": "One development clip (Quimby water drip) is lost before AI: one brief drip is sampled then removed as a near-duplicate, and the second brief drip falls between 1-second samples. The other six development defect clips retain annotated-visible evidence in selected keyframes, often via fallback selection after strict quality rejection. Their exact downstream failure point requires a credentialed Bedrock detector run on development keyframes."
+  },
+  "traces": [
+    {
+      "video": "defect_09_quimby_water_drip.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "water_dripping",
+      "description": "A small drop is visible falling below the exposed ceiling near the silver ventilation duct. The source of the water is not established from this video.",
+      "ground_truth_interval": [
+        1.8,
+        2.1
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          2.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": true,
+        "timestamps": [
+          2.0
+        ],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 2.0,
+            "decision": "rejected_duplicate",
+            "rejection_reasons": [
+              "near_duplicate"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 2
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": false,
+        "timestamps": [],
+        "selection_reasons": []
+      },
+      "first_permanent_pre_ai_loss_point": "deduplication",
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 2,
+        "annotated_visible_timestamps": [
+          1.833,
+          2.0
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_09_quimby_water_drip.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "water_dripping",
+      "description": "A small drop is visible falling below the exposed ceiling near the silver ventilation duct. The source of the water is not established from this video.",
+      "ground_truth_interval": [
+        15.23,
+        15.55
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": false,
+        "timestamps": []
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": []
+      },
+      "scene_analysis": {
+        "scene_indices": [],
+        "scene_count_for_clip": 2
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": false,
+        "timestamps": [],
+        "selection_reasons": []
+      },
+      "first_permanent_pre_ai_loss_point": "sampling",
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 1,
+        "annotated_visible_timestamps": [
+          15.39
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_10_toilet_base_displacement.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "toilet_base_displacement",
+      "description": "The toilet base appears offset from a visible old caulk outline on the floor. The condition of the wax seal and mounting bolts cannot be confirmed from the video; inspect for looseness or leaks.",
+      "ground_truth_interval": [
+        0.5,
+        4.5
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 1.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 4.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_fallback",
+          "best_available_scene_fallback"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 25,
+        "annotated_visible_timestamps": [
+          0.5,
+          0.667,
+          0.833,
+          1.0,
+          1.167,
+          1.333,
+          1.5,
+          1.667,
+          1.833,
+          2.0,
+          2.167,
+          2.333,
+          2.5,
+          2.667,
+          2.833,
+          3.0,
+          3.167,
+          3.333,
+          3.5,
+          3.667,
+          3.833,
+          4.0,
+          4.167,
+          4.333,
+          4.5
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_11_bathtub_rim_crack.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "bathtub_rim_crack",
+      "description": "Fine hairline crack on the top outer rim of the bathtub, along the edge directly below the glass shower enclosure panel.",
+      "ground_truth_interval": [
+        1.0,
+        3.8
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 1.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_scene_fallback"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 17,
+        "annotated_visible_timestamps": [
+          1.067,
+          1.233,
+          1.4,
+          1.567,
+          1.733,
+          1.9,
+          2.067,
+          2.233,
+          2.4,
+          2.567,
+          2.733,
+          2.9,
+          3.067,
+          3.233,
+          3.4,
+          3.567,
+          3.733
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_12_drywall_patch_baseboard.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "unfinished_drywall_patch",
+      "description": "Small visible drywall repair mark just above the baseboard; the raised or uneven finish needs sanding and touch-up paint.",
+      "ground_truth_interval": [
+        0.5,
+        5.0
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 1.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 3.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 4.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 5.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "overexposed"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          2.0,
+          4.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_fallback"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 26,
+        "annotated_visible_timestamps": [
+          0.767,
+          0.933,
+          1.1,
+          1.267,
+          1.4,
+          1.6,
+          1.767,
+          1.9,
+          2.067,
+          2.267,
+          2.433,
+          2.567,
+          2.767,
+          2.933,
+          3.067,
+          3.267,
+          3.433,
+          3.567,
+          3.767,
+          3.933,
+          4.067,
+          4.267,
+          4.4,
+          4.6,
+          4.767,
+          4.9
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_13_vanity_mounting_damage.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "cabinet_mounting_damage",
+      "description": "Two exposed mounting points with chipped finish on the side of the white vanity cabinet beside the toilet. The owner reports that a toilet paper holder broke off and was removed from this location.",
+      "ground_truth_interval": [
+        1.0,
+        4.2
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": true,
+        "timestamps": [
+          2.0,
+          3.0
+        ],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 1.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "near_duplicate"
+            ]
+          },
+          {
+            "timestamp": 3.0,
+            "decision": "selected_keyframe",
+            "rejection_reasons": []
+          },
+          {
+            "timestamp": 4.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": true,
+        "timestamps": [
+          3.0
+        ]
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_fallback",
+          "adaptive_scene_representative"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 19,
+        "annotated_visible_timestamps": [
+          1.1,
+          1.267,
+          1.433,
+          1.6,
+          1.767,
+          1.933,
+          2.1,
+          2.267,
+          2.433,
+          2.6,
+          2.767,
+          2.933,
+          3.1,
+          3.267,
+          3.433,
+          3.6,
+          3.767,
+          3.933,
+          4.1
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_14_wall_hole_below_window.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "category": "drywall_hole",
+      "description": "Small visible hole in the drywall directly beneath the center of the window sill.",
+      "ground_truth_interval": [
+        1.2,
+        3.2
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          2.0,
+          3.0
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          },
+          {
+            "timestamp": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "overexposed"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_scene_fallback",
+          "best_available_fallback"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 13,
+        "annotated_visible_timestamps": [
+          1.2,
+          1.367,
+          1.533,
+          1.7,
+          1.867,
+          2.033,
+          2.2,
+          2.367,
+          2.533,
+          2.7,
+          2.867,
+          3.033,
+          3.2
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    },
+    {
+      "video": "defect_15_compass_unfinished_wall_patch.mp4",
+      "source_group": "compass_house",
+      "split": "development",
+      "category": "unfinished_wall_patch_paint",
+      "description": "Two filled fastener holes and an unfinished spackle patch are visible on the wall directly below the trim. The adjacent paint finish looks uneven and cracked along the patch edge; sand, finish, and touch up the surface. The video does not establish a structural crack.",
+      "ground_truth_interval": [
+        0.5,
+        2.5
+      ],
+      "sampling": {
+        "visible_in_sampled_frames": true,
+        "timestamps": [
+          1.001,
+          2.002
+        ]
+      },
+      "quality_filtering": {
+        "strictly_preserved": false,
+        "timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp": 1.001,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "fast_camera_motion"
+            ]
+          },
+          {
+            "timestamp": 2.002,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices": [
+          0
+        ],
+        "scene_count_for_clip": 1
+      },
+      "deduplication": {
+        "preserved": false,
+        "timestamps": []
+      },
+      "keyframe_selection": {
+        "represented": true,
+        "timestamps": [
+          2.002
+        ],
+        "selection_reasons": [
+          "best_available_fallback"
+        ]
+      },
+      "first_permanent_pre_ai_loss_point": null,
+      "multimodal_ai_candidate_detection": {
+        "measured": false,
+        "candidate_identified": null,
+        "confidence": null,
+        "note": "Not run here because this execution environment has no AWS credentials. Run scripts/diagnose_step34a_recall.py --run-bedrock in the authorized AWS environment to populate this stage without changing prompts or thresholds."
+      },
+      "confidence_filtering": {
+        "measured": false,
+        "removed": null
+      },
+      "issue_consolidation": {
+        "measured": false,
+        "removed": null
+      },
+      "decision_policy": {
+        "measured": false,
+        "rejected": null,
+        "route": null
+      },
+      "final_report": {
+        "measured": false,
+        "defect_present": null
+      },
+      "agent_requested_reinspection": {
+        "targeted_6fps_interval_would_capture_annotated_visible_evidence": true,
+        "annotated_visible_frame_count": 12,
+        "annotated_visible_timestamps": [
+          0.501,
+          0.667,
+          0.834,
+          1.001,
+          1.168,
+          1.335,
+          1.502,
+          1.668,
+          1.835,
+          2.002,
+          2.169,
+          2.336
+        ],
+        "pipeline_trigger_caveat": "Reinspection is candidate-triggered. If multimodal detection returns no initial candidate, the current agent cannot invoke this recovery path."
+      }
+    }
+  ]
+}

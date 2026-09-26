@@ -1,0 +1,201 @@
+{
+  "schema_version": "rentready-issue-report/4.0",
+  "structured_finding_version": "rentready-structured-finding/1.0",
+  "generated_at": "2026-09-26T16:37:36.665144+00:00",
+  "detector": {
+    "taxonomy_version": "rentready-issues/1.0",
+    "structured_finding_version": "rentready-structured-finding/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "confidence_threshold": 0.65,
+    "batch_size": 8,
+    "max_keyframes": 120,
+    "keyframes_considered": 3,
+    "batch_count": 1,
+    "consolidation_version": "rentready-issue-consolidation/1.0",
+    "severity_classification_version": "rentready-severity-classification/1.0",
+    "responsible_language_version": "rentready-responsible-language/1.0"
+  },
+  "taxonomy": {
+    "version": "rentready-issues/1.0",
+    "named_category_count": 13,
+    "groups": {
+      "walls": [
+        "wall_hole",
+        "wall_crack",
+        "paint_damage",
+        "wall_stain",
+        "trim_damage"
+      ],
+      "flooring": [
+        "floor_damage",
+        "floor_stain",
+        "broken_tile"
+      ],
+      "fixtures": [
+        "fixture_damage",
+        "missing_hardware"
+      ],
+      "general": [
+        "visible_staining",
+        "cleanliness",
+        "visible_damage"
+      ]
+    },
+    "escape_hatch": "other"
+  },
+  "rooms": [
+    "kitchen",
+    "bathroom",
+    "living_room",
+    "bedroom",
+    "garage",
+    "exterior",
+    "hallway",
+    "unknown"
+  ],
+  "candidate_findings": [],
+  "raw_candidate_findings": [],
+  "issues": [],
+  "raw_issues": [],
+  "severity_classification": {
+    "version": "rentready-severity-classification/1.0",
+    "classes": [
+      "Fix before renting",
+      "Review recommended",
+      "Cosmetic"
+    ],
+    "class_count": 3,
+    "scope": "rental_readiness_prioritization_from_visible_evidence",
+    "not_an_official_safety_rating": true,
+    "disclaimer": "This is a rental-readiness prioritization based only on visible evidence. It is not an official safety, code-compliance, or professional inspection rating.",
+    "policy": {
+      "fix_before_renting": [
+        "obvious physical damage",
+        "missing protective cover",
+        "broken fixture"
+      ],
+      "review_recommended": [
+        "possible moisture-related staining",
+        "cracking requiring inspection",
+        "uncertain or unmapped visible condition"
+      ],
+      "cosmetic": [
+        "paint scuff",
+        "minor trim damage",
+        "cleanliness"
+      ]
+    },
+    "guardrails": {
+      "visible_evidence_only": true,
+      "hidden_causes_not_inferred": true,
+      "model_severity_candidate_not_trusted": true,
+      "classification_is_deterministic": true
+    },
+    "classified_issue_count": 0,
+    "counts": {
+      "Fix before renting": 0,
+      "Review recommended": 0,
+      "Cosmetic": 0
+    }
+  },
+  "responsible_language": {
+    "version": "rentready-responsible-language/1.0",
+    "scope": "all_user_facing_property_condition_text",
+    "principles": [
+      "describe only visible conditions",
+      "do not diagnose hidden causes",
+      "do not determine electrical safety",
+      "do not determine structural significance",
+      "recommend qualified or human inspection when significance is uncertain"
+    ],
+    "rules": [
+      {
+        "id": "no_mold_diagnosis",
+        "safe_output": "Visible discoloration may warrant inspection for moisture or other causes.",
+        "human_review": true
+      },
+      {
+        "id": "no_electrical_safety_determination",
+        "safe_output": "Visible electrical fixture appears damaged. Qualified inspection recommended.",
+        "human_review": true
+      },
+      {
+        "id": "no_structural_significance_determination",
+        "safe_output": "Visible cracking detected. Human inspection recommended to determine significance.",
+        "human_review": true
+      }
+    ],
+    "defense_in_depth": {
+      "model_prompt": true,
+      "ingress_sanitizer": true,
+      "api_egress_sanitizer": true,
+      "legacy_report_protection": true
+    }
+  },
+  "consolidation": {
+    "version": "rentready-issue-consolidation/1.0",
+    "raw_issue_count": 0,
+    "consolidated_issue_count": 0,
+    "duplicate_observations_merged": 0,
+    "visual_comparison_count": 0,
+    "metadata_only_comparison_count": 0,
+    "config": {
+      "max_pair_gap_seconds": 12.0,
+      "max_cluster_span_seconds": 20.0,
+      "minimum_score": 0.68,
+      "minimum_semantic_similarity": 0.4,
+      "minimum_image_similarity": 0.55,
+      "minimum_region_similarity": 0.5,
+      "minimum_bbox_iou": 0.05,
+      "maximum_bbox_center_distance": 0.22,
+      "metadata_only_minimum_score": 0.78,
+      "metadata_only_minimum_semantic_similarity": 0.65,
+      "metadata_only_minimum_bbox_iou": 0.3
+    },
+    "signal_weights": {
+      "timestamp_similarity": 0.15,
+      "room_similarity": 0.15,
+      "category_similarity": 0.2,
+      "image_similarity": 0.15,
+      "region_similarity": 0.2,
+      "semantic_similarity": 0.15
+    },
+    "comparisons": [],
+    "raw_candidate_count": 0,
+    "consolidated_candidate_count": 0,
+    "candidate_duplicate_observations_merged": 0,
+    "issue_duplicate_observations_merged": 0
+  },
+  "trace": [
+    {
+      "batch_number": 1,
+      "frame_indices": [
+        0,
+        1,
+        2
+      ],
+      "frame_timestamps": [
+        0.0,
+        3.0,
+        11.0
+      ],
+      "bedrock_request_id": "202bf900-48ff-48f3-86a6-7c8a0b7f76c6",
+      "stop_reason": "tool_use",
+      "usage": {
+        "inputTokens": 2550,
+        "outputTokens": 27,
+        "totalTokens": 2577
+      },
+      "metrics": {
+        "latencyMs": 2771
+      },
+      "raw_tool_input": {
+        "findings": []
+      },
+      "raw_tool_input_sha256": "9d0f2143c61cfbb6c0cf0425ce8b447811a32d48ec37333ba8b3700218631b36",
+      "responsible_language_version": "rentready-responsible-language/1.0",
+      "accepted_candidate_count": 0,
+      "above_threshold_issue_count": 0
+    }
+  ]
+}

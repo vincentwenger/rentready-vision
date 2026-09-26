@@ -1,0 +1,916 @@
+{
+  "step": "34A",
+  "title": "Diagnose the 0% defect recall",
+  "dataset_scope": "Compass + Quimby development positives only",
+  "mozart_house_used": false,
+  "production_thresholds_or_prompts_changed": false,
+  "development_positive_clip_count": 7,
+  "annotated_interval_count": 8,
+  "clips": [
+    {
+      "video": "defect_09_quimby_water_drip.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "8c4e10fac353226e6348b617c106a538a91aec070e99f6b0d9803a0fd3ab0125",
+      "video_sha256": "e672bcc2622a860b4d1a4f18e26c08c411740d86c91888a4815433076b59b22a",
+      "sampled_frames": 17,
+      "rejected_quality_frames": 0,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        3.0,
+        11.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_09_quimby_water_drip\\detector_report.json",
+      "interval_count": 2
+    },
+    {
+      "video": "defect_10_toilet_base_displacement.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "b12c5a4058e7fc5e21475cdec60ddd5af1cfb5f32a5df721ab8abaeb1c83c74a",
+      "video_sha256": "c6161acb0d7106534f8210b6e80100f92957c2d233f83d5b6c904719f013de95",
+      "sampled_frames": 5,
+      "rejected_quality_frames": 5,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        2.0,
+        3.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_10_toilet_base_displacement\\detector_report.json",
+      "interval_count": 1
+    },
+    {
+      "video": "defect_11_bathtub_rim_crack.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "c27607b7ee0f137a1ebd8c576feb1b91d60af63475ae9216aad824dd5b340340",
+      "video_sha256": "322fb395b3fbaf045b04dc502b5fcbf72fb081a10c942feea150865494b5bc3d",
+      "sampled_frames": 5,
+      "rejected_quality_frames": 5,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        2.0,
+        3.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_11_bathtub_rim_crack\\detector_report.json",
+      "interval_count": 1
+    },
+    {
+      "video": "defect_12_drywall_patch_baseboard.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "82ae7eb24ddbdd3600b82d4f40db4326ed764bcf95db1dbdbf4d1c3a0842e497",
+      "video_sha256": "b0c78b48ed40bef572b2c4ea73c5631e400db5a7965b4250eacdc9ae90552129",
+      "sampled_frames": 6,
+      "rejected_quality_frames": 6,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        2.0,
+        4.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_12_drywall_patch_baseboard\\detector_report.json",
+      "interval_count": 1
+    },
+    {
+      "video": "defect_13_vanity_mounting_damage.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "5232230c360ac2ae2c068f5fd946bb847f67901a4e31562071df7ec4b13d392d",
+      "video_sha256": "ed099020fc24a606c7989ba10de3f46ac1f7bf0f5de454351818191a55648e59",
+      "sampled_frames": 5,
+      "rejected_quality_frames": 2,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        1.0,
+        3.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_13_vanity_mounting_damage\\detector_report.json",
+      "interval_count": 1
+    },
+    {
+      "video": "defect_14_wall_hole_below_window.mp4",
+      "source_group": "quimby",
+      "annotation_sha256": "55d6244b5fd2f65971baa25bd18d1bc63bd414c34dca38372523580381ac3018",
+      "video_sha256": "ce1df47bd77687f5d86f9635b5fe93f6075f814a3bb7841529758f471946c41f",
+      "sampled_frames": 4,
+      "rejected_quality_frames": 2,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        2.0,
+        3.0
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_14_wall_hole_below_window\\detector_report.json",
+      "interval_count": 1
+    },
+    {
+      "video": "defect_15_compass_unfinished_wall_patch.mp4",
+      "source_group": "compass_house",
+      "annotation_sha256": "073eef5b18471488f1ac37ed8432817878f611996ab689ba790b88391ff99404",
+      "video_sha256": "136c9455971f3cc226b1cd0b1a1a366e5c9510ce12626ada1c226301e57b458a",
+      "sampled_frames": 10,
+      "rejected_quality_frames": 10,
+      "selected_keyframes": 3,
+      "selected_keyframe_timestamps": [
+        0.0,
+        2.002,
+        6.006
+      ],
+      "detector_report_source": "evaluation\\step34a\\bedrock_run\\defect_15_compass_unfinished_wall_patch\\detector_report.json",
+      "interval_count": 1
+    }
+  ],
+  "traces": [
+    {
+      "video": "defect_09_quimby_water_drip.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "water_dripping",
+      "description": "A small drop is visible falling below the exposed ceiling near the silver ventilation duct. The source of the water is not established from this video.",
+      "ground_truth_interval": [
+        1.8,
+        2.1
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          2.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": true,
+        "quality_pass_timestamps": [
+          2.0
+        ],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "rejected_duplicate",
+            "rejection_reasons": [
+              "near_duplicate"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": false,
+        "selected_timestamps": [],
+        "selection_reasons": []
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 2,
+        "visible_timestamps": [
+          1.833,
+          2.0
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_09_quimby_water_drip.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 1,
+      "category": "water_dripping",
+      "description": "A small drop is visible falling below the exposed ceiling near the silver ventilation duct. The source of the water is not established from this video.",
+      "ground_truth_interval": [
+        15.23,
+        15.55
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": false,
+        "sampled_timestamps_in_interval": []
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": false,
+        "quality_pass_timestamps": [],
+        "visible_sample_decisions": []
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": []
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": false,
+        "selected_timestamps": [],
+        "selection_reasons": []
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 2,
+        "visible_timestamps": [
+          15.233,
+          15.4
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_10_toilet_base_displacement.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "toilet_base_displacement",
+      "description": "The toilet base appears offset from a visible old caulk outline on the floor. The condition of the wax seal and mounting bolts cannot be confirmed from the video; inspect for looseness or leaks.",
+      "ground_truth_interval": [
+        0.5,
+        4.5
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": false,
+        "quality_pass_timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 1.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 4.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_scene_fallback"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 25,
+        "visible_timestamps": [
+          0.5,
+          0.667,
+          0.833,
+          1.0,
+          1.167,
+          1.333,
+          1.5,
+          1.667,
+          1.833,
+          2.0,
+          2.167,
+          2.333,
+          2.5,
+          2.667,
+          2.833,
+          3.0,
+          3.167,
+          3.333,
+          3.5,
+          3.667,
+          3.833,
+          4.0,
+          4.167,
+          4.333,
+          4.5
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_11_bathtub_rim_crack.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "bathtub_rim_crack",
+      "description": "Fine hairline crack on the top outer rim of the bathtub, along the edge directly below the glass shower enclosure panel.",
+      "ground_truth_interval": [
+        1.0,
+        3.8
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          1.0,
+          2.0,
+          3.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": false,
+        "quality_pass_timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 1.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_scene_fallback"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 17,
+        "visible_timestamps": [
+          1.067,
+          1.233,
+          1.4,
+          1.567,
+          1.733,
+          1.9,
+          2.067,
+          2.233,
+          2.4,
+          2.567,
+          2.733,
+          2.9,
+          3.067,
+          3.233,
+          3.4,
+          3.567,
+          3.733
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_12_drywall_patch_baseboard.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "unfinished_drywall_patch",
+      "description": "Small visible drywall repair mark just above the baseboard; the raised or uneven finish needs sanding and touch-up paint.",
+      "ground_truth_interval": [
+        0.5,
+        5.0
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": false,
+        "quality_pass_timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 1.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 3.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 4.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 5.0,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          2.0,
+          4.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "best_available_scene_fallback"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 26,
+        "visible_timestamps": [
+          0.767,
+          0.933,
+          1.1,
+          1.267,
+          1.4,
+          1.6,
+          1.767,
+          1.9,
+          2.067,
+          2.267,
+          2.433,
+          2.567,
+          2.767,
+          2.933,
+          3.067,
+          3.267,
+          3.433,
+          3.567,
+          3.767,
+          3.933,
+          4.067,
+          4.267,
+          4.4,
+          4.6,
+          4.767,
+          4.9
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_13_vanity_mounting_damage.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "cabinet_mounting_damage",
+      "description": "Two exposed mounting points with chipped finish on the side of the white vanity cabinet beside the toilet. The owner reports that a toilet paper holder broke off and was removed from this location.",
+      "ground_truth_interval": [
+        1.0,
+        4.2
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": true,
+        "quality_pass_timestamps": [
+          2.0,
+          3.0,
+          4.0
+        ],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 1.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          },
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "rejected_duplicate",
+            "rejection_reasons": [
+              "near_duplicate"
+            ]
+          },
+          {
+            "timestamp_seconds": 3.0,
+            "decision": "selected_keyframe",
+            "rejection_reasons": []
+          },
+          {
+            "timestamp_seconds": 4.0,
+            "decision": "rejected_duplicate",
+            "rejection_reasons": [
+              "near_duplicate"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": true,
+        "timestamps_after_deduplication": [
+          3.0
+        ]
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          1.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "best_available_fallback",
+          "adaptive_scene_representative"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": true,
+        "candidate_confidence": 0.85,
+        "candidate_id": null,
+        "candidate_category": "visible_damage",
+        "candidate_description": "small hole in wall cabinet near toilet",
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "INVESTIGATE_CANDIDATE",
+        "decision_policy_next_step": "CALL_INSPECT_INTERVAL",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": true,
+        "matching_candidates": [
+          {
+            "room": "bathroom",
+            "category": "visible_damage",
+            "description": "small hole in wall cabinet near toilet",
+            "timestamp": 1.0,
+            "confidence": 0.85,
+            "severity_candidate": "review",
+            "bbox": {
+              "x": 0.6,
+              "y": 0.2,
+              "width": 0.05,
+              "height": 0.05
+            }
+          }
+        ]
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 19,
+        "visible_timestamps": [
+          1.1,
+          1.267,
+          1.433,
+          1.6,
+          1.767,
+          1.933,
+          2.1,
+          2.267,
+          2.433,
+          2.6,
+          2.767,
+          2.933,
+          3.1,
+          3.267,
+          3.433,
+          3.6,
+          3.767,
+          3.933,
+          4.1
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_14_wall_hole_below_window.mp4",
+      "source_group": "quimby",
+      "split": "development",
+      "issue_index": 0,
+      "category": "drywall_hole",
+      "description": "Small visible hole in the drywall directly beneath the center of the window sill.",
+      "ground_truth_interval": [
+        1.2,
+        3.2
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          2.0,
+          3.0
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": true,
+        "quality_pass_timestamps": [
+          2.0,
+          3.0
+        ],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 2.0,
+            "decision": "selected_keyframe",
+            "rejection_reasons": []
+          },
+          {
+            "timestamp_seconds": 3.0,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "low_marginal_keyframe_value"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": true,
+        "timestamps_after_deduplication": [
+          2.0,
+          3.0
+        ]
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          2.0,
+          3.0
+        ],
+        "selection_reasons": [
+          "adaptive_scene_representative",
+          "best_available_fallback"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 13,
+        "visible_timestamps": [
+          1.2,
+          1.367,
+          1.533,
+          1.7,
+          1.867,
+          2.033,
+          2.2,
+          2.367,
+          2.533,
+          2.7,
+          2.867,
+          3.033,
+          3.2
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    },
+    {
+      "video": "defect_15_compass_unfinished_wall_patch.mp4",
+      "source_group": "compass_house",
+      "split": "development",
+      "issue_index": 0,
+      "category": "unfinished_wall_patch_paint",
+      "description": "Two filled fastener holes and an unfinished spackle patch are visible on the wall directly below the trim. The adjacent paint finish looks uneven and cracked along the patch edge; sand, finish, and touch up the surface. The video does not establish a structural crack.",
+      "ground_truth_interval": [
+        0.5,
+        2.5
+      ],
+      "sampling": {
+        "defect_visible_in_sampled_frames": true,
+        "sampled_timestamps_in_interval": [
+          1.001,
+          2.002
+        ]
+      },
+      "quality_filtering": {
+        "defect_preserved_by_strict_quality_filter": false,
+        "quality_pass_timestamps": [],
+        "visible_sample_decisions": [
+          {
+            "timestamp_seconds": 1.001,
+            "decision": "rejected_quality",
+            "rejection_reasons": [
+              "blurry",
+              "fast_camera_motion"
+            ]
+          },
+          {
+            "timestamp_seconds": 2.002,
+            "decision": "selected_fallback",
+            "rejection_reasons": [
+              "blurry"
+            ]
+          }
+        ]
+      },
+      "scene_analysis": {
+        "scene_indices_for_visible_samples": [
+          0
+        ]
+      },
+      "deduplication": {
+        "defect_preserved_after_deduplication": false,
+        "timestamps_after_deduplication": []
+      },
+      "keyframe_selection": {
+        "defect_represented_in_selected_keyframes": true,
+        "selected_timestamps": [
+          2.002
+        ],
+        "selection_reasons": [
+          "best_available_fallback"
+        ]
+      },
+      "multimodal_ai": {
+        "status": "measured",
+        "candidate_detected": false,
+        "candidate_confidence": null,
+        "removed_by_confidence_threshold": false,
+        "removed_during_consolidation": false,
+        "decision_policy_route": "not_reached_no_candidate",
+        "rejected_by_decision_policy": false,
+        "present_in_final_detector_issues": false,
+        "matching_candidates": []
+      },
+      "agent_reinspection": {
+        "targeted_interval_sampling_captured_visible_evidence": true,
+        "visible_frame_count": 12,
+        "visible_timestamps": [
+          0.501,
+          0.667,
+          0.834,
+          1.001,
+          1.168,
+          1.335,
+          1.502,
+          1.668,
+          1.835,
+          2.002,
+          2.169,
+          2.336
+        ],
+        "important_trigger_constraint": "Current agentic reinspection starts from an existing model candidate; a defect with no initial candidate cannot trigger this recovery path."
+      }
+    }
+  ],
+  "summary": {
+    "intervals_visible_in_sampled_frames": 7,
+    "intervals_preserved_by_strict_quality_filter": 3,
+    "intervals_represented_in_selected_keyframes": 6,
+    "intervals_with_reinspection_visible_evidence": 8,
+    "detector_intervals_measured": 8
+  }
+}

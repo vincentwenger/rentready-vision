@@ -1,0 +1,20 @@
+﻿{
+    "frozen_step34_files":  [
+                                {
+                                    "path":  "STEP34_PRECISION_RECALL.md",
+                                    "sha256":  "a11ae4670aa19824b2574ffdb3559ea458a099ff9d157393fe11f64748a1d982"
+                                },
+                                {
+                                    "path":  "evaluation/step34/clip_metrics.json",
+                                    "sha256":  "db0248662447aceef3942d7bf8c4e1c2a4fcc4f6896793b64f98d39debe9e193"
+                                },
+                                {
+                                    "path":  "evaluation/step34/clip_predictions.csv",
+                                    "sha256":  "3735b3926c1468e40f92e3db4678fa7a84170e7e786b92c83e8453bd19a6ee67"
+                                },
+                                {
+                                    "path":  "evaluation/step34/cool_vs_stock_benchmark.json",
+                                    "sha256":  "c443926eac3a0b78195a33d4032d9e662876e2a74cac8a4902c3f8064058641a"
+                                }
+                            ]
+}

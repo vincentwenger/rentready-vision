@@ -1,0 +1,28 @@
+{
+  "step": "34A",
+  "step34a_tests": {
+    "passed": 6,
+    "failed": 0,
+    "command": "pytest -q tests/test_step34a_recall_diagnosis.py"
+  },
+  "verification_script": {
+    "status": "passed",
+    "command": "python scripts/verify_step34a_recall_diagnosis.py"
+  },
+  "full_suite": {
+    "passed": 169,
+    "failed": 2,
+    "command": "pytest -q",
+    "failures": [
+      {
+        "test": "tests/test_runtime_evidence.py::test_runtime_evidence_records_exact_opencv_identity",
+        "reason": "Local environment reports OpenCV 4.13.0 while this pre-existing test requires an OpenCV 5.x identity."
+      },
+      {
+        "test": "tests/test_video_processor.py::test_process_video",
+        "reason": "Local environment reports OpenCV 4.13.0 while this pre-existing test requires opencv_version to start with 5."
+      }
+    ],
+    "step34a_regression_indicated": false
+  }
+}
