@@ -620,3 +620,14 @@ Step 17 extends the live-tested Step-16 Bedrock detector so every accepted AI ca
 The application preserves every structurally valid candidate, including uncertain findings below the legacy 0.65 issue threshold, so Step 18 can decide whether to inspect them again. It rejects timestamps that do not match a submitted OpenCV keyframe and invalid/out-of-image boxes. `normalized_bbox_to_pixels(...)` converts a validated bbox into an OpenCV crop rectangle. Step 17 originally wrote `inspections/{inspection_id}/issues/step17-structured-findings.json`; the current Step-25 report writes `step25-severity-classified-issues.json`, retains the original detections in `raw_candidate_findings` and `raw_issues`, and exposes consolidated, classified `issues` for downstream use.
 
 Local verification on **September 8, 2026** passed all 15 Step-17 contract checks. The same day, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed the real AWS acceptance run against `us.amazon.nova-2-lite-v1:0`: three persisted keyframes were considered in one Bedrock batch, one structured `cleanliness` candidate was returned at timestamp `13.0` with confidence `0.8` and a normalized bbox, and the candidate was promoted to an enriched issue linked to source frame `2`. Bedrock request ID `1a9170ad-069c-4688-8c29-2be4f63f290d` proves the live invocation. The report is persisted at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json`, and `scripts/verify_step17_aws.py` returned `passed=true` with `errors=[]`. Step 17 is therefore **LIVE AWS PASS**. See `STEP17_STRUCTURED_JSON.md`, `evaluation/step17/structured_finding_contract.json`, `evaluation/step17/local_verification.json`, and `evaluation/step17/live/` for the contract and evidence.
+
+## Steps 34B–34D detector evaluation and freeze
+
+[`STEP34B_DEVELOPMENT.md`](STEP34B_DEVELOPMENT.md) records the Compass and
+Quimby houses development experiments and the owner-verified 2/9 interval
+milestone from the conditional offline replay.
+[`STEP34C_DEVELOPMENT_METRICS.md`](STEP34C_DEVELOPMENT_METRICS.md) reports the
+21-clip classification, candidate, evidence-frame, confidence, and workload
+measurements. [`STEP34D_DETECTOR_V2_FREEZE.md`](STEP34D_DETECTOR_V2_FREEZE.md)
+tracks the callable detector-v2 implementation and its pending live validation
+and freeze. The Mozart house was not used for these development measurements.

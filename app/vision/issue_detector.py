@@ -85,6 +85,37 @@ Responsible-language rules are mandatory:
   cracking and recommend human inspection to determine significance.
 These rules apply regardless of model confidence."""
 
+# Candidate for paired Step 34B development evaluation. The production default
+# remains the frozen prompt until defect and clean clips have both been scored.
+DEVELOPMENT_PROMPT_34B = SYSTEM_PROMPT + """
+
+Inspect each supplied frame in two passes. First examine wall, floor, trim and
+fixture surfaces for localized visible differences, including small holes,
+unfinished patches or paint, cracks, displaced fittings, missing hardware and
+damaged cabinets. Then check for directly visible transient evidence such as a
+falling drop or visible staining. A small finding can matter even when the rest
+of the room looks ordinary. Examine the actual pixels at the supplied image
+resolution; do not infer a defect from this checklist alone.
+
+Map a visible wall hole to wall_hole, unfinished paint to paint_damage, a
+visible crack to wall_crack when on a wall and otherwise to the most fitting
+specific category, and visible fixture displacement or breakage to
+fixture_damage. Use other only for a distinct visible issue outside the named
+categories (for example an actual visible falling water drop); name exactly
+what is visible in other_label. Do not diagnose its source.
+
+Compare potential findings against normal seams, shadows, reflections, grout,
+fixtures, and furniture. Leave findings empty when there is no localized visual
+evidence. Do not boost confidence just because a pattern is listed here. For
+identifiable but partly occluded evidence, give a calibrated lower confidence
+and a descriptive observation; omit mere speculation. Use the exact supplied frame
+timestamp and a tight evidence bounding box."""
+
+PROMPT_PROFILES = {
+    "production": SYSTEM_PROMPT,
+    "development_34b": DEVELOPMENT_PROMPT_34B,
+}
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -492,8 +523,11 @@ def detect_visible_issues(
     max_keyframes: int = 120,
     max_tokens: int = 2500,
     image_loader: Any | None = None,
+    prompt_profile: str = "production",
 ) -> dict[str, Any]:
     """Detect structured candidates, then consolidate repeated frame observations."""
+    if prompt_profile not in PROMPT_PROFILES:
+        raise ValueError(f"Unknown detector prompt profile: {prompt_profile}")
     if not keyframes:
         return {
             "schema_version": REPORT_SCHEMA_VERSION,
@@ -502,6 +536,7 @@ def detect_visible_issues(
             "detector": {
                 "taxonomy_version": TAXONOMY_VERSION,
                 "model_id": model_id,
+                "prompt_profile": prompt_profile,
                 "confidence_threshold": confidence_threshold,
                 "batch_size": batch_size,
                 "keyframes_considered": 0,
@@ -547,7 +582,7 @@ def detect_visible_issues(
     for batch_number, batch in enumerate(_chunks(selected_frames, resolved_batch_size), start=1):
         response = bedrock_client.converse(
             modelId=model_id,
-            system=[{"text": SYSTEM_PROMPT}],
+            system=[{"text": PROMPT_PROFILES[prompt_profile]}],
             messages=[
                 {
                     "role": "user",
@@ -657,6 +692,7 @@ def detect_visible_issues(
             "taxonomy_version": TAXONOMY_VERSION,
             "structured_finding_version": STRUCTURED_FINDING_VERSION,
             "model_id": model_id,
+            "prompt_profile": prompt_profile,
             "confidence_threshold": confidence_threshold,
             "batch_size": resolved_batch_size,
             "max_keyframes": resolved_max_keyframes,
