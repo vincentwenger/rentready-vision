@@ -1,6 +1,6 @@
 # Step 34D — Detector v2 freeze record
 
-**Status: development-validated configuration, pending the user's Git commit.** The freeze takes effect at that commit. The earlier 2/9 owner-verified interval result was an offline replay of independently saved model outputs; the callable v2 path has now been measured live on the same development set.
+**Status: frozen at Git commit `4a32dfe2d6b5fbd611eb0d8a509727a67f19e201`, tagged `detector-v2-20260929` on September 29, 2026 (Pacific time).** GitHub reports a valid SSH signature for this user-authored commit. The earlier 2/9 owner-verified interval result was an offline replay of independently saved model outputs; the callable v2 path has now been measured live on the same development set.
 
 ## Proposed executable profile
 
@@ -26,8 +26,8 @@
 
 1. Run the callable path on all 21 development clips with the exact profile above; compare clip errors, owner-verified interval recall, unmatched issues, Bedrock requests, tokens, OpenCV time, and model time to Steps 34B–34C. **Complete:** 3/8 clip presence, 2/9 owner-verified intervals, 0/13 clean clips flagged, 40 model requests.
 2. Review the new reported boxes and physical conditions against original source frames. **Complete for the two matched issues:** both live boxes and video SHA-256 digests match the replay boxes and source bytes previously reviewed and confirmed by the owner. Automatic IoU alone was not accepted as proof. The third drywall-patch report remains unmatched.
-3. Save literal OpenCV defaults, prompt/category/policy file hashes, Python/OpenCV runtime, model IDs, region, and source commit in a machine-readable freeze manifest. Record the frozen Git commit and date here.
-4. Commit the measured code, evidence summary, freeze manifest, and Steps 34B–34D documentation together; then mark this record **frozen**. From that point, use the exact commit and configuration for final evaluation. Any later change requires a new version and a new evaluation protocol.
+3. Save literal OpenCV defaults, prompt/category/policy file hashes, Python/OpenCV runtime, model IDs, region, and source commit in a machine-readable freeze manifest. **Complete:** `evaluation/step34d/detector_v2_freeze.json` records these values and the source hashes; this documentation-only follow-up records the now-known commit SHA and tag.
+4. Commit the measured code, evidence summary, freeze manifest, and Steps 34B–34D documentation. **Complete for detector code:** signed commit `4a32dfe2d6b5fbd611eb0d8a509727a67f19e201` and published annotated tag `detector-v2-20260929`. Use this exact tag for final evaluation. Any later detector change requires a new version and a new evaluation protocol.
 
 ## Live-run and freeze fields
 
@@ -37,6 +37,7 @@
 - Live development owner-verified interval recall: 2/9 (22.2%). Bathtub rim crack at 2.0 s and vanity mounting damage at 1.0 s had identical source hashes and exact refined boxes as the owner's previously confirmed replay findings (bathtub IoU 0.662292; vanity IoU 0.838323). The drywall patch issue remains unmatched. The other seven annotations have no verified final issue.
 - Runtime and library versions: Python 3.14.5, OpenCV 5.0.0, NumPy 2.4.6, boto3 1.43.85, botocore 1.43.85; Bedrock region `us-west-2`. These were captured on the user's Windows development machine on September 29, 2026.
 - Frozen configuration SHA-256: recorded per source file and prompt in `evaluation/step34d/detector_v2_freeze.json`; verify before final evaluation with `python -m scripts.verify_step34d_freeze`.
-- Git commit and tag: pending.
-- Freeze date: pending.
+- Frozen detector Git commit: `4a32dfe2d6b5fbd611eb0d8a509727a67f19e201`.
+- Published freeze tag: `detector-v2-20260929` (points to that commit).
+- Freeze date: September 29, 2026 (Pacific time).
 - Final unseen evaluation started: no.

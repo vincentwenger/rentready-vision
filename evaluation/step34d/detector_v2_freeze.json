@@ -1,11 +1,11 @@
 {
   "schema_version": "rentready-detector-v2-freeze/1.0",
-  "freeze_state": "development_validated_pending_user_commit",
+  "freeze_state": "frozen_at_verified_user_commit",
   "date_local": "2026-09-29",
   "final_unseen_evaluation_started": false,
   "scope": "Compass and Quimby houses development v3, 21 clips, 8 positive, 13 clean, 9 annotated intervals",
   "git_base_commit": "8f360d8fb8b8a3977fa6469d865e85f4eec976d3",
-  "frozen_git_commit": "record user-authored commit SHA after commit; tag that exact commit before final evaluation",
+  "frozen_git_commit": "4a32dfe2d6b5fbd611eb0d8a509727a67f19e201",
   "entrypoint": "scripts/run_step34d_detector_v2.py",
   "profile": "detector_v2_nova_conditional_sonnet/1.0",
   "opencv_process_video_defaults": {
@@ -184,5 +184,7 @@
     "scripts/run_step34d_detector_v2.py": "911c947f0797919d8ed1a700867900dd32afe83d39b31625e296a64cc25abf33",
     "scripts/evaluate_step34d_live.py": "9f9e78dc4067fa29f716c160b807f03c63d0bf573f418e97f48675d425730732"
   },
-  "evidence_note": "Live boxes and video digests for bathtub and vanity were identical to the owner-confirmed Step 34B replay; this is a development result only."
+  "evidence_note": "Live boxes and video digests for bathtub and vanity were identical to the owner-confirmed Step 34B replay; this is a development result only.",
+  "frozen_git_tag": "detector-v2-20260929",
+  "freeze_date_local": "2026-09-29"
 }
