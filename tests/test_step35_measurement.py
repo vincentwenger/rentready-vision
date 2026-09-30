@@ -252,3 +252,80 @@ def test_full_cool_harness_uses_separate_measured_and_profile_runs(video, tmp_pa
     assert result["summary"]["cool"]["wall_seconds"]["median"] == 1
     assert result["functions"][0]["speedup_median"] == 2
     assert (args.output_dir / "function_comparison.csv").exists()
+
+
+@pytest.mark.parametrize("arm", ["A", "B", "C"])
+def test_malformed_response_recovery_counts_every_request_and_cost(video, tmp_path, arm):
+    class FirstMalformed(FakeBedrock):
+        def converse(self, **kwargs):
+            if not self.calls:
+                self.calls.append(kwargs)
+                return {"stopReason": "end_turn",
+                        "usage": {"inputTokens": 100, "outputTokens": 10},
+                        "output": {"message": {"content": [{"text": "No tool result"}]}}}
+            return super().converse(**kwargs)
+
+    client = FirstMalformed(.9)
+    output = tmp_path / ("recovery_" + arm)
+    result = pipelines.run_pipeline(video, output, client, arm)
+    report = json.loads((output / "detector_report.json").read_text())
+    journal = json.loads((output / "request_trace.json").read_text())
+    assert client.calls[0] == client.calls[1]
+    assert result["model_requests"] == len(client.calls) == len(report["trace"])
+    assert result["images_sent_to_model"] == 5 * len(client.calls)
+    assert len(journal) == len(client.calls)
+    failures = [t for t in report["trace"] if t["response_status"] == "malformed_tool_result"]
+    assert len(failures) == 1 and failures[0]["image_count"] == 5
+    raw = json.loads((output / failures[0]["response_path"]).read_text())
+    assert raw["stopReason"] == "end_turn"
+    assert result["response_retries"] == 1
+    rates = {"models": {pipelines.NOVA_MODEL: {
+        "input_usd_per_million": .33, "output_usd_per_million": 2.75}}}
+    expected = len(client.calls) * (100 * .33 + 10 * 2.75) / 1_000_000
+    assert pipelines.model_cost(report["trace"], rates) == pytest.approx(expected)
+
+
+def test_malformed_response_limit_retains_audit_and_never_scores_clean(video, tmp_path):
+    class AlwaysMalformed(FakeBedrock):
+        def converse(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"usage": {"inputTokens": 100, "outputTokens": 10},
+                    "output": {"message": {"content": []}}}
+
+    client = AlwaysMalformed()
+    output = tmp_path / "exhausted"
+    with pytest.raises(ValueError, match="exactly one valid"):
+        pipelines.run_pipeline(video, output, client, "A")
+    assert len(client.calls) == pipelines.POLICY["response_max_attempts"] == 3
+    assert all(call == client.calls[0] for call in client.calls)
+    journal = json.loads((output / "request_trace.json").read_text())
+    assert len(journal) == 3
+    assert len(list((output / "responses").glob("*.json"))) == 3
+    assert not (output / "run.json").exists()
+
+
+def test_response_recovery_does_not_retry_api_errors(video, tmp_path):
+    class Denied(FakeBedrock):
+        def converse(self, **kwargs):
+            self.calls.append(kwargs)
+            raise RuntimeError("Access denied test")
+
+    client = Denied()
+    with pytest.raises(RuntimeError, match="Access denied test"):
+        pipelines.run_pipeline(video, tmp_path / "denied", client, "A")
+    assert len(client.calls) == 1
+
+
+def test_response_recovery_refuses_missing_usage(video, tmp_path):
+    class MissingUsage(FakeBedrock):
+        def converse(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"output": {"message": {"content": []}}}
+
+    client = MissingUsage()
+    output = tmp_path / "missing_usage"
+    with pytest.raises(ValueError, match="Bedrock token usage"):
+        pipelines.run_pipeline(video, output, client, "A")
+    assert len(client.calls) == 1
+    assert len(list((output / "responses").glob("*.json"))) == 1
+    assert not (output / "run.json").exists()

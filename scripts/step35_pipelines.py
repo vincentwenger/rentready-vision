@@ -11,10 +11,14 @@ from scripts.run_step34d_detector_v2 import (
     CONFIDENCE_THRESHOLD, NOVA_MODEL, SONNET_MODEL, _extract_variants, _query,
 )
 
-PROFILE = "step35-selection-temporal-ablation/1.0"
+from scripts.step35_response_recovery import query_with_recovery
+
+PROFILE = "step35-selection-temporal-ablation/1.1"
 ARMS = ("A", "B", "C")
 POLICY = {
     "baseline_seconds": 2.0,
+    "response_max_attempts": 3,
+    "response_recovery": "missing-tool result only; identical request; all attempts counted",
     "views_per_source_frame": 5,
     "confidence_threshold": CONFIDENCE_THRESHOLD,
     "ambiguous_min": .50, "ambiguous_max": .85,
@@ -118,7 +122,9 @@ def run_pipeline(video: Path, output: Path, client, arm: str) -> dict:
         opencv_seconds += elapsed
         frame_accepted = []
         for model in (NOVA_MODEL, SONNET_MODEL):
-            found, entry = _query(client, model, variants)
+            found, entry = query_with_recovery(
+                _query, client, model, variants, output, trace, phase,
+                frame["timestamp_seconds"], max_attempts=POLICY["response_max_attempts"])
             if entry["invalid_findings"]:
                 raise ValueError("Invalid findings: review failed response before retry")
             usage = entry["usage"]
@@ -126,6 +132,7 @@ def run_pipeline(video: Path, output: Path, client, arm: str) -> dict:
                 raise ValueError("Missing Bedrock token usage; cannot report measured cost")
             trace.append({**entry, "phase": phase, "frame_timestamps": [frame["timestamp_seconds"]],
                           "image_count": len(variants)})
+            write_json(output / "request_trace.json", trace)
             candidates.extend({**item, "stage": phase, "model_id": model} for item in found)
             frame_accepted = [f for f in found if f["confidence"] >= CONFIDENCE_THRESHOLD]
             if frame_accepted:
@@ -177,6 +184,7 @@ def run_pipeline(video: Path, output: Path, client, arm: str) -> dict:
               "source_frame_presentations": len(trace),
               "images_sent_to_model": sum(t["image_count"] for t in trace),
               "model_requests": len(trace), "agent_tool_calls": len(actions),
+              "response_retries": sum(t["response_status"] == "malformed_tool_result" for t in trace),
               "ambiguous_candidates": ambiguous,
               "ambiguous_tool_calls": sum(a["request"]["reason"] == "ambiguous_model_candidate" for a in actions),
               "gap_probe_tool_calls": sum(a["request"]["reason"] != "ambiguous_model_candidate" for a in actions)}

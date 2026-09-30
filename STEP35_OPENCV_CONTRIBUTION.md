@@ -28,7 +28,7 @@ The frozen Step 34D source files and manifest are unchanged. `python -m scripts.
 
 Use the **v3 development collection: 21 Compass and Quimby houses clips, 8 positive and 13 clean**, plus `property_split.csv` and their annotation JSONs. Use the same bytes as Step 34D. The earlier v1/v2 collection is not sufficient. Place these together in `/home/ssm-user/evaluation-v3` or substitute your actual directory below. Do not copy Mozart house media into this run.
 
-The runner validates the split and fingerprints every video, annotation, source file, model configuration, prices and runtime. Labels do not enter selection or detection. Outputs are outside the dataset. Complete videos can resume; incomplete folders require inspection and a new run directory. AWS SDK automatic retries are disabled so hidden retries cannot inflate unrecorded requests. Failed requests may still be billable; this report counts successfully completed requests and is not an invoice.
+The runner validates the split and fingerprints every video, annotation, source file, model configuration, prices and runtime. Labels do not enter selection or detection. Outputs are outside the dataset. Complete videos can resume; incomplete folders require inspection and a new run directory. AWS SDK automatic retries are disabled. Protocol 1.1 permits at most three identical requests when a returned response lacks the required valid tool result. This policy applies equally to A, B and C. Returned responses and a per-request journal are saved. Malformed attempts count toward requests, images, tokens, model time and estimated AI cost. Other errors and exhausted retries stop the run. Estimates are not an invoice.
 
 Make sure the two frozen model IDs are enabled for your AWS account in `us-west-2`. Use the existing AWS credential/instance-role setup. No S3 uploads are needed by this runner because it embeds JPEGs in Bedrock requests.
 
@@ -103,3 +103,11 @@ Outputs: `cool_comparison.md`, `cool_comparison.json`, `function_comparison.csv`
 ## Completion criteria
 
 Step 35 is finished only after the credentialed A/B/C run, final finding review, and same-instance stock/COOL measurements are complete and saved. Assess A vs B for frame/time/cost savings and reviewed recall loss; B vs C for recovered reviewed defects, extra calls and new false reports; A vs C for the full tradeoff. Report functions that do not benefit and avoid claiming generalization from these development properties.
+
+## Response recovery validation ? protocol 1.1
+
+Windows validation on 2026-09-30: 20 tests passed, one Linux-only test skipped, and all 22 frozen detector source files verified unchanged. Tests cover recovery accounting, identical retry requests, bounded attempts, SDK errors and missing token usage.
+
+Each pipeline saves returned responses under `responses/` and updates `request_trace.json` after recorded attempts. Completed `run.json` files include `response_retries`.
+
+The changed protocol requires a fresh output directory. Earlier failed runs remain diagnostic evidence and must not be mixed into the new comparison. AWS measurements, owner review and the separate COOL benchmark remain pending.
