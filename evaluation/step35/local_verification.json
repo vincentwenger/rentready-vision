@@ -1,0 +1,26 @@
+{
+  "schema_version": "rentready-step35-local-validation/1.0",
+  "date_local": "2026-09-29",
+  "scope": "local code validation; synthetic media and mocked model responses",
+  "implementation_status": "complete",
+  "measurement_status": "pending_credentialed_aws_runs_and_owner_review",
+  "full_suite": {"passed": 221, "failed": 0, "warnings": 1},
+  "new_step35_tests": 15,
+  "frozen_v2_sources": {"passed": true, "checked": 22, "changed": 0},
+  "validated": [
+    "Real OpenCV decode, selection and interval inspection on synthetic media",
+    "No agent tool calls in A or B; bounded actual interval calls in C",
+    "Shared model inference settings, fallback, image and request accounting",
+    "Separate model-specific token cost calculation and unknown-cost handling",
+    "Preflight has zero model requests; completed outputs resume without requests",
+    "Changed detector report is rejected on resume",
+    "Owner review is required for final issue precision and missed-defect metrics",
+    "Separate profiling does not change selected outputs or decoded pixel hashes",
+    "Whole COOL harness with mocked subprocesses checks interleaved run scheduling, equivalence and reports",
+    "Runtime gate requires observed Graviton4 identity and actual COOL cv2 import path"
+  ],
+  "aws_model_calls_executed_here": 0,
+  "graviton4_benchmark_executed_here": false,
+  "development_accuracy_measured_here": false,
+  "note": "No synthetic or mocked values are presented as actual Step 35 performance. The full suite uses the project lockfile and local socket support for its API test client. One existing Starlette/httpx deprecation warning remains."
+}

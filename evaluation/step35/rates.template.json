@@ -1,0 +1,17 @@
+{
+  "source": "",
+  "as_of": "",
+  "region": "us-west-2",
+  "instance_type": "m8g.4xlarge",
+  "ec2_hourly_usd": null,
+  "models": {
+    "us.amazon.nova-2-lite-v1:0": {
+      "input_usd_per_million": null,
+      "output_usd_per_million": null
+    },
+    "us.anthropic.claude-sonnet-4-5-20250929-v1:0": {
+      "input_usd_per_million": null,
+      "output_usd_per_million": null
+    }
+  }
+}
