@@ -78,6 +78,59 @@ The validated production/judge path is now:
 
 The public inspection API is preserved while the SQS worker provides durable job ownership, retries/DLQ behavior, runtime verification, S3/DynamoDB persistence, and CloudWatch telemetry.
 
+
+## Step 35 - OpenCV contribution and COOL benchmark results
+
+RentReady Vision was evaluated on 21 development walkthrough clips using the same frozen detector configuration across three pipelines:
+
+### Pipeline comparison
+
+| Metric | Simple baseline | OpenCV selection | Agentic + COOL |
+|---|---:|---:|---:|
+| Unique source frames sent to model | 122 | 67 | 127 |
+| Images sent to model | 1,215 | 655 | 1,245 |
+| Owner-reviewed interval recall | 11.1% | 11.1% | 22.2% |
+| Owner-reviewed issue precision | 20.0% | 33.3% | 33.3% |
+| AI cost estimate | $2.77 | $1.49 | $2.84 |
+| Processing time/video | 24.15s | 14.08s | 25.63s |
+| Agent tool calls | N/A | N/A | 20 |
+
+### OpenCV selection impact
+
+Compared with simple frame sampling, OpenCV-based selection:
+
+- Reduced model frames by 45%.
+- Reduced estimated AI cost by 46%.
+- Reduced processing time by 42%.
+- Maintained the same owner-reviewed interval recall on this development set.
+
+### Agentic Vision evaluation
+
+The agentic pipeline adds targeted investigation tools when evidence is uncertain.
+
+Measured results:
+
+- Owner-reviewed interval recall increased from 11.1% to 22.2%.
+- 20 investigation tool calls were recorded.
+- Owner review showed that confirmed improvements came from initial detection rather than reinspection recovery.
+- Two reinspection findings were identified as false positives.
+
+### Stock OpenCV 5 vs COOL on AWS Graviton4
+
+A separate benchmark compared stock OpenCV 5 and COOL on the same AWS Graviton4 `m8g.4xlarge` instance.
+
+| Metric | Stock OpenCV 5 | COOL |
+|---|---:|---:|
+| Output equivalence | N/A | True |
+| Median runtime | 164.217s | 153.984s |
+| Sampled frames/second | 6.41 | 6.84 |
+| Estimated compute cost | $0.0328 | $0.0307 |
+
+COOL maintained equivalent output while improving median runtime by 6.2%.
+
+All benchmark results are development measurements, not guarantees of unseen-property performance.
+
+
 ## Architecture
 
 ```text
