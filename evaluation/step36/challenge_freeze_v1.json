@@ -1,0 +1,57 @@
+{
+  "schema_version": "rentready-step36-challenge-freeze/1.0",
+  "set_id": "step36-challenge-v1",
+  "policy": {
+    "policy_version": "rentready-step36-agent-investigation/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "inference": {
+      "maxTokens": 700,
+      "temperature": 0,
+      "topP": 0.1
+    },
+    "response_max_attempts": 3,
+    "accept_when_confidence_greater_than": 0.85,
+    "investigate_minimum_inclusive": 0.5,
+    "investigate_maximum_inclusive": 0.85,
+    "interval": {
+      "seconds_before": 2.0,
+      "seconds_after": 3.0,
+      "sample_fps": 6.0,
+      "model_frame_budget": 5
+    },
+    "crop_region": {
+      "padding": 0.15,
+      "jpeg_quality": 94
+    },
+    "other_angle": {
+      "search_seconds_before": 4.0,
+      "search_seconds_after": 4.0,
+      "sample_every_seconds": 0.5,
+      "max_results": 3,
+      "min_viewpoint_change": 0.06
+    },
+    "tool_order": [
+      "inspect_interval",
+      "crop_region",
+      "other_angle_evidence",
+      "verify"
+    ],
+    "final_verify_image_budget": 8,
+    "re_evaluate_after_each_evidence_tool": true,
+    "terminal_after_first_confident_re_evaluation": true,
+    "unresolved_after_verify": "HUMAN_REVIEW",
+    "labels_available_to_executor": false
+  },
+  "policy_sha256": "9d98d43a1dd4587ac7a0787c85faea82074fec9a7a14c10f573d4daef3af848e",
+  "candidates_sha256": "92b151ae3185acd57264bfd0995db1f9e31d8b5cebd582e7cb240bb2201006ba",
+  "labels_sha256": "c3894bed124b261f2df737b582a502b84624e842c289161d09a9cc0419d2c870",
+  "media_sha256": {
+    "challenge_01_positive_subtle.mp4": "8efa5d4cea38c2e8b5fca664a1ab33f1775618531bca6f56a22104c385c8187b",
+    "challenge_07_negative_subtle_fake_crack.mp4": "c720702e0e7e2455409b4e922607b098f37b125ae9155cd263f80ae95dad0be7"
+  },
+  "code_sha256": {
+    "scripts\\step36_agentic_verification.py": "b6f3e5961515e5208e73d3f9dda3629dcb4c2e63876320237ad5244c41a122b4",
+    "scripts\\measure_step36_agentic.py": "a86c8a6b17828c0d99185b38e620235732ad07ed217e8fdf2ad0fc8ae90be1c5"
+  },
+  "candidate_count": 2
+}

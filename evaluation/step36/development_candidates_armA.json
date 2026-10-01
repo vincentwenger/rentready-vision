@@ -1,0 +1,61 @@
+{
+  "schema_version": "rentready-step36-candidates/1.0",
+  "set_id": "step36-development-armA-v1",
+  "purpose": "development",
+  "candidates": [
+    {
+      "candidate_id": "s36-05ea04308a51d5f5",
+      "video": "clean_22_compass_kitchen.mp4",
+      "timestamp": 8.008,
+      "bbox": {
+        "x": 0.2531,
+        "y": 0.1406,
+        "width": 0.1406,
+        "height": 0.0844
+      },
+      "room": "kitchen",
+      "category": "fixture_damage",
+      "description": "Visible scratches and scuff marks on stainless steel range hood surface",
+      "source_confidence": 0.85,
+      "source_arm": "A",
+      "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "source_stage": "initial"
+    },
+    {
+      "candidate_id": "s36-1a4690d82b829437",
+      "video": "clean_29_quimby_vanity_level_holder.mp4",
+      "timestamp": 0.0,
+      "bbox": {
+        "x": 0.0843,
+        "y": 0.8031,
+        "width": 0.1967,
+        "height": 0.1406
+      },
+      "room": "bathroom",
+      "category": "floor_stain",
+      "description": "Dark staining visible on wood-grain flooring near wall and door trim",
+      "source_confidence": 0.85,
+      "source_arm": "A",
+      "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "source_stage": "initial"
+    },
+    {
+      "candidate_id": "s36-a657895bf7421f82",
+      "video": "defect_11_bathtub_rim_crack.mp4",
+      "timestamp": 4.0,
+      "bbox": {
+        "x": 0.03,
+        "y": 0.03,
+        "width": 0.12,
+        "height": 0.1
+      },
+      "room": "bathroom",
+      "category": "wall_stain",
+      "description": "Visible reddish-brown discoloration on the wall near the corner, likely a stain or water damage.",
+      "source_confidence": 0.8,
+      "source_arm": "A",
+      "source_model_id": "us.amazon.nova-2-lite-v1:0",
+      "source_stage": "initial"
+    }
+  ]
+}

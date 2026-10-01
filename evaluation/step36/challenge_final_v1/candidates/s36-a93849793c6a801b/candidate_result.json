@@ -1,0 +1,80 @@
+{
+  "schema_version": "rentready-step36-results/1.0",
+  "candidate_id": "s36-a93849793c6a801b",
+  "video": "challenge_07_negative_subtle_fake_crack.mp4",
+  "candidate": {
+    "candidate_id": "s36-a93849793c6a801b",
+    "video": "challenge_07_negative_subtle_fake_crack.mp4",
+    "timestamp": 15.999,
+    "bbox": {
+      "x": 0.3147,
+      "y": 0.2362,
+      "width": 0.0112,
+      "height": 0.0084
+    },
+    "room": "hallway",
+    "category": "wall_stain",
+    "description": "Small orange-brown stain on white door surface, approximately circular in shape",
+    "source_confidence": 0.85,
+    "source_arm": "B",
+    "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "source_stage": "initial"
+  },
+  "initial_assessment": {
+    "confidence": 0.85,
+    "candidate_visible": null,
+    "evidence_summary": "Imported from the frozen Step 35 source finding.",
+    "outcome": "INVESTIGATE",
+    "phase": "step35_source",
+    "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "source_stage": "initial"
+  },
+  "steps": [
+    {
+      "tool": "inspect_interval",
+      "action": "re-evaluate",
+      "status": "ok",
+      "confidence_before": 0.85,
+      "confidence_after": 1.0,
+      "outcome_after": "PRESENT",
+      "assessment": {
+        "confidence": 1.0,
+        "candidate_visible": true,
+        "evidence_summary": "All five images clearly show a small orange-brown circular stain on the white door surface in the hallway, matching the candidate description.",
+        "outcome": "PRESENT",
+        "phase": "inspect_interval",
+        "model_id": "us.amazon.nova-2-lite-v1:0",
+        "image_count": 5,
+        "image_sha256": [
+          "31565fa75cdc787aaac1fa449b7809d13ef038882bbde57c518f0ff16f697ff1",
+          "e1f8050724f36077e962856731b26dad7a4f0c6e3e74df8beacc1d6f723c377a",
+          "650500e940675aad048024042420d224d23ca88134eff66840e02827e52f57ff",
+          "1bdee62ee847209f3559048bdbf31208c6bf34a664334e9bd784129f57fd1978",
+          "a708b4af22ed9deb3098db0948648cca3876f5f9bfd40aa686aea9f5cebad7a3"
+        ],
+        "model_seconds": 1.8785,
+        "usage": {
+          "inputTokens": 2366,
+          "outputTokens": 76,
+          "totalTokens": 2442
+        },
+        "response_path": "responses\\0000_inspect_interval_1.json",
+        "response_attempt": 1
+      },
+      "details": {
+        "returned_frame_count": 30,
+        "model_frame_count": 5,
+        "opencv_seconds": 4.4762
+      }
+    }
+  ],
+  "final_assessment": {
+    "confidence": 1.0,
+    "outcome": "PRESENT",
+    "classification": "PRESENT"
+  },
+  "agent_tool_calls": 1,
+  "policy_re_evaluations": 1,
+  "processing_seconds": 6.6096,
+  "policy_sha256": "9d98d43a1dd4587ac7a0787c85faea82074fec9a7a14c10f573d4daef3af848e"
+}

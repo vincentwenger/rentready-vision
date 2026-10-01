@@ -1,0 +1,18 @@
+{
+  "schema_version": "rentready-step36-labels/1.0",
+  "set_id": "step36-challenge-v1",
+  "labels": [
+    {
+      "candidate_id": "s36-a117139c0ebb8e7c",
+      "ground_truth": "PRESENT",
+      "human_review_expected": false,
+      "review_notes": "Manual review confirmed the lower cabinet/trim piece is displaced, exposing the particle-board edge."
+    },
+    {
+      "candidate_id": "s36-a93849793c6a801b",
+      "ground_truth": "ABSENT",
+      "human_review_expected": false,
+      "review_notes": "Staged negative: the orange-brown spot is removable surface material placed for the challenge; there is no actual stain or underlying surface damage."
+    }
+  ]
+}

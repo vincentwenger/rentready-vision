@@ -1,0 +1,120 @@
+{
+  "schema_version": "rentready-step36-results/1.0",
+  "candidate_count": 3,
+  "metrics": {
+    "accuracy_before_agent_investigation": 0.0,
+    "accuracy_after_agent_investigation": 1.0,
+    "accuracy_delta": 1.0,
+    "initial_terminal_accuracy": null,
+    "ambiguous_findings": 3,
+    "ambiguous_findings_resolved": 3,
+    "ambiguous_findings_resolved_rate": 1.0,
+    "average_agent_tool_calls": 1.0,
+    "average_agent_tool_calls_per_investigated_candidate": 1.0,
+    "successful_agent_tool_calls": 3,
+    "policy_re_evaluations": 3,
+    "incorrect_escalations": 0,
+    "incorrect_escalation_rate": 0.0,
+    "unnecessary_tool_calls": 0,
+    "unnecessary_tool_call_rate": 0.0,
+    "missed_finding_recovery_count": 1,
+    "missed_finding_recovery_rate": 1.0,
+    "negative_ambiguous_findings_investigated": 2,
+    "findings_correctly_rejected_after_investigation": 2,
+    "correct_rejection_rate_after_investigation": 1.0,
+    "policy_outcome_accuracy_after": 1.0
+  },
+  "tool_use_counts": {
+    "inspect_interval": 3,
+    "crop_region": 0,
+    "other_angle_evidence": 0,
+    "verify": 0
+  },
+  "corrections_by_decisive_tool": {
+    "inspect_interval": 3,
+    "crop_region": 0,
+    "other_angle_evidence": 0,
+    "verify": 0,
+    "re-evaluate": 3
+  },
+  "per_candidate": [
+    {
+      "candidate_id": "s36-05ea04308a51d5f5",
+      "ground_truth": "ABSENT",
+      "human_review_expected": false,
+      "initial_outcome": "INVESTIGATE",
+      "final_outcome": "ABSENT",
+      "initial_correct": false,
+      "final_correct": true,
+      "agent_tool_calls": 1,
+      "decisive_tool": "inspect_interval"
+    },
+    {
+      "candidate_id": "s36-1a4690d82b829437",
+      "ground_truth": "ABSENT",
+      "human_review_expected": false,
+      "initial_outcome": "INVESTIGATE",
+      "final_outcome": "ABSENT",
+      "initial_correct": false,
+      "final_correct": true,
+      "agent_tool_calls": 1,
+      "decisive_tool": "inspect_interval"
+    },
+    {
+      "candidate_id": "s36-a657895bf7421f82",
+      "ground_truth": "PRESENT",
+      "human_review_expected": false,
+      "initial_outcome": "INVESTIGATE",
+      "final_outcome": "PRESENT",
+      "initial_correct": false,
+      "final_correct": true,
+      "agent_tool_calls": 1,
+      "decisive_tool": "inspect_interval"
+    }
+  ],
+  "set_id": "step36-development-armA-v1",
+  "purpose": "development",
+  "policy": {
+    "policy_version": "rentready-step36-agent-investigation/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "inference": {
+      "maxTokens": 700,
+      "temperature": 0,
+      "topP": 0.1
+    },
+    "response_max_attempts": 3,
+    "accept_when_confidence_greater_than": 0.85,
+    "investigate_minimum_inclusive": 0.5,
+    "investigate_maximum_inclusive": 0.85,
+    "interval": {
+      "seconds_before": 2.0,
+      "seconds_after": 3.0,
+      "sample_fps": 6.0,
+      "model_frame_budget": 5
+    },
+    "crop_region": {
+      "padding": 0.15,
+      "jpeg_quality": 94
+    },
+    "other_angle": {
+      "search_seconds_before": 4.0,
+      "search_seconds_after": 4.0,
+      "sample_every_seconds": 0.5,
+      "max_results": 3,
+      "min_viewpoint_change": 0.06
+    },
+    "tool_order": [
+      "inspect_interval",
+      "crop_region",
+      "other_angle_evidence",
+      "verify"
+    ],
+    "final_verify_image_budget": 8,
+    "re_evaluate_after_each_evidence_tool": true,
+    "terminal_after_first_confident_re_evaluation": true,
+    "unresolved_after_verify": "HUMAN_REVIEW",
+    "labels_available_to_executor": false
+  },
+  "policy_sha256": "9d98d43a1dd4587ac7a0787c85faea82074fec9a7a14c10f573d4daef3af848e",
+  "labels_sha256": "35487dd8b2603d017c56de48f3ba9353df9e9bcb16232503c28c74f69e1699b9"
+}

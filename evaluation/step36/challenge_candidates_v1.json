@@ -1,0 +1,43 @@
+{
+  "schema_version": "rentready-step36-candidates/1.0",
+  "set_id": "step36-challenge-v1",
+  "purpose": "challenge",
+  "candidates": [
+    {
+      "candidate_id": "s36-a117139c0ebb8e7c",
+      "video": "challenge_01_positive_subtle.mp4",
+      "timestamp": 11.999,
+      "bbox": {
+        "x": 0.0843,
+        "y": 0.4219,
+        "width": 0.1405,
+        "height": 0.0844
+      },
+      "room": "unknown",
+      "category": "fixture_damage",
+      "description": "White cabinet or furniture piece showing exposed particle board edge with chipped finish at bottom corner",
+      "source_confidence": 0.85,
+      "source_arm": "B",
+      "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "source_stage": "initial"
+    },
+    {
+      "candidate_id": "s36-a93849793c6a801b",
+      "video": "challenge_07_negative_subtle_fake_crack.mp4",
+      "timestamp": 15.999,
+      "bbox": {
+        "x": 0.3147,
+        "y": 0.2362,
+        "width": 0.0112,
+        "height": 0.0084
+      },
+      "room": "hallway",
+      "category": "wall_stain",
+      "description": "Small orange-brown stain on white door surface, approximately circular in shape",
+      "source_confidence": 0.85,
+      "source_arm": "B",
+      "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "source_stage": "initial"
+    }
+  ]
+}

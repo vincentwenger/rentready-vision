@@ -1,0 +1,44 @@
+{
+  "policy": {
+    "policy_version": "rentready-step36-agent-investigation/1.0",
+    "model_id": "us.amazon.nova-2-lite-v1:0",
+    "inference": {
+      "maxTokens": 700,
+      "temperature": 0,
+      "topP": 0.1
+    },
+    "response_max_attempts": 3,
+    "accept_when_confidence_greater_than": 0.85,
+    "investigate_minimum_inclusive": 0.5,
+    "investigate_maximum_inclusive": 0.85,
+    "interval": {
+      "seconds_before": 2.0,
+      "seconds_after": 3.0,
+      "sample_fps": 6.0,
+      "model_frame_budget": 5
+    },
+    "crop_region": {
+      "padding": 0.15,
+      "jpeg_quality": 94
+    },
+    "other_angle": {
+      "search_seconds_before": 4.0,
+      "search_seconds_after": 4.0,
+      "sample_every_seconds": 0.5,
+      "max_results": 3,
+      "min_viewpoint_change": 0.06
+    },
+    "tool_order": [
+      "inspect_interval",
+      "crop_region",
+      "other_angle_evidence",
+      "verify"
+    ],
+    "final_verify_image_budget": 8,
+    "re_evaluate_after_each_evidence_tool": true,
+    "terminal_after_first_confident_re_evaluation": true,
+    "unresolved_after_verify": "HUMAN_REVIEW",
+    "labels_available_to_executor": false
+  },
+  "policy_sha256": "9d98d43a1dd4587ac7a0787c85faea82074fec9a7a14c10f573d4daef3af848e"
+}

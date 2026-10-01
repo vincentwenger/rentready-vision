@@ -1,0 +1,80 @@
+{
+  "schema_version": "rentready-step36-results/1.0",
+  "candidate_id": "s36-a117139c0ebb8e7c",
+  "video": "challenge_01_positive_subtle.mp4",
+  "candidate": {
+    "candidate_id": "s36-a117139c0ebb8e7c",
+    "video": "challenge_01_positive_subtle.mp4",
+    "timestamp": 11.999,
+    "bbox": {
+      "x": 0.0843,
+      "y": 0.4219,
+      "width": 0.1405,
+      "height": 0.0844
+    },
+    "room": "unknown",
+    "category": "fixture_damage",
+    "description": "White cabinet or furniture piece showing exposed particle board edge with chipped finish at bottom corner",
+    "source_confidence": 0.85,
+    "source_arm": "B",
+    "source_model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "source_stage": "initial"
+  },
+  "initial_assessment": {
+    "confidence": 0.85,
+    "candidate_visible": null,
+    "evidence_summary": "Imported from the frozen Step 35 source finding.",
+    "outcome": "INVESTIGATE",
+    "phase": "step35_source",
+    "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "source_stage": "initial"
+  },
+  "steps": [
+    {
+      "tool": "inspect_interval",
+      "action": "re-evaluate",
+      "status": "ok",
+      "confidence_before": 0.85,
+      "confidence_after": 0.9,
+      "outcome_after": "PRESENT",
+      "assessment": {
+        "confidence": 0.9,
+        "candidate_visible": true,
+        "evidence_summary": "All five images clearly show a white cabinet or furniture piece with visible particle board edges and chipped finish at the bottom corner, matching the candidate description.",
+        "outcome": "PRESENT",
+        "phase": "inspect_interval",
+        "model_id": "us.amazon.nova-2-lite-v1:0",
+        "image_count": 5,
+        "image_sha256": [
+          "87fa9809b52f6ffea420867dbf9366def1d92abed901159dd71ac2e1d321e9e5",
+          "727250b0c413c410d2b1ebb309abe30fde4a0843447f3984894911d6984fe92c",
+          "679251c1939b58e4b6208da014b2af2668fafcc15815a65189e33e1c0385422c",
+          "6bd50d402751b6ebf5ac793cd6e00ef2782e2c1f1d7c0b2ace10d42a48d38f82",
+          "5b7aa28d57180165ab6b0c4de2bd279973a390abe7dd5eb3bdcdacfcd02b8faf"
+        ],
+        "model_seconds": 3.5029,
+        "usage": {
+          "inputTokens": 2367,
+          "outputTokens": 80,
+          "totalTokens": 2447
+        },
+        "response_path": "responses\\0000_inspect_interval_1.json",
+        "response_attempt": 1
+      },
+      "details": {
+        "returned_frame_count": 30,
+        "model_frame_count": 5,
+        "opencv_seconds": 5.0313
+      }
+    }
+  ],
+  "final_assessment": {
+    "confidence": 0.9,
+    "outcome": "PRESENT",
+    "classification": "PRESENT"
+  },
+  "agent_tool_calls": 1,
+  "policy_re_evaluations": 1,
+  "processing_seconds": 8.8071,
+  "policy_sha256": "9d98d43a1dd4587ac7a0787c85faea82074fec9a7a14c10f573d4daef3af848e"
+}

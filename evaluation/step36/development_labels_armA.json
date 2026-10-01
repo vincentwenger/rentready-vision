@@ -1,0 +1,24 @@
+{
+  "schema_version": "rentready-step36-labels/1.0",
+  "set_id": "step36-development-armA-v1",
+  "labels": [
+    {
+      "candidate_id": "s36-05ea04308a51d5f5",
+      "ground_truth": "ABSENT",
+      "human_review_expected": false,
+      "review_notes": "Manual review at 8.008s: no actual scratches or scuff marks are visible on the stainless steel range hood; the apparent marks are reflections."
+    },
+    {
+      "candidate_id": "s36-1a4690d82b829437",
+      "ground_truth": "ABSENT",
+      "human_review_expected": false,
+      "review_notes": "Manual review at 0.0s: no actual floor stain is visible; the dark area is consistent with normal wood grain and shadow."
+    },
+    {
+      "candidate_id": "s36-a657895bf7421f82",
+      "ground_truth": "PRESENT",
+      "human_review_expected": false,
+      "review_notes": "Manual review at 4.0s: reddish discoloration is visibly present on the wall near the tub. Owner confirms it was likely removable paint from a child and is no longer present after cleaning; evidence does not support calling it water damage."
+    }
+  ]
+}
