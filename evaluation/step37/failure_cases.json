@@ -1,0 +1,175 @@
+{
+  "schema_version": "rentready-step37-failure-cases/1.0",
+  "step": 37,
+  "status": "complete",
+  "case_count": 5,
+  "principles": {
+    "measured_cases_only": true,
+    "mozart_test_reused_for_tuning": false,
+    "detector_v2_new_unseen_property_evaluation_available": false,
+    "implemented_and_recommended_mitigations_are_distinguished": true
+  },
+  "cases": [
+    {
+      "id": "failure_01_over_conservative_held_out_detector",
+      "title": "Over-conservative held-out detector configuration",
+      "scope": "Mozart house property-held-out Step 34 test",
+      "observed": {
+        "test_videos": 23,
+        "clean_videos": 15,
+        "defect_videos": 8,
+        "tp": 0,
+        "tn": 15,
+        "fp": 0,
+        "fn": 8,
+        "recall_percent": 0,
+        "specificity_percent": 100
+      },
+      "loss_point": "Final detector emitted no positive predictions; separate development tracing located representative upstream failure mechanisms without reusing Mozart house for tuning.",
+      "development_diagnosis": {
+        "targeted_reinspection_visible_intervals": 8,
+        "targeted_reinspection_total_intervals": 8,
+        "pre_ai_lost_clip": "defect_09_quimby_water_drip.mp4",
+        "visible_keyframe_no_candidate_defects": 5
+      },
+      "mitigation": {
+        "implemented": [
+          "full source frame plus four overlapping tiles",
+          "conditional Sonnet fallback after no accepted Nova issue",
+          "local pixel refinement for mounting-point and small-crack findings",
+          "fixed 0.65 candidate-retention threshold",
+          "frozen source/configuration manifest"
+        ],
+        "v2_development_result": {
+          "clips": 21,
+          "tp": 3,
+          "tn": 13,
+          "fp": 0,
+          "fn": 5,
+          "owner_verified_intervals": 2,
+          "annotated_intervals": 9,
+          "clean_false_positive_clips": 0,
+          "clean_clips": 13
+        },
+        "remaining_limitation": "Detector v2 has a frozen development measurement but no additional unseen-property evaluation set."
+      },
+      "evidence": [
+        "evaluation/step34/clip_metrics.json",
+        "evaluation/step34a/bedrock_run_fixed/diagnosis.json",
+        "evaluation/step34d/detector_v2_freeze.json"
+      ]
+    },
+    {
+      "id": "failure_02_transient_water_drip_pre_ai_loss",
+      "title": "Brief water drip disappeared before AI",
+      "scope": "Compass and Quimby houses Step 34A development diagnosis",
+      "observed": {
+        "video": "defect_09_quimby_water_drip.mp4",
+        "intervals": [[1.8, 2.1], [15.23, 15.55]],
+        "first_interval_sampled_then_deduped": true,
+        "second_interval_fell_between_1hz_samples": true,
+        "selected_keyframe_representation": false,
+        "targeted_6fps_reinspection_recovered_both_intervals": true
+      },
+      "loss_point": "Sampling/deduplication/keyframe preparation before multimodal inference.",
+      "mitigation": {
+        "implemented": ["candidate-triggered inspect_interval at 6 fps"],
+        "partial": true,
+        "remaining_limitation": "No initial candidate means the current agent has no trigger for dense temporal reinspection.",
+        "recommended_not_measured": ["ask the user to re-record the area more slowly or from a closer/second angle when evidence is insufficient"]
+      },
+      "evidence": [
+        "evaluation/step34a/development_local_trace.json",
+        "evaluation/step34a/bedrock_run_fixed/diagnosis.json"
+      ]
+    },
+    {
+      "id": "failure_03_visible_evidence_no_model_candidate",
+      "title": "Defect-visible selected keyframes produced no matching model candidate",
+      "scope": "Compass and Quimby houses Step 34A development diagnosis",
+      "observed": {
+        "count": 5,
+        "defects": [
+          "toilet_base_displacement",
+          "bathtub_rim_crack",
+          "unfinished_drywall_patch",
+          "drywall_hole",
+          "unfinished_wall_patch_paint"
+        ],
+        "confidence_threshold_was_not_reached": true
+      },
+      "loss_point": "Multimodal candidate generation.",
+      "mitigation": {
+        "implemented": [
+          "full-frame and overlapping-tile model views",
+          "conditional second model",
+          "local pixel refinement for supported fixture/crack candidates"
+        ],
+        "measured_v2_owner_verified_interval_recall": "2/9",
+        "remaining_limitation": "Seven of nine annotated development intervals still lacked an owner-verified final issue."
+      },
+      "evidence": [
+        "evaluation/step34a/bedrock_run_fixed/diagnosis.json",
+        "evaluation/step34d/detector_v2_freeze.json"
+      ]
+    },
+    {
+      "id": "failure_04_unmatched_positive_clip_issue",
+      "title": "Positive-clip prediction did not match the annotated defect",
+      "scope": "Frozen detector-v2 development measurement",
+      "observed": {
+        "clip_presence_tp": 3,
+        "owner_verified_intervals": 2,
+        "unmatched_final_issues": 1
+      },
+      "loss_point": "Semantic/spatial correctness after issue generation; clip presence alone overstated task success.",
+      "mitigation": {
+        "implemented": [
+          "owner-reviewed spatial matching",
+          "separate owner-verified interval recall",
+          "explicit unmatched-final-issue count",
+          "automatic IoU not accepted as sole proof"
+        ]
+      },
+      "evidence": [
+        "evaluation/step34d/detector_v2_freeze.json",
+        "STEP34B_DEVELOPMENT.md",
+        "STEP34C_DEVELOPMENT_METRICS.md"
+      ]
+    },
+    {
+      "id": "failure_05_agentic_false_positive_reinforced",
+      "title": "Temporal reinspection reinforced a false surface finding",
+      "scope": "Frozen Step 36 challenge",
+      "observed": {
+        "negative_ambiguous_findings": 1,
+        "correctly_rejected": 0,
+        "correct_rejection_rate": 0.0,
+        "initial_confidence": 0.85,
+        "final_confidence": 1.0,
+        "final_outcome": "PRESENT",
+        "ground_truth": "ABSENT",
+        "tool_calls": ["inspect_interval"]
+      },
+      "loss_point": "Evidence interpretation and early terminal re-evaluation: temporal persistence did not reveal that the visible material was removable.",
+      "mitigation": {
+        "implemented": [
+          "confidence-gated investigation",
+          "additional-frame inspection",
+          "crop/other-angle/verify tools are available",
+          "human-review fallback",
+          "auditable action log"
+        ],
+        "recommended_not_applied_to_frozen_challenge": [
+          "do not treat temporal persistence alone as sufficient for ambiguous surface-material look-alikes",
+          "require crop, changed viewpoint, explicit verify, or human review before acceptance"
+        ],
+        "frozen_result_retained_without_post_label_tuning": true
+      },
+      "evidence": [
+        "evaluation/step36/challenge_final_v1/measurement.json",
+        "STEP36_AGENTIC_VERIFICATION.md"
+      ]
+    }
+  ]
+}

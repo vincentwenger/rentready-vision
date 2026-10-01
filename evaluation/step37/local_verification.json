@@ -1,0 +1,14 @@
+{
+  "schema_version": "rentready-step37-verification/1.0",
+  "passed": true,
+  "checks": {
+    "failure_case_count": 5,
+    "held_out_step34_metrics_match": true,
+    "development_diagnosis_match": true,
+    "water_drip_loss_and_reinspection_match": true,
+    "v2_unmatched_issue_match": true,
+    "step36_false_positive_retained": true,
+    "no_unseen_v2_overclaim": true
+  },
+  "errors": []
+}

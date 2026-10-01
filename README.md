@@ -682,5 +682,19 @@ milestone from the conditional offline replay.
 [`STEP34C_DEVELOPMENT_METRICS.md`](STEP34C_DEVELOPMENT_METRICS.md) reports the
 21-clip classification, candidate, evidence-frame, confidence, and workload
 measurements. [`STEP34D_DETECTOR_V2_FREEZE.md`](STEP34D_DETECTOR_V2_FREEZE.md)
-tracks the callable detector-v2 implementation and its pending live validation
-and freeze. The Mozart house was not used for these development measurements.
+records the callable detector-v2 live development validation and the frozen
+commit/tag. The Mozart house was not used for these development measurements.
+
+## Step 36 agentic verification benchmark — FROZEN CHALLENGE MEASURED
+
+Step 36 now measures the Agentic Vision investigation loop at the **candidate** level rather than treating Step 35's clip-level agent arm as proof of verification value. A fixed candidate receives a single-frame initial assessment; ambiguous confidence (`0.50–0.85` inclusive) triggers the bounded sequence `inspect_interval` → `crop_region` → other-angle evidence → final `verify`, with an explicit fixed-threshold re-evaluation after every evidence step and immediate stopping on a terminal decision.
+
+The benchmark reports before/after classification accuracy, ambiguous-resolution rate, average tool calls, incorrect escalations, unnecessary calls, missed-finding recovery, correct rejection of false candidates, and tool-level correction attribution. Candidate inputs and ground-truth labels are separate files; labels are parsed only after candidate execution, and final challenge preflight checks the label file only by SHA-256. A challenge freeze fingerprints candidates, labels, media, policy and Step-36 runner code before final measurement.
+
+The development measurement and separate frozen challenge are complete. On the two-candidate final challenge, both ambiguous findings were resolved with one `inspect_interval()` call each: the real positive was recovered, while the staged removable surface look-alike was incorrectly retained as `PRESENT`. Post-investigation candidate-level accuracy was **50%**, missed-finding recovery was **1/1**, and correct rejection of the one negative ambiguous finding was **0/1**. The failure is retained without post-label policy tuning. See [`STEP36_AGENTIC_VERIFICATION.md`](STEP36_AGENTIC_VERIFICATION.md), `scripts/build_step36_candidates.py`, `scripts/measure_step36_agentic.py`, `scripts/freeze_step36_challenge.py`, and [`evaluation/step36/`](evaluation/step36/).
+
+## Step 37 failure cases and limitations — COMPLETE
+
+Step 37 records five measured failure cases for the competition submission rather than substituting hypothetical examples. The set includes the original Mozart house held-out **0% recall** detector result, the transient water-drip pre-AI loss, five defect-visible development cases where the multimodal model emitted no candidate, one frozen-v2 issue that did not match its annotation, and the frozen Step-36 false surface finding that temporal reinspection reinforced.
+
+The documentation distinguishes implemented mitigations from recommended future controls and explicitly records that detector v2 has a frozen development measurement but **no additional unseen-property evaluation set**. Run `python scripts/verify_step37_failure_cases.py` to cross-check the Step 37 claims against the frozen Step 34, Step 34A, Step 34D, and Step 36 evidence. See [`STEP37_FAILURE_CASES.md`](STEP37_FAILURE_CASES.md) and [`evaluation/step37/`](evaluation/step37/).

@@ -1,0 +1,11 @@
+{
+  "step": 37,
+  "focused_test_command": "pytest -q tests/test_step37_failure_cases.py",
+  "focused_tests_passed": 2,
+  "focused_tests_failed": 0,
+  "full_suite_command": "pytest -q",
+  "full_suite_tests_passed": 236,
+  "full_suite_tests_failed": 2,
+  "full_suite_failure_classification": "environment_dependency_mismatch",
+  "full_suite_failure_detail": "The execution sandbox provides OpenCV 4.13.0, while two existing project tests intentionally require OpenCV 5.x. The failures are tests/test_runtime_evidence.py::test_runtime_evidence_records_exact_opencv_identity and tests/test_video_processor.py::test_process_video. Step 37 tests pass and no project assertion was weakened to accommodate the sandbox runtime."
+}
