@@ -43,8 +43,16 @@ output "session_manager_command" {
   value = "aws ssm start-session --region ${var.aws_region} --target ${aws_instance.cool_worker.id}"
 }
 
-output "worker_git_ref" {
-  value = var.git_ref
+output "worker_artifact_version" {
+  value = var.worker_artifact_version
+}
+
+output "worker_artifact_s3_uri" {
+  value = "s3://${local.artifact_bucket_name}/${var.worker_artifact_s3_key}"
+}
+
+output "worker_artifact_sha256" {
+  value = var.worker_artifact_sha256
 }
 
 output "cloudwatch_log_group" {

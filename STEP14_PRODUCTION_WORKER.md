@@ -145,9 +145,7 @@ The EC2 worker calls runtime verification before video processing. The productio
 
 The verified runtime identity is stored in `manifest.json` with the immutable input key and processing parameters.
 
-Terraform user data sets `COOL_REQUIRED=true`, clones the configured tracked repository, checks out the configured Git ref, records the deployed commit in `/etc/environment`, runs `scripts/install_cool_worker.sh`, and starts `rentready-cool-worker.service` under systemd.
-
-For the final demo, pin `git_ref` to the exact Step-14 commit SHA instead of a moving branch.
+Step 14 originally bootstrapped this worker from a pinned Git ref. **Step 38 now supersedes that deployment mechanism for the final judge/demo path:** Terraform downloads a versioned `rentready-vision-cool-worker` artifact from S3, verifies its SHA-256 before extraction, records the embedded source commit, runs `scripts/install_cool_worker.sh`, and starts `rentready-cool-worker.service` under systemd. The official `/opt/cool` Marketplace runtime remains unchanged.
 
 ## 7. CloudWatch events and metrics
 
@@ -181,14 +179,15 @@ Metrics use low-cardinality `Environment` and `Operation=analyze_video` dimensio
 
 ## 8. Terraform deployment
 
-Update `infra/terraform/terraform.tfvars` from the example and provide at minimum:
+The current deployment contract is defined by Step 38. Build and publish the immutable worker artifact first, then update `infra/terraform/terraform.tfvars` from the example and provide at minimum:
 
 ```hcl
 aws_region      = "us-west-2"
 s3_bucket_name  = "<existing RentReady bucket>"
 dynamodb_table_name = "rentready-vision-dev"
-repository_url  = "https://github.com/<account>/rentready-vision.git"
-git_ref         = "<STEP14_COMMIT_SHA>"
+worker_artifact_s3_key  = "deployments/cool-worker/<version>/rentready-vision-cool-worker-<version>.tar.gz"
+worker_artifact_sha256 = "<64-character sha256>"
+worker_artifact_version = "<version>"
 cool_ami_id     = "<official subscribed COOL AMI for this Region>"
 vpc_id          = "<vpc>"
 subnet_id       = "<subnet>"

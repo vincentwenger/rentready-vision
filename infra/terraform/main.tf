@@ -8,6 +8,7 @@ locals {
   prefix              = "${var.project_name}-${var.environment}"
   s3_bucket_name      = var.s3_bucket_name
   dynamodb_table_name = var.dynamodb_table_name
+  artifact_bucket_name = coalesce(var.worker_artifact_s3_bucket, local.s3_bucket_name)
   queue_name          = "${var.project_name}-processing"
   dlq_name            = "${var.project_name}-processing-dlq"
   common_tags = {
@@ -181,6 +182,12 @@ resource "aws_iam_role_policy" "cool_worker" {
         ]
       },
       {
+        Sid    = "ReadVersionedWorkerArtifact"
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:GetObjectVersion"]
+        Resource = "arn:aws:s3:::${local.artifact_bucket_name}/${var.worker_artifact_s3_key}"
+      },
+      {
         Sid    = "UpdateInspectionState"
         Effect = "Allow"
         Action = [
@@ -294,8 +301,10 @@ resource "aws_instance" "cool_worker" {
     queue_visibility_timeout        = var.queue_visibility_timeout_seconds
     queue_max_receive_count         = var.queue_max_receive_count
     processing_lease_seconds        = var.queue_visibility_timeout_seconds + 300
-    repository_url                  = var.repository_url
-    git_ref                         = var.git_ref
+    worker_artifact_s3_bucket       = local.artifact_bucket_name
+    worker_artifact_s3_key          = var.worker_artifact_s3_key
+    worker_artifact_sha256          = var.worker_artifact_sha256
+    worker_artifact_version         = var.worker_artifact_version
   })
 
   metadata_options {

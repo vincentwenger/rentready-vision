@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-install -d -o ubuntu -g ubuntu /opt/rentready-vision /var/lib/rentready-vision/runtime-evidence
+COOL_PYTHON=/opt/cool/venvs/python_3.12/bin/python
+ARTIFACT_BUCKET='${worker_artifact_s3_bucket}'
+ARTIFACT_KEY='${worker_artifact_s3_key}'
+ARTIFACT_SHA256='${worker_artifact_sha256}'
+ARTIFACT_VERSION='${worker_artifact_version}'
+ARTIFACT_URI="s3://$ARTIFACT_BUCKET/$ARTIFACT_KEY"
+RELEASE_DIR="/opt/rentready-vision/releases/$ARTIFACT_VERSION"
+APP_DIR=/opt/rentready-vision/current
+
+install -d -o ubuntu -g ubuntu /opt/rentready-vision /opt/rentready-vision/releases /var/lib/rentready-vision/runtime-evidence
 
 cat >/etc/profile.d/rentready-cool.sh <<'EOF'
 export PYTHONPATH=/opt/cool/python_3.12/site-packages
@@ -33,26 +42,35 @@ COOL_AMI_ID=${cool_ami_id}
 EC2_INSTANCE_TYPE=${instance_type}
 COOL_EXPECTED_CV2_PREFIX=/opt/cool
 COOL_LOG_GROUP=${log_group_name}
+WORKER_ARTIFACT_VERSION=${worker_artifact_version}
+WORKER_ARTIFACT_S3_URI=s3://${worker_artifact_s3_bucket}/${worker_artifact_s3_key}
+WORKER_ARTIFACT_SHA256=${worker_artifact_sha256}
+DEPLOYMENT_MANIFEST_PATH=/opt/rentready-vision/current/deployment-manifest.json
 EOF
 
 cat >/var/lib/rentready-vision/runtime-evidence/launch.json <<'EOF'
 {
+  "runtime": "official OpenCV COOL AWS Marketplace AMI",
+  "worker": "AWS EC2 Graviton4",
   "cool_version": "${cool_version}",
   "ami_id": "${cool_ami_id}",
   "instance_type": "${instance_type}",
   "region": "${aws_region}",
   "s3_bucket": "${s3_bucket}",
   "dynamodb_table": "${ddb_table}",
-  "processing_queue_url": "${queue_url}"
+  "processing_queue_url": "${queue_url}",
+  "worker_artifact_version": "${worker_artifact_version}",
+  "worker_artifact_s3_uri": "s3://${worker_artifact_s3_bucket}/${worker_artifact_s3_key}",
+  "worker_artifact_sha256": "${worker_artifact_sha256}"
 }
 EOF
 
-if [ ! -x /opt/cool/venvs/python_3.12/bin/python ]; then
+if [ ! -x "$COOL_PYTHON" ]; then
   echo "COOL Python 3.12 environment not found" >/var/lib/rentready-vision/bootstrap-error.txt
   exit 1
 fi
 
-env PYTHONPATH=/opt/cool/python_3.12/site-packages LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib /opt/cool/venvs/python_3.12/bin/python - <<'PY' >/var/lib/rentready-vision/runtime-evidence/initial-cv2.txt
+env PYTHONPATH=/opt/cool/python_3.12/site-packages LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib "$COOL_PYTHON" - <<'PY' >/var/lib/rentready-vision/runtime-evidence/initial-cv2.txt
 import cv2
 import platform
 print(f"opencv_version={cv2.__version__}")
@@ -61,27 +79,37 @@ print(f"architecture={platform.machine()}")
 print(cv2.getBuildInformation())
 PY
 
+# Download exactly one immutable deployment artifact. GitHub is not part of the
+# judge/demo bootstrap path, so a repository branch moving cannot change code.
+if ! command -v aws >/dev/null 2>&1; then
+  apt-get update
+  if ! DEBIAN_FRONTEND=noninteractive apt-get install -y awscli ca-certificates; then
+    DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip ca-certificates
+    tmp_aws=/tmp/awscliv2.zip
+    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o "$tmp_aws"
+    rm -rf /tmp/aws
+    unzip -q "$tmp_aws" -d /tmp
+    /tmp/aws/install --update
+  fi
+fi
+
+artifact_tmp=/tmp/rentready-vision-cool-worker.tar.gz
+aws s3 cp "$ARTIFACT_URI" "$artifact_tmp" --only-show-errors
+printf '%s  %s\n' "$ARTIFACT_SHA256" "$artifact_tmp" | sha256sum -c -
+
+rm -rf "$RELEASE_DIR"
+install -d -o ubuntu -g ubuntu "$RELEASE_DIR"
+tar -xzf "$artifact_tmp" -C "$RELEASE_DIR" --no-same-owner
+if [ ! -f "$RELEASE_DIR/deployment-manifest.json" ]; then
+  echo "deployment-manifest.json missing from worker artifact" >/var/lib/rentready-vision/bootstrap-error.txt
+  exit 1
+fi
+
+ln -sfn "$RELEASE_DIR" "$APP_DIR"
+GIT_COMMIT="$($COOL_PYTHON -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["source_commit"])' "$RELEASE_DIR/deployment-manifest.json")"
+printf 'GIT_COMMIT=%s\n' "$GIT_COMMIT" >>/etc/environment
+printf '%s\n' "$GIT_COMMIT" >/var/lib/rentready-vision/runtime-evidence/deployed-git-commit.txt
+printf '%s\n' "$ARTIFACT_SHA256" >/var/lib/rentready-vision/runtime-evidence/deployed-artifact-sha256.txt
 chown -R ubuntu:ubuntu /opt/rentready-vision /var/lib/rentready-vision
 
-
-# Step 14: deploy the tracked application and start the real long-running worker.
-if ! command -v git >/dev/null 2>&1; then
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y git
-fi
-
-APP_DIR=/opt/rentready-vision/app
-if [ ! -d "$APP_DIR/.git" ]; then
-  git clone "${repository_url}" "$APP_DIR"
-else
-  git -C "$APP_DIR" remote set-url origin "${repository_url}"
-  git -C "$APP_DIR" fetch --prune origin
-fi
-
-git -C "$APP_DIR" fetch --tags --force origin
-git -C "$APP_DIR" checkout --force "${git_ref}"
-GIT_COMMIT="$(git -C "$APP_DIR" rev-parse HEAD)"
-echo "GIT_COMMIT=$GIT_COMMIT" >>/etc/environment
-printf '%s\n' "$GIT_COMMIT" >/var/lib/rentready-vision/runtime-evidence/deployed-git-commit.txt
-chown -R ubuntu:ubuntu "$APP_DIR" /var/lib/rentready-vision
 bash "$APP_DIR/scripts/install_cool_worker.sh"

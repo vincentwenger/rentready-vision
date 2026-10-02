@@ -40,6 +40,9 @@ Edit `terraform.tfvars`:
 - `aws_region`: Region containing the RentReady bucket.
 - `s3_bucket_name`: exact existing bucket name.
 - `dynamodb_table_name`: exact existing table name.
+- `worker_artifact_s3_key`: exact versioned Step-38 worker artifact key.
+- `worker_artifact_sha256`: SHA-256 printed by the artifact builder/publisher.
+- `worker_artifact_version`: immutable artifact version.
 - `cool_ami_id`: AMI ID copied after Marketplace subscription.
 - `cool_version`: product version selected on the launch page.
 - `vpc_id` and `subnet_id`: worker network placement.
@@ -109,45 +112,54 @@ It also writes the selected launch identity to:
 /var/lib/rentready-vision/runtime-evidence/launch.json
 ```
 
-## 5. Deploy the tracked project on the worker
+## 5. Deploy the versioned worker artifact
 
-Step 14 makes deployment part of Terraform bootstrap. Set `repository_url` and
-`git_ref` in `terraform.tfvars`; for the final demo, pin `git_ref` to the exact
-Step-14 commit SHA. EC2 user data clones the repository into
-`/opt/rentready-vision/app`, records the resolved commit as `GIT_COMMIT`, and
-runs `scripts/install_cool_worker.sh`.
+Step 38 removes a mutable Git clone from the final bootstrap path. Build and
+publish `rentready-vision-cool-worker-<version>.tar.gz` first using
+`scripts/build_cool_worker_artifact.py` and
+`scripts/publish_cool_worker_artifact.py`, then copy the returned artifact key,
+SHA-256, and version into `terraform.tfvars`.
+
+EC2 user data downloads that exact S3 object, verifies its SHA-256 before
+extraction, installs it under `/opt/rentready-vision/releases/<version>`, points
+`/opt/rentready-vision/current` to the immutable release, records its source
+commit as `GIT_COMMIT`, and runs `scripts/install_cool_worker.sh`.
 
 The installer uses `/opt/cool/venvs/python_3.12`, rejects any pip OpenCV wheel
 in `requirements-cool.txt`, installs only the non-OpenCV dependencies, runs
-strict COOL verification, uploads runtime evidence, and enables the
+strict Step-38 runtime verification, uploads runtime evidence, and enables the
 `rentready-cool-worker.service` systemd service.
 
 For recovery/manual maintenance only:
 
 ```bash
-cd /opt/rentready-vision/app
-git rev-parse HEAD
+cd /opt/rentready-vision/current
+cat deployment-manifest.json
 sudo bash scripts/install_cool_worker.sh
 ```
 
 ## 6. Verify the actual runtime
 
-Run this again after every AMI, dependency, or application revision:
+Run the final Step-38 verifier after every AMI, dependency, or application
+revision, and rerun it immediately before the judge/demo session:
 
 ```bash
-. /opt/cool/venvs/python_3.12/bin/activate
-python scripts/verify_cool_runtime.py
+cd /opt/rentready-vision/current
+sudo -u ubuntu -E /opt/cool/venvs/python_3.12/bin/python scripts/verify_runtime.py \
+  --output evaluation/step38/final_runtime_verification.json
 ```
 
 The command fails unless:
 
 - `platform.machine()` is `aarch64` or `arm64`.
-- OpenCV starts with version 5.
-- `cv2.__file__` resolves under `/opt/cool`.
-- COOL version, instance type, AMI ID, Region, Git commit, and timestamp exist.
+- OpenCV starts with version 5 and `cv2.__file__` resolves under `/opt/cool`.
+- COOL version, instance type, Marketplace AMI ID, Region, and source commit exist.
+- The instance is a Graviton4 `c8g`, `m8g`, or `r8g` family (the final default is `m8g.4xlarge`).
+- Artifact version, S3 URI, and SHA-256 are recorded and match the embedded deployment manifest.
+- `rentready-cool-worker.service` is active.
 
-It persists JSON plus the complete `cv2.getBuildInformation()` output locally
-and under `s3://<rentready-bucket>/runtime-evidence/<timestamp>/`.
+It persists the final report locally and under
+`s3://<rentready-bucket>/runtime-evidence/<timestamp>/`.
 
 Useful checks:
 
@@ -217,11 +229,12 @@ Do not proceed until the final command reports `PASS`.
 
 ### COOL worker preflight
 
-From the tracked project checkout on the Graviton4 worker:
+From the deployed immutable release on the Graviton4 worker:
 
 ```bash
+cd /opt/rentready-vision/current
 . /opt/cool/venvs/python_3.12/bin/activate
-python scripts/verify_cool_runtime.py
+python scripts/verify_runtime.py
 python - <<'PY'
 import cv2, platform
 print("opencv_version=", cv2.__version__)

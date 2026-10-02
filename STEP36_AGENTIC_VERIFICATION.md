@@ -305,4 +305,3 @@ It also exposes a specific limitation: temporal persistence alone can increase c
 This limitation is retained as part of the final result rather than tuning the policy against the frozen challenge.
 
 The final challenge contains only two candidates. These measurements are evidence about these fixed challenge cases and should not be presented as a statistically robust estimate of production accuracy.
-

@@ -121,7 +121,7 @@ def collect_runtime_evidence(
     cool_version = _cool_version()
     is_cool = bool(cool_version) or str(cv2_path).startswith("/opt/cool/")
     evidence = {
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "runtime": "COOL" if is_cool else "stock",
         "cool_version": cool_version,
@@ -158,6 +158,10 @@ def collect_runtime_evidence(
         "availability_zone": ec2_identity.get("availabilityZone"),
         "git_commit": git_commit,
         "git_dirty": bool(git_status) if git_commit is not None else None,
+        "deployment_artifact_version": os.getenv("WORKER_ARTIFACT_VERSION"),
+        "deployment_artifact_s3_uri": os.getenv("WORKER_ARTIFACT_S3_URI"),
+        "deployment_artifact_sha256": os.getenv("WORKER_ARTIFACT_SHA256"),
+        "deployment_manifest_path": os.getenv("DEPLOYMENT_MANIFEST_PATH"),
         "input_s3_key": input_s3_key,
         "processing_parameters": processing_parameters,
     }

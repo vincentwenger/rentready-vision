@@ -37,19 +37,38 @@ variable "frontend_origins" {
 }
 
 
-variable "repository_url" {
-  description = "Git repository cloned onto the COOL worker during bootstrap."
+variable "worker_artifact_s3_bucket" {
+  description = "S3 bucket containing the immutable worker artifact. Null reuses s3_bucket_name."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "worker_artifact_s3_key" {
+  description = "Exact versioned S3 key of the rentready-vision-cool-worker tar.gz artifact."
   type        = string
   validation {
-    condition     = can(regex("^https://", var.repository_url))
-    error_message = "repository_url must be an HTTPS Git clone URL accessible from the worker."
+    condition     = can(regex("^deployments/cool-worker/[^/]+/rentready-vision-cool-worker-[^/]+\\.tar\\.gz$", var.worker_artifact_s3_key))
+    error_message = "Use a versioned deployments/cool-worker/<version>/rentready-vision-cool-worker-<version>.tar.gz key."
   }
 }
 
-variable "git_ref" {
-  description = "Branch, tag, or commit deployed to the worker. Pin to a commit SHA for the final demo."
+variable "worker_artifact_sha256" {
+  description = "SHA-256 of the exact worker artifact; bootstrap refuses any mismatch."
   type        = string
-  default     = "main"
+  validation {
+    condition     = can(regex("^[0-9a-fA-F]{64}$", var.worker_artifact_sha256))
+    error_message = "worker_artifact_sha256 must be a 64-character SHA-256 hex digest."
+  }
+}
+
+variable "worker_artifact_version" {
+  description = "Immutable artifact version, normally the release tag or short Git commit."
+  type        = string
+  validation {
+    condition     = can(regex("^[A-Za-z0-9._-]+$", var.worker_artifact_version))
+    error_message = "worker_artifact_version may contain only letters, digits, '.', '_' and '-'."
+  }
 }
 
 variable "cool_ami_id" {

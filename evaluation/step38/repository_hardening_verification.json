@@ -1,0 +1,19 @@
+{
+  "step": 38,
+  "passed": true,
+  "checks": {
+    "requirements_cool_present": true,
+    "artifact_builder_present": true,
+    "artifact_publisher_present": true,
+    "final_runtime_verifier_present": true,
+    "worker_installer_present": true,
+    "step38_doc_present": true,
+    "terraform_uses_marketplace_ami": true,
+    "terraform_uses_versioned_artifact": true,
+    "bootstrap_verifies_sha256": true,
+    "bootstrap_uses_official_cool": true,
+    "pip_cannot_shadow_cool": true,
+    "architecture_names_graviton4_and_official_cool": true
+  },
+  "errors": []
+}

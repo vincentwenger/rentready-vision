@@ -29,7 +29,10 @@ fi
 
 "$COOL_PIP" install --disable-pip-version-check -r "$PROJECT_DIR/requirements-cool.txt"
 cd "$PROJECT_DIR"
-"$COOL_PYTHON" scripts/verify_cool_runtime.py
+install -d -o ubuntu -g ubuntu /var/lib/rentready-vision/runtime-evidence
+"$COOL_PYTHON" scripts/verify_runtime.py \
+  --skip-service-check \
+  --output /var/lib/rentready-vision/runtime-evidence/bootstrap-runtime-verification.json
 
 cat >/etc/systemd/system/rentready-cool-worker.service <<EOF
 [Unit]
@@ -60,3 +63,8 @@ EOF
 systemctl daemon-reload
 systemctl enable --now rentready-cool-worker.service
 systemctl --no-pager --full status rentready-cool-worker.service
+
+# Capture a post-start snapshot too. The judge/demo operator must rerun the same
+# verifier immediately before the final demonstration and retain that output.
+"$COOL_PYTHON" "$PROJECT_DIR/scripts/verify_runtime.py" \
+  --output /var/lib/rentready-vision/runtime-evidence/post-start-runtime-verification.json

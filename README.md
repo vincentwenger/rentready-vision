@@ -134,29 +134,28 @@ All benchmark results are development measurements, not guarantees of unseen-pro
 ## Architecture
 
 ```text
-Browser
-  | POST /inspections + /upload
-  v
-FastAPI ---------------------------> DynamoDB
-  |
-  | presigned PUT URL
-  v
-Browser ---------------------------> private S3
-                                        |
-Browser -> /upload-complete             |
-Browser -> /process                      |
-                 |                      |
-                 v                      |
-          prototype background job -----+
-                 |
-                 v
-              OpenCV 5
-                 |
-          frames + manifest
-                 |
-                 v
-                 S3
+Browser / FastAPI
+      |
+      +------------------------> DynamoDB
+      |
+      +--> private S3 <-------- original video + evidence
+      |
+      +--> Amazon SQS
+              |
+              v
+      EC2 Graviton4 worker (m8g.4xlarge)
+              |
+              +--> official OpenCV COOL AWS Marketplace runtime (/opt/cool)
+              |       +--> Python 3.12 COOL environment
+              |       +--> OpenCV 5 optimized Arm64 processing
+              |
+              +--> versioned rentready-vision-cool-worker artifact from S3
+                      +--> SHA-256 verified before extraction
+                      +--> requirements-cool.txt (no pip OpenCV wheel)
 ```
+
+The original in-process background worker remains only a local-development fallback.
+The judge/demo path is the **Graviton4 worker using the official OpenCV COOL runtime**.
 
 ## DynamoDB schema
 
@@ -402,9 +401,9 @@ object access plus DynamoDB item access.
 
 ### 3. Alternative: provision with Terraform
 
-For the official Graviton4 worker, follow `COOL_AWS_LAUNCH.md`. It covers the
-Marketplace subscription checkpoint, Region-specific AMI ID, Session Manager,
-least-privilege IAM, SQS/DLQ, `requirements-cool.txt`, and runtime evidence.
+For the official Graviton4 worker, follow `STEP38_AWS_COOL_HARDENING.md` and
+`COOL_AWS_LAUNCH.md`. The Step 38 path pins a versioned S3 worker artifact by
+SHA-256 while preserving the official Marketplace COOL runtime under `/opt/cool`.
 
 ```bash
 cd infra/terraform
@@ -698,3 +697,20 @@ The development measurement and separate frozen challenge are complete. On the t
 Step 37 records five measured failure cases for the competition submission rather than substituting hypothetical examples. The set includes the original Mozart house held-out **0% recall** detector result, the transient water-drip pre-AI loss, five defect-visible development cases where the multimodal model emitted no candidate, one frozen-v2 issue that did not match its annotation, and the frozen Step-36 false surface finding that temporal reinspection reinforced.
 
 The documentation distinguishes implemented mitigations from recommended future controls and explicitly records that detector v2 has a frozen development measurement but **no additional unseen-property evaluation set**. Run `python scripts/verify_step37_failure_cases.py` to cross-check the Step 37 claims against the frozen Step 34, Step 34A, Step 34D, and Step 36 evidence. See [`STEP37_FAILURE_CASES.md`](STEP37_FAILURE_CASES.md) and [`evaluation/step37/`](evaluation/step37/).
+
+## Step 38 AWS + COOL deployment hardening — REPOSITORY PASS / LIVE FINAL PENDING
+
+Step 38 replaces mutable Git-clone bootstrap with a deterministic, versioned
+`rentready-vision-cool-worker` artifact. The artifact is uploaded to a versioned
+S3 deployment prefix, pinned in Terraform by SHA-256, verified before extraction,
+and installed beside the **official OpenCV COOL AWS Marketplace runtime** on the
+**EC2 Graviton4 worker**. Runtime evidence now records the deployment artifact
+version, S3 URI, SHA-256, source commit, Marketplace AMI, COOL/OpenCV identity,
+and Graviton4 instance type.
+
+The repository-side hardening can be checked with
+`python scripts/verify_step38_hardening.py`. The deployment must not be called a
+final live pass until `scripts/verify_runtime.py` is rerun on the actual judge/demo
+instance and `evaluation/step38/final_runtime_verification.json` reports
+`passed=true` with no errors. See [`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
+
