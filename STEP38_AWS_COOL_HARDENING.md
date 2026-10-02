@@ -1,8 +1,8 @@
-# Step 38 â€” Harden the AWS + COOL deployment
+# Step 38 - Harden the AWS + COOL deployment
 
-**Window:** October 3–9, 2026
+**Window:** October 3-9, 2026
 **Repository hardening status:** COMPLETE
-**Final judge/demo deployment status:** COMPLETE — live AWS verification passed
+**Final judge/demo deployment status:** COMPLETE - live AWS verification passed
 
 Step 38 makes the existing Graviton4 COOL worker reproducible without replacing
 the official Marketplace runtime. The worker code is now deployed as an
