@@ -93,6 +93,7 @@ archive = sys.argv[1]
 with zipfile.ZipFile(archive) as zf:
     zf.extractall("/tmp")
 PY
+  chmod +x /tmp/aws/install /tmp/aws/dist/aws /tmp/aws/dist/aws_completer
   /tmp/aws/install --update
 fi
 
