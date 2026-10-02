@@ -1,8 +1,8 @@
-# Step 38 — Harden the AWS + COOL deployment
+# Step 38 â€” Harden the AWS + COOL deployment
 
-**Window:** October 3–9, 2026  
-**Repository hardening status:** COMPLETE  
-**Final judge/demo deployment status:** PENDING live AWS rerun
+**Window:** October 3–9, 2026
+**Repository hardening status:** COMPLETE
+**Final judge/demo deployment status:** COMPLETE — live AWS verification passed
 
 Step 38 makes the existing Graviton4 COOL worker reproducible without replacing
 the official Marketplace runtime. The worker code is now deployed as an
@@ -201,8 +201,7 @@ evaluation/step38/final_runtime_verification.json
 s3://<bucket>/runtime-evidence/<timestamp>/final-runtime-verification.json
 ```
 
-Do not mark Step 38 as a live AWS pass until that final judge/demo-instance file
-exists and reports `passed=true`.
+Step 38 was marked as a live AWS pass only after the final judge/demo-instance evidence file existed and reported passed=true.
 
 ## Why ECR is not the default
 
@@ -212,3 +211,80 @@ silently replace or fail to inherit that runtime. Step 38 therefore keeps the
 validated AMI-based approach. ECR should be introduced only after an Arm64
 container design proves, with the same runtime verifier, that the official COOL
 runtime and its licensing/optimization behavior are preserved reproducibly.
+
+
+## Live deployment findings and fixes
+
+The final AWS verification exposed three deployment issues that were fixed before Step 38 was closed.
+
+### 1. Worker networking
+
+The selected subnet routes outbound traffic through an Internet Gateway and does not have a NAT gateway. With `associate_public_ip_address = false`, the worker could not register with SSM or reach the S3/internet endpoints needed during bootstrap.
+
+For the current VPC topology the worker therefore uses:
+
+```hcl
+associate_public_ip_address = true
+```
+
+A future private-only design could instead use a NAT gateway and/or the required VPC endpoints.
+
+### 2. APT dependency removed from bootstrap
+
+The initial hardened bootstrap attempted to install `awscli` and `unzip` through APT. Ubuntu repository connections timed out on the COOL AMI even though HTTPS access worked.
+
+The final bootstrap no longer depends on APT for AWS CLI installation. It uses tools already present on the official COOL AMI: `curl`, `python3`, Python `zipfile`, and `tar`.
+
+AWS CLI v2 is downloaded directly over HTTPS.
+
+### 3. AWS CLI executable permissions
+
+Python `zipfile` extraction did not preserve the executable bits for the AWS CLI installer and binaries. Cloud-init therefore initially failed with:
+
+```text
+/tmp/aws/install: Permission denied
+```
+
+The bootstrap now restores the required permissions before installation:
+
+```bash
+chmod +x /tmp/aws/install /tmp/aws/dist/aws /tmp/aws/dist/aws_completer
+```
+
+After these fixes, cloud-init completed, the immutable S3 artifact was downloaded and SHA-256 verified, `/opt/rentready-vision/current` was created, and the worker service started successfully.
+
+## Final verified deployment
+
+- EC2 instance: `i-0ecc68f9db17b668d`
+- Instance type: `m8g.4xlarge`
+- Architecture: `aarch64`
+- Region: `us-west-2`
+- Availability Zone: `us-west-2a`
+- Official COOL AMI: `ami-08dacb72c289c8261`
+- COOL version: `3.1`
+- OpenCV version: `5.1.0-dev`
+- Source commit / artifact version: `4f9a5f9e7c4aca60da38227aa064104c479f4751`
+- Artifact SHA-256: `9588289c3bf7296bd204cef692d802f7008dd82b118effcd6d4390d20e9ca806`
+- Final verification: `passed=true` with `errors=[]`
+- Worker service: `rentready-cool-worker.service` active
+
+Evidence:
+
+- `evaluation/step38/final_runtime_verification.json`
+- `s3://rentready-vision-dev-081087819788/runtime-evidence/20261002T160449.521997Z/final-runtime-verification.json`
+
+## Step 38 completion criteria
+
+Step 38 is COMPLETE because:
+
+- repository-side Step 38 verification passes;
+- dedicated Step 38 tests pass;
+- the full application regression suite passes;
+- deployment uses an immutable versioned S3 artifact;
+- the artifact SHA-256 is checked before extraction;
+- deployment no longer clones a mutable Git branch;
+- the worker runs on Graviton4 from the official COOL Marketplace AMI;
+- OpenCV is loaded from `/opt/cool`;
+- the systemd worker is active;
+- `verify_runtime.py` passed on the final live AWS instance;
+- final runtime evidence is preserved in both GitHub and S3.

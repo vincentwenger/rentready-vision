@@ -14,6 +14,23 @@ Graviton4 instance with:
   --output evaluation/step38/final_runtime_verification.json
 ```
 
-`final_runtime_verification.json` is intentionally not pre-created in the
-repository because it must reflect the actual final EC2 instance, Marketplace
-AMI, COOL runtime, worker service, and versioned S3 deployment artifact.
+## Final live AWS result
+
+Step 38 is COMPLETE. Final verification passed on the actual AWS judge/demo Graviton4 worker.
+
+- Verified at: 2026-10-02T16:04:49.521997+00:00
+- EC2 instance: `i-0ecc68f9db17b668d`
+- Instance type: `m8g.4xlarge`
+- Architecture: `aarch64`
+- Official COOL AMI: `ami-08dacb72c289c8261`
+- COOL version: `3.1`
+- OpenCV version: `5.1.0-dev`
+- Source commit / artifact version: `4f9a5f9e7c4aca60da38227aa064104c479f4751`
+- Artifact SHA-256: `9588289c3bf7296bd204cef692d802f7008dd82b118effcd6d4390d20e9ca806`
+- Worker service: `rentready-cool-worker.service` active
+- Verification result: `passed=true` with no errors
+
+Permanent evidence:
+
+- `evaluation/step38/final_runtime_verification.json`
+- `s3://rentready-vision-dev-081087819788/runtime-evidence/20261002T160449.521997Z/final-runtime-verification.json`
