@@ -82,15 +82,18 @@ PY
 # Download exactly one immutable deployment artifact. GitHub is not part of the
 # judge/demo bootstrap path, so a repository branch moving cannot change code.
 if ! command -v aws >/dev/null 2>&1; then
-  apt-get update
-  if ! DEBIAN_FRONTEND=noninteractive apt-get install -y awscli ca-certificates; then
-    DEBIAN_FRONTEND=noninteractive apt-get install -y curl unzip ca-certificates
-    tmp_aws=/tmp/awscliv2.zip
-    curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o "$tmp_aws"
-    rm -rf /tmp/aws
-    unzip -q "$tmp_aws" -d /tmp
-    /tmp/aws/install --update
-  fi
+  tmp_aws=/tmp/awscliv2.zip
+  curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o "$tmp_aws"
+  rm -rf /tmp/aws
+  python3 - "$tmp_aws" <<'PY'
+import sys
+import zipfile
+
+archive = sys.argv[1]
+with zipfile.ZipFile(archive) as zf:
+    zf.extractall("/tmp")
+PY
+  /tmp/aws/install --update
 fi
 
 artifact_tmp=/tmp/rentready-vision-cool-worker.tar.gz
