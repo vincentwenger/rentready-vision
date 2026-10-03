@@ -58,7 +58,7 @@ echo.
 REM Open browser shortly after server starts
 start "" cmd /c "timeout /t 2 /nobreak >nul & start http://localhost:8000"
 
-".venv\Scripts\python.exe" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+".venv\Scripts\python.exe" -m uvicorn app.main:app --env-file .env --host 127.0.0.1 --port 8000 --reload
 goto :end
 
 :error

@@ -714,7 +714,7 @@ final live pass until `scripts/verify_runtime.py` is rerun on the actual judge/d
 instance and `evaluation/step38/final_runtime_verification.json` reports
 `passed=true` with no errors. See [`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
 
-## Step 39 S3 organization and retention — REPOSITORY PASS / LIVE AWS PENDING
+## Step 39 S3 organization and retention - COMPLETE / LIVE AWS PASS
 
 New inspections use `rentready/inspections/{inspection_id}/original/`, `frames/`,
 `crops/`, `evidence/`, and `reports/`. Final reports are saved as

@@ -1,6 +1,6 @@
 # Step 39 — Use S3 properly
 
-**Status: REPOSITORY PASS / LIVE AWS APPLICATION AND VERIFICATION PENDING**
+**Status: COMPLETE / LIVE AWS PASS**
 
 Implemented October 2, 2026 against the supplied `v38b.zip`. This changes storage
 organization and retention. The frozen Step 34D detector sources and settings
@@ -186,3 +186,28 @@ deprecation warning remains unrelated to storage.
 - [Lifecycle filters and configuration examples](https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-configuration-examples.html)
 - [Current and noncurrent object expiration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-expire-general-considerations.html)
 - [PutBucketLifecycleConfiguration replaces the complete configuration](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html)
+
+## Live AWS completion - October 3, 2026
+
+- Repository verification passed; local Windows tests: 260 passed, 1 skipped.
+- Scoped S3 lifecycle rules were applied and verified.
+- Terraform updated IAM and the existing worker in place: 0 added, 2 changed, 0 destroyed.
+- Worker: i-0ecc68f9db17b668d, m8g.4xlarge, official COOL runtime.
+- Deployed artifact: step39-aa728e2.
+- Source commit: aa728e224f269cf3b3de48265b9c61f1c949e354.
+- Artifact SHA-256: 08a62d3acbae75764e5eb11f270557d2a70b923e8daaade57556f23fcd4728f6.
+- Bootstrap and post-start runtime verification both passed.
+- Live inspection: b02f7564-d0e8-4264-83de-ed3227d7eccf.
+- Live S3 verification passed with scope lifecycle_and_inspection and no errors.
+- Verified tagged original video with an expiration header, 3 keyframes, and 1 preserved issue evidence frame.
+- No crop was requested during this run; crop layout is covered by repository tests.
+
+The deployment keeps user_data_replace_on_change=false. Future artifact updates
+require an explicit verified release installation and service restart; changing
+EC2 user data alone does not install the new release.
+
+The local launcher loads `.env` through Uvicorn's `--env-file` option.
+Local `GIT_COMMIT` is pinned to the deployed application source revision
+aa728e224f269cf3b3de48265b9c61f1c949e354. Update this value together with the
+worker artifact whenever application code changes. Documentation-only commits
+do not require rebuilding the worker.

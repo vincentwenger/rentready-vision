@@ -271,7 +271,7 @@ resource "aws_instance" "cool_worker" {
   associate_public_ip_address = var.associate_public_ip_address
   iam_instance_profile        = aws_iam_instance_profile.cool_worker.name
   vpc_security_group_ids      = [aws_security_group.cool_worker.id]
-  user_data_replace_on_change = true
+  user_data_replace_on_change = false
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
     environment     = var.environment
     aws_region      = var.aws_region

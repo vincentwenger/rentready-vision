@@ -1,9 +1,10 @@
 # Step 39 evidence
 
-- `repository_s3_verification.json`: offline storage, retention, and frozen-detector checks.
-- `test_summary.json`: full local regression suite result and execution environment.
-- `lifecycle_rules.example.json`: six scoped default rules; **example only**, not a full replacement for an existing bucket configuration.
-- `live_s3_verification.json`: generated only when the user runs `scripts/verify_step39_s3.py --live` against AWS.
+- `repository_s3_verification.json`: repository checks passed.
+- `test_summary.json`: original package test results and environment.
+- `lifecycle_rules.example.json`: scoped lifecycle rule example.
+- `live_s3_verification.json`: live lifecycle and inspection verification passed on October 3, 2026.
 
-No live AWS result is included in this package. See `STEP39_S3_STORAGE.md` for
-application and verification commands.
+Live inspection: b02f7564-d0e8-4264-83de-ed3227d7eccf.
+Verified video retention, 3 keyframes, and 1 preserved issue evidence frame.
+See STEP39_S3_STORAGE.md for deployment details and validation scope.

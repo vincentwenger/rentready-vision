@@ -3,10 +3,16 @@
   "mode": "live_aws",
   "passed": true,
   "bucket": "rentready-vision-dev-081087819788",
-  "inspection_id": null,
-  "inspection_checks": {},
+  "inspection_id": "b02f7564-d0e8-4264-83de-ed3227d7eccf",
+  "inspection_checks": {
+    "prefix": "rentready/inspections/b02f7564-d0e8-4264-83de-ed3227d7eccf",
+    "video_tagged": true,
+    "video_expiration_header": "expiry-date=\"Tue, 03 Nov 2026 00:00:00 GMT\", rule-id=\"rentready-step39-current-videos\"",
+    "keyframes_checked": 3,
+    "issue_evidence_frames_checked": 1
+  },
   "errors": [],
   "live_aws_verified": true,
-  "scope": "lifecycle_only",
-  "verified_at": "2026-10-03T15:11:33.082758+00:00"
+  "scope": "lifecycle_and_inspection",
+  "verified_at": "2026-10-03T16:13:21.004784+00:00"
 }
