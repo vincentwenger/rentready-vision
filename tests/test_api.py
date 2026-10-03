@@ -136,6 +136,7 @@ def test_detect_issues_endpoint_runs_step17_detector(monkeypatch) -> None:
 
 
 def test_video_url_supports_polished_report_timestamp_links(monkeypatch) -> None:
+    monkeypatch.setattr(inspection_routes.s3, "head_object", lambda **kwargs: {"ContentLength": 100})
     monkeypatch.setattr(
         inspection_routes,
         "_require_inspection",

@@ -1,0 +1,19 @@
+{
+  "step": 39,
+  "mode": "repository",
+  "passed": true,
+  "checks": {
+    "original_video_prefix": true,
+    "report_json_layout": true,
+    "crop_layout": true,
+    "evidence_layout": true,
+    "legacy_reports_remain_readable": true,
+    "six_scoped_rules": true,
+    "videos_are_tag_filtered": true,
+    "no_broad_current_object_expiry": true,
+    "frozen_detector_unchanged": true
+  },
+  "errors": [],
+  "live_aws_verified": false,
+  "verified_at": "2026-10-03T15:08:08.707934+00:00"
+}

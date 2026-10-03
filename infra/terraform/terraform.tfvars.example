@@ -28,3 +28,9 @@ associate_public_ip_address = false
 # requires the profile ARN plus every destination foundation-model ARN returned
 # by GetInferenceProfile. Add only those exact ARNs; do not use Resource="*".
 bedrock_model_arns = []
+
+# Step 39: these rules are managed here only when manage_data_resources=true.
+# Existing bucket (false): use scripts/configure_s3_lifecycle.py instead.
+s3_video_retention_days            = 30
+s3_noncurrent_video_retention_days = 30
+s3_abort_multipart_days            = 7

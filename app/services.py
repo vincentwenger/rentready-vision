@@ -10,6 +10,8 @@ from typing import Any
 
 from .aws import bedrock_runtime, s3
 from .config import get_settings
+from .storage import (artifact_key, inspection_prefix, prefix_for_record,
+                      report_key as inspection_report_key, keyframe_name, preserve_issue_evidence)
 from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
 from .responsible_language import responsible_language_contract, responsible_records
@@ -104,6 +106,7 @@ def execute_processing_job(
     worker owns that state machine so a transient worker exception cannot silently
     mark a durable job complete or terminally failed.
     """
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     parameters = normalize_processing_parameters(supplied_parameters, settings)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
@@ -163,11 +166,13 @@ def execute_processing_job(
                     scene_count=len(manifest["scenes"]),
                 )
 
-            prefix = f"inspections/{inspection_id}"
+            prefix = storage_prefix
             public_keyframes = []
+            per_scene: dict[int, int] = {}
             for record in manifest["keyframes"]:
                 local_path = Path(record["local_path"])
-                s3_key = f"{prefix}/frames/{local_path.name}"
+                name = local_path.name if prefix.startswith("inspections/") else keyframe_name(record, per_scene)
+                s3_key = f"{prefix}/frames/{name}"
                 s3.upload_file(
                     str(local_path),
                     settings.s3_bucket,
@@ -189,7 +194,7 @@ def execute_processing_job(
                 "keyframes": public_keyframes,
                 "frame_assessments": manifest["frame_assessments"],
             }
-            manifest_key = f"{prefix}/manifest.json"
+            manifest_key = f"{prefix}/manifest.json" if prefix.startswith("inspections/") else f"{prefix}/reports/manifest.json"
             s3.put_object(
                 Bucket=settings.s3_bucket,
                 Key=manifest_key,
@@ -224,6 +229,7 @@ def execute_interval_inspection_job(
     telemetry: CloudWatchTelemetry | None = None,
 ) -> dict[str, Any]:
     """Execute the Step-18 inspect_interval agent tool on the COOL worker."""
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
     if expected_source_etag and observed_etag != expected_source_etag:
@@ -268,7 +274,7 @@ def execute_interval_inspection_job(
                 seconds_after=float(parameters["seconds_after"]),
                 sample_fps=float(parameters["sample_fps"]),
             )
-            prefix = f"inspections/{inspection_id}/agentic/{job_id}/interval"
+            prefix = artifact_key(storage_prefix, f"agentic/{job_id}/interval", context=agent_context)
             public_frames: list[dict[str, Any]] = []
             for frame in interval["frames"]:
                 local_path = Path(frame["local_path"])
@@ -339,7 +345,7 @@ def execute_interval_inspection_job(
             "returned_frame_count": len(public_frames),
         },
     }
-    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step18-agentic-trace.json"
+    result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step18-agentic-trace.json", context=agent_context)
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -374,6 +380,7 @@ def execute_decision_policy_job(
     telemetry: CloudWatchTelemetry | None = None,
 ) -> dict[str, Any]:
     """Execute the bounded Step-22 evidence policy on the COOL worker."""
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
     if expected_source_etag and observed_etag != expected_source_etag:
@@ -471,7 +478,7 @@ def execute_decision_policy_job(
                     seconds_after=float(parameters["seconds_after"]),
                     sample_fps=float(parameters["sample_fps"]),
                 )
-                interval_prefix = f"inspections/{inspection_id}/agentic/{job_id}/policy/interval"
+                interval_prefix = artifact_key(storage_prefix, f"agentic/{job_id}/policy/interval", context=agent_context)
                 public_frames: list[dict[str, Any]] = []
                 for frame in interval["frames"]:
                     local_path = Path(frame["local_path"])
@@ -543,7 +550,7 @@ def execute_decision_policy_job(
                         bounding_box=parameters["bounding_box"],
                         padding=float(parameters["crop_padding"]),
                     )
-                    crop_key = f"inspections/{inspection_id}/agentic/{job_id}/policy/crop/crop_1024.jpg"
+                    crop_key = artifact_key(storage_prefix, f"agentic/{job_id}/policy/crop/crop_1024.jpg", context=agent_context)
                     s3.upload_file(
                         str(crop_path), settings.s3_bucket, crop_key,
                         ExtraArgs={"ContentType": "image/jpeg"},
@@ -733,7 +740,7 @@ def execute_decision_policy_job(
         candidate_id=candidate_id,
         actions=actions,
     )
-    action_log_key = f"inspections/{inspection_id}/agentic/{job_id}/step23-agent-action-log.json"
+    action_log_key = artifact_key(storage_prefix, f"agentic/{job_id}/step23-agent-action-log.json", context=agent_context)
     result = {
         "schema_version": DECISION_POLICY_VERSION,
         "inspection_id": inspection_id,
@@ -779,7 +786,7 @@ def execute_decision_policy_job(
             "tools_executed": [step.get("tool") for step in steps if step.get("tool")],
         },
     }
-    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step22-decision-policy-trace.json"
+    result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step22-decision-policy-trace.json", context=agent_context)
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=action_log_key,
@@ -821,6 +828,7 @@ def execute_crop_region_job(
     telemetry: CloudWatchTelemetry | None = None,
 ) -> dict[str, Any]:
     """Execute Step-19 Agent Tool 2: crop_region on the COOL/OpenCV worker."""
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     frame_s3_key = str(parameters["frame_s3_key"])
     if source_key != frame_s3_key:
         raise RuntimeError("crop_region source key must match frame_s3_key")
@@ -864,7 +872,7 @@ def execute_crop_region_job(
                 bounding_box=parameters["bounding_box"],
                 padding=float(parameters["padding"]),
             )
-            crop_key = f"inspections/{inspection_id}/agentic/{job_id}/crop/crop_1024.jpg"
+            crop_key = artifact_key(storage_prefix, f"agentic/{job_id}/crop/crop_1024.jpg", context=agent_context)
             s3.upload_file(
                 str(crop_path),
                 settings.s3_bucket,
@@ -912,7 +920,7 @@ def execute_crop_region_job(
             "output_height": crop_public["output"]["height"],
         },
     }
-    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step19-crop-region-trace.json"
+    result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step19-crop-region-trace.json", context=agent_context)
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -955,6 +963,7 @@ def execute_enhance_region_job(
     telemetry: CloudWatchTelemetry | None = None,
 ) -> dict[str, Any]:
     """Execute Step-20 Agent Tool 3 without replacing original evidence."""
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     frame_s3_key = str(parameters["frame_s3_key"])
     if source_key != frame_s3_key:
         raise RuntimeError("enhance_region source key must match frame_s3_key")
@@ -1003,8 +1012,7 @@ def execute_enhance_region_job(
                 sharpening=float(parameters["sharpening"]),
             )
             enhanced_key = (
-                f"inspections/{inspection_id}/agentic/{job_id}/enhance/"
-                "enhanced_inspection_view.jpg"
+                artifact_key(storage_prefix, f"agentic/{job_id}/enhance/enhanced_inspection_view.jpg", context=agent_context)
             )
             s3.upload_file(
                 str(enhanced_path),
@@ -1058,7 +1066,7 @@ def execute_enhance_region_job(
             "output_height": enhancement_public["output"]["height"],
         },
     }
-    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step20-enhance-region-trace.json"
+    result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step20-enhance-region-trace.json", context=agent_context)
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -1101,6 +1109,7 @@ def execute_other_angle_job(
     telemetry: CloudWatchTelemetry | None = None,
 ) -> dict[str, Any]:
     """Execute Step-21 Agent Tool 4 and persist auditable multi-view evidence."""
+    storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
     if expected_source_etag and observed_etag != expected_source_etag:
@@ -1145,7 +1154,7 @@ def execute_other_angle_job(
                 max_results=int(parameters["max_results"]),
                 min_viewpoint_change=float(parameters["min_viewpoint_change"]),
             )
-            prefix = f"inspections/{inspection_id}/agentic/{job_id}/other-angle"
+            prefix = artifact_key(storage_prefix, f"agentic/{job_id}/other-angle", context=agent_context)
             public_frames: list[dict[str, Any]] = []
             for frame in search["frames"]:
                 local_view = Path(frame["local_view_path"])
@@ -1282,7 +1291,7 @@ def execute_other_angle_job(
             "selected_frame_count": len(search["frames"]),
         },
     }
-    result_key = f"inspections/{inspection_id}/agentic/{job_id}/step21-other-angle-trace.json"
+    result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step21-other-angle-trace.json", context=agent_context)
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -1407,7 +1416,11 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
         )
         report["inspection_id"] = inspection_id
         report["source_manifest_s3_key"] = inspection.get("manifest_s3_key")
-        report_key = f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json"
+        storage_prefix = prefix_for_record(inspection_id, inspection)
+        report_key = inspection_report_key(storage_prefix)
+        preserve_issue_evidence(s3, settings.s3_bucket, storage_prefix, report)
+        report["report_s3_key"] = report_key
+        report["storage_layout_version"] = "rentready-s3/1.0"
         s3.put_object(
             Bucket=settings.s3_bucket,
             Key=report_key,

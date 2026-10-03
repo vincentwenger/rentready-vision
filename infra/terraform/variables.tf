@@ -136,3 +136,33 @@ variable "bedrock_model_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "s3_video_retention_days" {
+  description = "Step 39 retention in days; applies only to original videos or incomplete uploads."
+  type        = number
+  default     = 30
+  validation {
+    condition     = var.s3_video_retention_days >= 1 && floor(var.s3_video_retention_days) == var.s3_video_retention_days
+    error_message = "Retention days must be a positive integer."
+  }
+}
+
+variable "s3_noncurrent_video_retention_days" {
+  description = "Step 39 retention in days; applies only to original videos or incomplete uploads."
+  type        = number
+  default     = 30
+  validation {
+    condition     = var.s3_noncurrent_video_retention_days >= 1 && floor(var.s3_noncurrent_video_retention_days) == var.s3_noncurrent_video_retention_days
+    error_message = "Retention days must be a positive integer."
+  }
+}
+
+variable "s3_abort_multipart_days" {
+  description = "Step 39 retention in days; applies only to original videos or incomplete uploads."
+  type        = number
+  default     = 7
+  validation {
+    condition     = var.s3_abort_multipart_days >= 1 && floor(var.s3_abort_multipart_days) == var.s3_abort_multipart_days
+    error_message = "Retention days must be a positive integer."
+  }
+}

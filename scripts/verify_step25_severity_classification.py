@@ -68,6 +68,7 @@ def main() -> int:
     class_values = {value.value for value in SeverityClass}
     browser = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
     services = (ROOT / "app" / "services.py").read_text(encoding="utf-8")
+    storage = (ROOT / "app" / "storage.py").read_text(encoding="utf-8")
 
     checks = {
         "exactly_three_classes": contract["classes"] == [
@@ -97,7 +98,7 @@ def main() -> int:
         "not_official_safety_rating": contract["not_an_official_safety_rating"],
         "disclaimer_is_explicit": "not an official safety" in SEVERITY_DISCLAIMER.lower(),
         "report_schema_advanced": REPORT_SCHEMA_VERSION == "rentready-issue-report/4.0",
-        "s3_report_path_is_step25_specific": "step25-severity-classified-issues.json" in services,
+        "s3_report_path_is_step25_specific": "step25-severity-classified-issues.json" in storage and "reports/report.json" in storage and "inspection_report_key(storage_prefix)" in services,
         "browser_displays_three_classes": all(label in browser for label in contract["classes"]),
         "browser_displays_disclaimer": "not an official safety rating" in browser,
     }

@@ -9,3 +9,6 @@ output/
 evaluation/step13/latest_run.txt
 evaluation/step13/step13_benchmark.log
 dist/
+
+# Local AWS configuration/tag backups
+local-artifacts/

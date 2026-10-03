@@ -1,0 +1,86 @@
+{
+  "Rules": [
+    {
+      "ID": "rentready-step39-current-videos",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "rentready/inspections/",
+          "Tags": [
+            {
+              "Key": "rentready-artifact",
+              "Value": "original-video"
+            }
+          ]
+        }
+      },
+      "Expiration": {
+        "Days": 30
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 30
+      }
+    },
+    {
+      "ID": "rentready-step39-current-multipart",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "rentready/inspections/"
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    },
+    {
+      "ID": "rentready-step39-current-delete-markers",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "rentready/inspections/"
+      },
+      "Expiration": {
+        "ExpiredObjectDeleteMarker": true
+      }
+    },
+    {
+      "ID": "rentready-step39-legacy-videos",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "inspections/",
+          "Tags": [
+            {
+              "Key": "rentready-artifact",
+              "Value": "original-video"
+            }
+          ]
+        }
+      },
+      "Expiration": {
+        "Days": 30
+      },
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 30
+      }
+    },
+    {
+      "ID": "rentready-step39-legacy-multipart",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "inspections/"
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    },
+    {
+      "ID": "rentready-step39-legacy-delete-markers",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "inspections/"
+      },
+      "Expiration": {
+        "ExpiredObjectDeleteMarker": true
+      }
+    }
+  ]
+}

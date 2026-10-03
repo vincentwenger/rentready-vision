@@ -21,10 +21,12 @@
         "s3:CreateBucket",
         "s3:GetBucketLocation",
         "s3:ListBucket",
+        "s3:ListBucketVersions",
         "s3:PutBucketCORS",
         "s3:PutBucketPublicAccessBlock",
         "s3:PutEncryptionConfiguration",
-        "s3:PutLifecycleConfiguration"
+        "s3:PutLifecycleConfiguration",
+        "s3:GetLifecycleConfiguration"
       ],
       "Resource": "arn:aws:s3:::rentready-vision-dev-*"
     },
@@ -33,9 +35,16 @@
       "Effect": "Allow",
       "Action": [
         "s3:GetObject",
-        "s3:PutObject"
+        "s3:PutObject",
+        "s3:GetObjectTagging",
+        "s3:PutObjectTagging",
+        "s3:GetObjectVersionTagging",
+        "s3:PutObjectVersionTagging"
       ],
-      "Resource": "arn:aws:s3:::rentready-vision-dev-*/inspections/*"
+      "Resource": [
+        "arn:aws:s3:::rentready-vision-dev-*/inspections/*",
+        "arn:aws:s3:::rentready-vision-dev-*/rentready/inspections/*"
+      ]
     },
     {
       "Sid": "RentReadyVisionProcessingProducer",

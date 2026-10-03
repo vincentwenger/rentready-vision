@@ -1,0 +1,12 @@
+{
+  "step": 39,
+  "mode": "live_aws",
+  "passed": true,
+  "bucket": "rentready-vision-dev-081087819788",
+  "inspection_id": null,
+  "inspection_checks": {},
+  "errors": [],
+  "live_aws_verified": true,
+  "scope": "lifecycle_only",
+  "verified_at": "2026-10-03T15:11:33.082758+00:00"
+}

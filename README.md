@@ -714,3 +714,20 @@ final live pass until `scripts/verify_runtime.py` is rerun on the actual judge/d
 instance and `evaluation/step38/final_runtime_verification.json` reports
 `passed=true` with no errors. See [`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
 
+## Step 39 S3 organization and retention — REPOSITORY PASS / LIVE AWS PENDING
+
+New inspections use `rentready/inspections/{inspection_id}/original/`, `frames/`,
+`crops/`, `evidence/`, and `reports/`. Final reports are saved as
+`reports/report.json`, with supporting issue frames preserved separately.
+Existing inspection keys remain readable and continue in their original namespace.
+
+Original videos receive a retention tag. Scoped lifecycle rules expire tagged
+current videos after 30 days, tagged noncurrent versions after 30 noncurrent days,
+and incomplete multipart uploads after seven days. All durations are configurable;
+frames, crops, evidence, and reports have no automatic data expiry in these rules.
+The previous broad 30-day rule is disabled by the Python configuration path.
+
+Run `python scripts/verify_step39_s3.py` for offline checks. Preview/apply the
+merged AWS lifecycle configuration with `scripts/configure_s3_lifecycle.py`, then
+verify a new inspection with `python scripts/verify_step39_s3.py --live --inspection-id ID`.
+See [`STEP39_S3_STORAGE.md`](STEP39_S3_STORAGE.md) for the complete deployment sequence.

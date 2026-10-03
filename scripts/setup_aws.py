@@ -17,6 +17,9 @@ from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError, 
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = ROOT / ".env"
+sys.path.insert(0, str(ROOT))
+from app.storage_config import StorageSettings
+from app.s3_lifecycle import read_lifecycle, merge_lifecycle, write_lifecycle
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -87,7 +90,8 @@ def ensure_table(session: boto3.Session, table_name: str) -> None:
     print(f"  Created DynamoDB table: {table_name}")
 
 
-def ensure_bucket(session: boto3.Session, bucket_name: str, origins: list[str]) -> None:
+def ensure_bucket(session: boto3.Session, bucket_name: str, origins: list[str], *,
+                  video_days: int = 30, noncurrent_days: int = 30, multipart_days: int = 7) -> None:
     client = session.client("s3")
     exists = False
     try:
@@ -148,19 +152,18 @@ def ensure_bucket(session: boto3.Session, bucket_name: str, origins: list[str]) 
             ]
         },
     )
-    client.put_bucket_lifecycle_configuration(
-        Bucket=bucket_name,
-        LifecycleConfiguration={
-            "Rules": [
-                {
-                    "ID": "expire-prototype-video",
-                    "Status": "Enabled",
-                    "Filter": {"Prefix": "inspections/"},
-                    "Expiration": {"Days": 30},
-                }
-            ]
-        },
-    )
+    existing = read_lifecycle(client, bucket_name)
+    configuration = merge_lifecycle(existing, video_days=video_days,
+                                    noncurrent_days=noncurrent_days, multipart_days=multipart_days)
+    if configuration != existing:
+        # Save the whole previous configuration before replacing S3's single rule set.
+        import json
+        backup_dir = ROOT / "local-artifacts" / "s3-lifecycle"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        from datetime import datetime, timezone
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        (backup_dir / f"{bucket_name}-{stamp}.json").write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
+        write_lifecycle(client, bucket_name, configuration)
     print(f"  {'OK' if exists else 'Created'} S3 bucket: {bucket_name}")
 
 
@@ -188,7 +191,11 @@ def main() -> int:
             print(f"  Updated .env S3_BUCKET to: {bucket_name}")
 
         ensure_table(session, table_name)
-        ensure_bucket(session, bucket_name, origins)
+        settings = StorageSettings(_env_file=ENV_PATH)
+        ensure_bucket(session, bucket_name, origins,
+                      video_days=settings.s3_video_retention_days,
+                      noncurrent_days=settings.s3_noncurrent_video_retention_days,
+                      multipart_days=settings.s3_abort_multipart_days)
         print("AWS setup is ready.")
         return 0
     except NoCredentialsError:

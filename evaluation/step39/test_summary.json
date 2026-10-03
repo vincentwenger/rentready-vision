@@ -1,0 +1,20 @@
+{
+  "step": 39,
+  "scope": "local_full_regression_suite",
+  "passed": true,
+  "tests": 261,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 16.566,
+  "warnings": 1,
+  "warning_detail": "Starlette/httpx deprecation warning",
+  "python_version": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "aws_credentials": "dummy_test_credentials",
+  "test_git_commit_label": "step39-local-test",
+  "live_aws_verified": false,
+  "cool_graviton4_verified": false,
+  "terraform_validation": "HCL parsed; provider-backed validate/plan not run",
+  "new_step39_tests": 18
+}

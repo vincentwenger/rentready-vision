@@ -55,21 +55,6 @@ resource "aws_s3_bucket_cors_configuration" "media" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "media" {
-  count  = var.manage_data_resources ? 1 : 0
-  bucket = aws_s3_bucket.media[0].id
-  rule {
-    id     = "expire-prototype-video"
-    status = "Enabled"
-    filter {
-      prefix = "inspections/"
-    }
-    expiration {
-      days = 30
-    }
-  }
-}
-
 resource "aws_dynamodb_table" "app" {
   count        = var.manage_data_resources ? 1 : 0
   name         = local.dynamodb_table_name
@@ -175,9 +160,10 @@ resource "aws_iam_role_policy" "cool_worker" {
       {
         Sid    = "ReadWriteRentReadyObjects"
         Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject"]
+        Action = ["s3:GetObject", "s3:PutObject", "s3:PutObjectTagging"]
         Resource = [
           "arn:aws:s3:::${local.s3_bucket_name}/inspections/*",
+          "arn:aws:s3:::${local.s3_bucket_name}/rentready/inspections/*",
           "arn:aws:s3:::${local.s3_bucket_name}/runtime-evidence/*"
         ]
       },

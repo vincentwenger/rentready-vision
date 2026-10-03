@@ -30,6 +30,7 @@ sys.path.insert(0, str(ROOT))
 
 from app.aws import s3  # noqa: E402
 from app.config import get_settings  # noqa: E402
+from app.storage import prefix_for_record, keyframe_name  # noqa: E402
 from app.db import get_inspection, update_inspection  # noqa: E402
 from app.runtime_evidence import collect_runtime_evidence  # noqa: E402
 from app.vision.video_processor import process_video  # noqa: E402
@@ -269,11 +270,13 @@ def compare_outputs(
 def upload_inspection_outputs(
     *, inspection_id: str, manifest: dict[str, Any], bucket: str
 ) -> tuple[dict[str, Any], str]:
-    prefix = f"inspections/{inspection_id}"
+    prefix = prefix_for_record(inspection_id, get_inspection(inspection_id) or {})
+    per_scene: dict[int, int] = {}
     public_keyframes: list[dict[str, Any]] = []
     for record in manifest["keyframes"]:
         local_path = Path(record["local_path"])
-        s3_key = f"{prefix}/frames/{local_path.name}"
+        name = local_path.name if prefix.startswith("inspections/") else keyframe_name(record, per_scene)
+        s3_key = f"{prefix}/frames/{name}"
         s3.upload_file(
             str(local_path),
             bucket,
@@ -291,7 +294,7 @@ def upload_inspection_outputs(
         "keyframes": public_keyframes,
         "frame_assessments": manifest["frame_assessments"],
     }
-    manifest_key = f"{prefix}/manifest.json"
+    manifest_key = f"{prefix}/manifest.json" if prefix.startswith("inspections/") else f"{prefix}/reports/manifest.json"
     s3.put_object(
         Bucket=bucket,
         Key=manifest_key,
@@ -408,7 +411,9 @@ def main() -> int:
                 bucket=settings.s3_bucket,
             )
 
-            report_key = f"inspections/{args.inspection_id}/benchmark/cool/{run_id}/processing_report.json"
+            storage_prefix = prefix_for_record(args.inspection_id, inspection)
+            benchmark_folder = "benchmark" if storage_prefix.startswith("inspections/") else "reports/benchmark"
+            report_key = f"{storage_prefix}/{benchmark_folder}/cool/{run_id}/processing_report.json"
             gate_passed = bool(
                 baseline_verified
                 and comparison["equivalent"]

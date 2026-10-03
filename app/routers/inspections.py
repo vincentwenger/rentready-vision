@@ -9,6 +9,8 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from ..aws import s3, sqs
 from ..config import get_settings
+from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
+                       report_key, artifact_key)
 from ..db import (
     create_inspection,
     get_inspection,
@@ -125,14 +127,14 @@ def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectio
 @router.post("/{inspection_id}/upload", response_model=UploadUrlResponse)
 @router.post("/{inspection_id}/upload-url", response_model=UploadUrlResponse, include_in_schema=False)
 def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> UploadUrlResponse:
-    _require_inspection(inspection_id)
+    item = _require_inspection(inspection_id)
     _validate_video(payload.filename, payload.content_type)
     ext = PurePath(payload.filename).suffix.lower()
-    s3_key = f"inspections/{inspection_id}/original/walkthrough{ext}"
+    s3_key = f"{prefix_for_record(inspection_id, item)}/original/walkthrough{ext}"
 
     upload_url = s3.generate_presigned_url(
         ClientMethod="put_object",
-        Params={"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type},
+        Params={"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type, "Tagging": VIDEO_TAGGING},
         ExpiresIn=settings.presigned_url_ttl_seconds,
         HttpMethod="PUT",
     )
@@ -150,7 +152,7 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
         upload_url=upload_url,
         s3_key=s3_key,
         expires_in_seconds=settings.presigned_url_ttl_seconds,
-        required_headers={"Content-Type": payload.content_type},
+        required_headers={"Content-Type": payload.content_type, "x-amz-tagging": VIDEO_TAGGING},
     )
 
 
@@ -175,6 +177,14 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
     if size > settings.max_upload_bytes:
         raise HTTPException(status_code=413, detail="Uploaded file exceeds configured size limit")
+
+    # Tag the exact uploaded version, including clients using an older presigned URL.
+    tag_args = {"Bucket": settings.s3_bucket, "Key": s3_key}
+    if head.get("VersionId"):
+        tag_args["VersionId"] = head["VersionId"]
+    tags = s3.get_object_tagging(**tag_args).get("TagSet", [])
+    tags = [tag for tag in tags if tag["Key"] != VIDEO_TAG["Key"]] + [dict(VIDEO_TAG)]
+    s3.put_object_tagging(**tag_args, Tagging={"TagSet": tags})
 
     updated = update_inspection(
         inspection_id,
@@ -346,7 +356,8 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
         responsible_language=presented["responsible_language"],
         polished_report=presented["polished_report"],
         repair_checklist=presented["repair_checklist"],
-        report_s3_key=f"inspections/{inspection_id}/issues/step25-severity-classified-issues.json",
+        report_s3_key=(report.get("report_s3_key") or item.get("issue_report_s3_key")
+                       or report_key(prefix_for_record(inspection_id, item))),
     )
 
 
@@ -425,6 +436,12 @@ def get_video_url(inspection_id: str) -> dict:
     key = item.get("original_s3_key")
     if not key:
         raise HTTPException(status_code=409, detail="Inspection has no original video")
+    try:
+        s3.head_object(Bucket=settings.s3_bucket, Key=key)
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") in {"404", "NoSuchKey", "NotFound"}:
+            raise HTTPException(status_code=410, detail="Original video is no longer available; retained frames and report remain accessible.") from exc
+        raise
     url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},
@@ -1124,8 +1141,8 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
 
     if selected_policy["route"] != INVESTIGATE_CANDIDATE:
         result_key = (
-            f"inspections/{inspection_id}/agentic/{message['job_id']}/"
-            "step22-decision-policy-trace.json"
+            artifact_key(inspection_prefix(inspection_id, source_key),
+                         f"agentic/{message['job_id']}/step22-decision-policy-trace.json", context=agent_context)
         )
         candidate_id = str(
             candidate.get("policy_candidate_id")
@@ -1133,8 +1150,8 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             or f"candidate-{message['job_id']}"
         )
         action_log_key = (
-            f"inspections/{inspection_id}/agentic/{message['job_id']}/"
-            "step23-agent-action-log.json"
+            artifact_key(inspection_prefix(inspection_id, source_key),
+                         f"agentic/{message['job_id']}/step23-agent-action-log.json", context=agent_context)
         )
         actions = [
             agent_action(
