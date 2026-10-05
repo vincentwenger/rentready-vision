@@ -1,0 +1,99 @@
+﻿{
+    "schema_version":  "rentready-step42b4b-summary/1.0",
+    "step":  "42B-4B",
+    "candidate_name":  "detector_v3_holder_geometry_v1",
+    "status":  "DEVELOPMENT_GAIN_NOT_PROMOTED",
+    "method":  {
+                   "implementation":  "Deterministic OpenCV geometry",
+                   "bedrock_calls":  0,
+                   "relative_angle_threshold_deg":  -8,
+                   "minimum_supporting_frames":  2,
+                   "reference_strategy":  "Measure holder-line angle relative to a spatially separated local structural reference to control for camera roll."
+               },
+    "full_development_evaluation":  {
+                                        "clips":  21,
+                                        "positive_clips":  8,
+                                        "clean_clips":  13,
+                                        "geometry_positive_clips":  1,
+                                        "geometry_positive_stems":  [
+                                                                        "defect_16_toilet_paper_holder_sagging"
+                                                                    ],
+                                        "clean_geometry_false_positive_clips":  0,
+                                        "note":  "Several unrelated clips produced one supporting frame, but none reached the fixed minimum of two supporting frames."
+                                    },
+    "recovered_defect":  {
+                             "video":  "defect_16_toilet_paper_holder_sagging.mp4",
+                             "annotated_interval":  "0.5-3.25s",
+                             "supporting_frames":  [
+                                                       {
+                                                           "timestamp_seconds":  0,
+                                                           "relative_angle_deg":  -10.92,
+                                                           "inside_annotation":  false
+                                                       },
+                                                       {
+                                                           "timestamp_seconds":  1,
+                                                           "relative_angle_deg":  -11.7,
+                                                           "inside_annotation":  true
+                                                       },
+                                                       {
+                                                           "timestamp_seconds":  2,
+                                                           "relative_angle_deg":  -13.2,
+                                                           "inside_annotation":  true
+                                                       }
+                                                   ],
+                             "owner_result":  "TRUE_POSITIVE"
+                         },
+    "control_evidence":  {
+                             "video":  "clean_29_quimby_vanity_level_holder",
+                             "valid_relative_angles_deg":  [
+                                                               -1.19,
+                                                               -3.16
+                                                           ],
+                             "result":  "NEGATIVE"
+                         },
+    "owner_verified_interval_metrics":  {
+                                            "prior_detected_intervals":  4,
+                                            "candidate_detected_intervals":  5,
+                                            "total_intervals":  9,
+                                            "prior_recall":  0.4444444444,
+                                            "candidate_recall":  0.5555555556,
+                                            "recall_gain_intervals":  1
+                                        },
+    "combined_raw_clip_metrics":  {
+                                      "positive_clips_detected":  5,
+                                      "total_positive_clips":  8,
+                                      "positive_clip_recall":  0.625,
+                                      "clean_false_positive_clips":  1,
+                                      "total_clean_clips":  13,
+                                      "clean_false_positive_rate":  0.0769230769,
+                                      "known_clean_false_positive":  "clean_29 normal wood grain misclassified as floor_stain",
+                                      "new_clean_false_positives_introduced_by_42b4b":  0
+                                  },
+    "toilet_base_result":  {
+                               "video":  "defect_10_toilet_base_displacement.mp4",
+                               "status":  "UNRESOLVED",
+                               "finding":  "A possible old caulk/sealant footprint is visually present, but the tested threshold/edge method does not isolate it reliably enough for a deterministic candidate rule.",
+                               "decision":  "Do not promote a weak toilet-base geometry heuristic."
+                           },
+    "unresolved_intervals":  [
+                                 "defect_09 water drip 1.8-2.1s",
+                                 "defect_09 water drip 15.23-15.55s",
+                                 "defect_10 toilet base displacement",
+                                 "defect_14 wall hole below window"
+                             ],
+    "interpretation":  [
+                           "42B-4B recovers one additional owner-verified interval using deterministic geometry with no model cost.",
+                           "The fixed rule was evaluated across all 21 development clips and remained negative on all 13 clean clips.",
+                           "Combined owner-verified physical interval recall improves from 4/9 to 5/9.",
+                           "The pre-existing clean_29 raw false positive remains, so the combined raw candidate-generation false-positive count is still 1/13.",
+                           "The result is development evidence only and is not an unseen-holdout performance claim."
+                       ],
+    "next_direction":  [
+                           "Checkpoint 42B-4B.",
+                           "Keep defect_10 unresolved unless stronger geometry evidence is developed.",
+                           "Investigate defect_14 wall-hole attention separately if worthwhile.",
+                           "Handle defect_09 with temporal-frame rescue and targeted higher-frequency sampling as a separate experiment.",
+                           "Do not promote Detector v3 yet."
+                       ],
+    "promoted":  false
+}

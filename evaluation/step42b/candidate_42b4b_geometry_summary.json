@@ -1,0 +1,46 @@
+﻿{
+    "schema_version":  "rentready-step42b4b-geometry-summary/1.0",
+    "step":  "42B-4B",
+    "status":  "PARTIAL_GEOMETRY_SIGNAL_NOT_PROMOTED",
+    "toilet_paper_holder":  {
+                                "video":  "defect_16_toilet_paper_holder_sagging",
+                                "result":  "STRONG_SIGNAL",
+                                "method":  "OpenCV holder-line angle relative to separated local structural-reference lines",
+                                "clean_control":  "clean_29_quimby_vanity_level_holder",
+                                "clean_relative_angles_deg":  [
+                                                                  -1.19,
+                                                                  -3.16
+                                                              ],
+                                "defect_relative_angles_deg":  [
+                                                                   -10.92,
+                                                                   -11.7,
+                                                                   -13.2
+                                                               ],
+                                "candidate_threshold_deg":  -8,
+                                "minimum_supporting_frames":  2,
+                                "interpretation":  "The sagging holder is consistently more than 10 degrees below local cabinet/countertop reference geometry, while the clean holder remains within about 3.2 degrees.",
+                                "bedrock_calls":  0
+                            },
+    "toilet_base":  {
+                        "video":  "defect_10_toilet_base_displacement",
+                        "result":  "VISUALLY_PRESENT_BUT_NOT_RELIABLY_MEASURED",
+                        "visual_observation":  "A light caulk/sealant trace is visible around portions of the toilet base perimeter, particularly in the 2s and 3s selected frames.",
+                        "current_opencv_result":  [
+                                                      "Low-saturation light mask merges the ceramic toilet and light caulk/sealant evidence.",
+                                                      "Canny edge evidence is heavily contaminated by wood-floor grain.",
+                                                      "The current method does not consistently isolate a distinct second contour representing the old caulk footprint."
+                                                  ],
+                        "conclusion":  "Do not create a deterministic toilet-displacement rule from the current mask/edge diagnostic.",
+                        "bedrock_calls":  0
+                    },
+    "development_effect":  {
+                               "current_owner_verified_intervals":  "4/9",
+                               "newly_counted_intervals":  0,
+                               "note":  "The holder geometry is diagnostic evidence only until implemented and tested as a fixed candidate rule."
+                           },
+    "next_direction":  [
+                           "Implement the fixed holder relative-angle rule and evaluate it against available controls before counting defect_16.",
+                           "Keep defect_10 unresolved rather than forcing a weak geometry heuristic.",
+                           "Do not change the frozen Detector v2."
+                       ]
+}

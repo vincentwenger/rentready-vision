@@ -1,0 +1,69 @@
+﻿{
+    "schema_version":  "rentready-step42b4b-owner-adjudication/1.0",
+    "step":  "42B-4B",
+    "candidate_name":  "detector_v3_holder_geometry_v1",
+    "status":  "DEVELOPMENT_GAIN_OWNER_VERIFIED_NOT_PROMOTED",
+    "method":  {
+                   "type":  "Deterministic OpenCV geometry",
+                   "bedrock_calls":  0,
+                   "relative_angle_threshold_deg":  -8,
+                   "minimum_supporting_frames":  2,
+                   "camera_roll_control":  "Holder angle measured relative to separated local structural-reference lines."
+               },
+    "recovered_interval":  {
+                               "video":  "defect_16_toilet_paper_holder_sagging.mp4",
+                               "annotated_interval_start":  0.5,
+                               "annotated_interval_end":  3.25,
+                               "predicted_condition":  "toilet_paper_holder_sagging",
+                               "supporting_selected_frames":  [
+                                                                  {
+                                                                      "timestamp_seconds":  0,
+                                                                      "relative_angle_deg":  -10.92,
+                                                                      "inside_annotation_interval":  false
+                                                                  },
+                                                                  {
+                                                                      "timestamp_seconds":  1,
+                                                                      "relative_angle_deg":  -11.7,
+                                                                      "inside_annotation_interval":  true
+                                                                  },
+                                                                  {
+                                                                      "timestamp_seconds":  2,
+                                                                      "relative_angle_deg":  -13.2,
+                                                                      "inside_annotation_interval":  true
+                                                                  }
+                                                              ],
+                               "owner_result":  "TRUE_POSITIVE",
+                               "owner_interpretation":  "The holder arm is visibly and repeatedly tilted downward relative to local cabinet/countertop reference geometry. At least two supporting selected frames fall inside the owner-annotated defect interval."
+                           },
+    "full_development_evaluation":  {
+                                        "clips":  21,
+                                        "clean_clips":  13,
+                                        "positive_clip_count":  1,
+                                        "positive_stems":  [
+                                                               "defect_16_toilet_paper_holder_sagging"
+                                                           ],
+                                        "clean_false_positive_clips":  0,
+                                        "note":  "Some other clips produced one supporting frame, but none reached the fixed minimum of two supporting frames."
+                                    },
+    "development_effect":  {
+                               "prior_owner_verified_intervals":  "4/9",
+                               "candidate_owner_verified_intervals":  "5/9",
+                               "interval_recall":  0.5555555556,
+                               "prior_positive_clips_detected":  "4/8",
+                               "candidate_positive_clips_detected":  "5/8",
+                               "new_clean_false_positive_clips":  0
+                           },
+    "unresolved_intervals":  [
+                                 "defect_09 water drip 1.8-2.1s",
+                                 "defect_09 water drip 15.23-15.55s",
+                                 "defect_10 toilet base displacement",
+                                 "defect_14 wall hole below window"
+                             ],
+    "interpretation":  [
+                           "42B-4B recovers defect_16 using deterministic geometry with zero model cost.",
+                           "The fixed two-frame rule remained negative across all 13 clean development clips.",
+                           "The result is development evidence only and must not be treated as unseen-holdout performance.",
+                           "The toilet-base displacement case remains unresolved because the tested contour method did not isolate its old caulk footprint reliably."
+                       ],
+    "promoted":  false
+}

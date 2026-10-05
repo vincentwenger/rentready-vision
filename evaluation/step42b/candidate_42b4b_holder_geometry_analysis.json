@@ -1,0 +1,74 @@
+﻿{
+    "schema_version":  "rentready-step42b4b-holder-geometry-analysis/1.0",
+    "step":  "42B-4B",
+    "diagnostic":  "toilet_paper_holder_relative_angle",
+    "status":  "GEOMETRY_SIGNAL_FOUND_NOT_PROMOTED",
+    "method":  {
+                   "detector":  "OpenCV Canny + probabilistic Hough lines",
+                   "measurement":  "Holder-line median angle minus median nearby structural-reference angle",
+                   "camera_roll_control":  "Use local cabinet/countertop reference instead of absolute image horizontal",
+                   "bedrock_calls":  0
+               },
+    "clean_control":  {
+                          "video":  "clean_29_quimby_vanity_level_holder",
+                          "measurements":  [
+                                               {
+                                                   "timestamp":  0,
+                                                   "relative_angle_deg":  null,
+                                                   "note":  "No valid separated reference lines available."
+                                               },
+                                               {
+                                                   "timestamp":  2,
+                                                   "holder_angle_deg":  -5.14,
+                                                   "reference_angle_deg":  -3.95,
+                                                   "relative_angle_deg":  -1.19
+                                               },
+                                               {
+                                                   "timestamp":  4,
+                                                   "holder_angle_deg":  -7.92,
+                                                   "reference_angle_deg":  -4.75,
+                                                   "relative_angle_deg":  -3.16
+                                               }
+                                           ],
+                          "max_observed_abs_relative_angle_deg":  3.16
+                      },
+    "defect_case":  {
+                        "video":  "defect_16_toilet_paper_holder_sagging",
+                        "measurements":  [
+                                             {
+                                                 "timestamp":  0,
+                                                 "holder_angle_deg":  -8,
+                                                 "reference_angle_deg":  2.92,
+                                                 "relative_angle_deg":  -10.92
+                                             },
+                                             {
+                                                 "timestamp":  1,
+                                                 "holder_angle_deg":  -10.95,
+                                                 "reference_angle_deg":  0.75,
+                                                 "relative_angle_deg":  -11.7
+                                             },
+                                             {
+                                                 "timestamp":  2,
+                                                 "holder_angle_deg":  -14.94,
+                                                 "reference_angle_deg":  -1.73,
+                                                 "relative_angle_deg":  -13.2
+                                             }
+                                         ],
+                        "min_observed_abs_relative_angle_deg":  10.92
+                    },
+    "candidate_rule":  {
+                           "relative_angle_threshold_deg":  -8,
+                           "minimum_supporting_frames":  2,
+                           "requires_valid_local_reference":  true,
+                           "clean_control_result":  "NEGATIVE",
+                           "defect_16_result":  "POSITIVE"
+                       },
+    "interpretation":  [
+                           "Separating holder and reference search regions removed the earlier 1.0s reference contamination.",
+                           "The clean holder remains within about 3.2 degrees of its local structural reference.",
+                           "The sagging holder remains more than 10 degrees below its local structural reference across all three selected frames.",
+                           "This provides a strong deterministic development signal for defect_16 without additional model inference.",
+                           "The rule is not promoted because only one directly comparable clean holder control is currently available."
+                       ],
+    "official_recall_effect":  "NONE YET - diagnostic evidence only"
+}
