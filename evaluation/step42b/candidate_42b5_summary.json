@@ -1,0 +1,41 @@
+﻿{
+    "schema_version":  "rentready-step42b5-summary/1.0",
+    "step":  "42B-5",
+    "candidate_name":  "transient_motion_water_drip_v1",
+    "status":  "DIAGNOSTIC_FAIL_NOT_PROMOTED",
+    "methodology":  {
+                        "diagnostic_only":  true,
+                        "valid_for_performance_scoring":  false,
+                        "bedrock_requests":  0,
+                        "scan_interval_seconds":  0.1,
+                        "technique":  "ECC affine stabilization plus OpenCV frame differencing and connected-component transient extraction"
+                    },
+    "diagnostic_results":  {
+                               "defect_09_events":  164,
+                               "clean_16_events":  66,
+                               "clean_17_events":  72,
+                               "clean_18_events":  129,
+                               "clean_23_events":  238
+                           },
+    "interpretation":  [
+                           "High-frequency stabilized frame differencing exposes transient motion around the annotated water-drip intervals.",
+                           "However, the same detector generates large numbers of transient components on clean control clips.",
+                           "Several clean controls produce stronger elongated residual components than defect_09.",
+                           "The signal is therefore not sufficiently discriminative for promotion as a generic water-drip trigger.",
+                           "Further threshold tuning on defect_09 would risk overfitting the development set."
+                       ],
+    "development_effect":  {
+                               "prior_owner_verified_intervals":  "5/9",
+                               "candidate_owner_verified_intervals":  "5/9",
+                               "recall_gain":  0,
+                               "new_clean_false_positive_clips":  0
+                           },
+    "unresolved_intervals":  [
+                                 "defect_09 water drip 1.8-2.1s",
+                                 "defect_09 water drip 15.23-15.55s",
+                                 "defect_10 toilet base displacement",
+                                 "defect_14 wall hole below window"
+                             ],
+    "conclusion":  "Do not promote the transient-motion heuristic. Stop additional Step 42 recall tuning and proceed toward final Step 42 evaluation and documentation.",
+    "promoted":  false
+}
