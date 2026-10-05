@@ -20,3 +20,11 @@ dist/
 
 # Local AWS configuration/tag backups
 local-artifacts/
+
+# Step 34E external evaluation media — keep manifests, not downloaded videos
+evaluation/external_v1/**/*.webm
+evaluation/external_v1/**/*.mp4
+evaluation/external_v1/**/*.mov
+
+# Step 34F generated OpenCV frames/manifests — keep run.json and detector_report.json
+evaluation/step34f/raw/*/opencv_1hz/

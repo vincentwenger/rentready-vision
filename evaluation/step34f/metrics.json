@@ -1,0 +1,110 @@
+﻿{
+  "schema_version": "rentready-step34f-metrics/1.0",
+  "detector": {
+    "name": "Detector v2",
+    "profile": "detector_v2_nova_conditional_sonnet/1.0",
+    "frozen_commit": "4a32dfe2d6b5fbd611eb0d8a509727a67f19e201"
+  },
+  "dataset": "external_v1",
+  "videos": 11,
+  "positive_videos": 6,
+  "clean_videos": 5,
+  "clip_level": {
+    "tp": 2,
+    "tn": 5,
+    "fp": 0,
+    "fn": 4,
+    "precision": 1.0,
+    "recall": 0.3333333333,
+    "f1": 0.5,
+    "accuracy": 0.6363636364,
+    "clean_false_positive_rate": 0.0
+  },
+  "frozen_interval_level": {
+    "annotated_intervals": 17,
+    "detected_intervals": 1,
+    "missed_intervals": 16,
+    "recall": 0.0588235294
+  },
+  "per_video": [
+    {
+      "id": "ext001",
+      "label": "defect",
+      "predicted_positive": false,
+      "clip_result": "FN",
+      "annotated_intervals": 1,
+      "detected_intervals": 0
+    },
+    {
+      "id": "ext002",
+      "label": "defect",
+      "predicted_positive": true,
+      "clip_result": "TP",
+      "annotated_intervals": 1,
+      "detected_intervals": 0,
+      "note": "Frozen water-leak interval missed. Detector reported a human-confirmed wall hole that was not part of the pre-inference frozen interval annotations; retained as a valid post-inference additional finding."
+    },
+    {
+      "id": "ext003",
+      "label": "defect",
+      "predicted_positive": false,
+      "clip_result": "FN",
+      "annotated_intervals": 1,
+      "detected_intervals": 0
+    },
+    {
+      "id": "ext004",
+      "label": "defect",
+      "predicted_positive": false,
+      "clip_result": "FN",
+      "annotated_intervals": 1,
+      "detected_intervals": 0
+    },
+    {
+      "id": "ext006",
+      "label": "defect",
+      "predicted_positive": true,
+      "clip_result": "TP",
+      "annotated_intervals": 4,
+      "detected_intervals": 1
+    },
+    {
+      "id": "ext007",
+      "label": "defect",
+      "predicted_positive": false,
+      "clip_result": "FN",
+      "annotated_intervals": 9,
+      "detected_intervals": 0
+    },
+    {
+      "id": "ext008",
+      "label": "clean",
+      "predicted_positive": false,
+      "clip_result": "TN"
+    },
+    {
+      "id": "ext011",
+      "label": "clean",
+      "predicted_positive": false,
+      "clip_result": "TN"
+    },
+    {
+      "id": "ext014",
+      "label": "clean",
+      "predicted_positive": false,
+      "clip_result": "TN"
+    },
+    {
+      "id": "ext015",
+      "label": "clean",
+      "predicted_positive": false,
+      "clip_result": "TN"
+    },
+    {
+      "id": "ext017",
+      "label": "clean",
+      "predicted_positive": false,
+      "clip_result": "TN"
+    }
+  ]
+}

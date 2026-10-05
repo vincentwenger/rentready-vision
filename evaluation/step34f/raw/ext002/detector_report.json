@@ -1,0 +1,129 @@
+{
+  "detector": {
+    "profile": "detector_v2_nova_conditional_sonnet/1.0",
+    "model_ids": [
+      "us.amazon.nova-2-lite-v1:0"
+    ],
+    "confidence_threshold": 0.65,
+    "selected_frame_seconds": 1.0
+  },
+  "candidate_findings": [
+    {
+      "room": "unknown",
+      "category": "wall_hole",
+      "description": "A large, open hole in the wall with visible insulation and debris inside, indicating significant damage and possible water intrusion.",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.3,
+        "y": 0.1,
+        "width": 0.4,
+        "height": 0.8
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/120.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-440cd764d3796c37",
+      "detail_image_id": "f1_t0"
+    }
+  ],
+  "source_issues": [
+    {
+      "room": "unknown",
+      "category": "wall_hole",
+      "description": "A large, open hole in the wall with visible insulation and debris inside, indicating significant damage and possible water intrusion.",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.3,
+        "y": 0.1,
+        "width": 0.4,
+        "height": 0.8
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/120.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-440cd764d3796c37",
+      "detail_image_id": "f1_t0"
+    }
+  ],
+  "issues": [
+    {
+      "room": "unknown",
+      "category": "wall_hole",
+      "description": "A large, open hole in the wall with visible insulation and debris inside, indicating significant damage and possible water intrusion.",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.3,
+        "y": 0.1,
+        "width": 0.4,
+        "height": 0.8
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/120.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-440cd764d3796c37",
+      "detail_image_id": "f1_t0"
+    }
+  ],
+  "pixel_refinement": {
+    "nova": [],
+    "sonnet": []
+  },
+  "fallback_crack_refinement": [],
+  "trace": [
+    {
+      "model_id": "us.amazon.nova-2-lite-v1:0",
+      "usage": {
+        "inputTokens": 2837,
+        "outputTokens": 119,
+        "totalTokens": 2956
+      },
+      "invalid_findings": 0,
+      "model_seconds": 2.238,
+      "frame_timestamps": [
+        1.0
+      ]
+    }
+  ]
+}

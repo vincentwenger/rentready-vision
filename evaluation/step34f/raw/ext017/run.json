@@ -1,0 +1,17 @@
+{
+  "video": "ext017_normal_doors.webm",
+  "profile": "detector_v2_nova_conditional_sonnet/1.0",
+  "predicted_positive": false,
+  "issue_count": 0,
+  "model_requests": 2,
+  "input_tokens": 9401,
+  "output_tokens": 60,
+  "opencv_seconds": 93.074,
+  "model_seconds": 3.57,
+  "sampled_frames": 59,
+  "selected_keyframes": 1,
+  "detail_images": 5,
+  "fallback_requests": 1,
+  "crack_refinements_attempted": 0,
+  "agent_tool_calls": 0
+}

@@ -1,0 +1,49 @@
+{
+  "detector": {
+    "profile": "detector_v2_nova_conditional_sonnet/1.0",
+    "model_ids": [
+      "us.amazon.nova-2-lite-v1:0",
+      "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    ],
+    "confidence_threshold": 0.65,
+    "selected_frame_seconds": 2.001
+  },
+  "candidate_findings": [],
+  "source_issues": [],
+  "issues": [],
+  "pixel_refinement": {
+    "nova": [],
+    "sonnet": []
+  },
+  "fallback_crack_refinement": [],
+  "trace": [
+    {
+      "model_id": "us.amazon.nova-2-lite-v1:0",
+      "usage": {
+        "inputTokens": 2837,
+        "outputTokens": 27,
+        "totalTokens": 2864
+      },
+      "invalid_findings": 0,
+      "model_seconds": 1.45,
+      "frame_timestamps": [
+        2.001
+      ]
+    },
+    {
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "usage": {
+        "inputTokens": 6564,
+        "outputTokens": 33,
+        "totalTokens": 6597,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "invalid_findings": 0,
+      "model_seconds": 2.12,
+      "frame_timestamps": [
+        2.001
+      ]
+    }
+  ]
+}

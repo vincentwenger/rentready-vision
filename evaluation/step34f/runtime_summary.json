@@ -1,0 +1,13 @@
+﻿{
+    "schema_version":  "rentready-step34f-runtime-summary/1.0",
+    "videos":  11,
+    "model_requests":  21,
+    "fallback_requests":  10,
+    "input_tokens":  98405,
+    "output_tokens":  969,
+    "sampled_frames":  431,
+    "selected_keyframes":  11,
+    "opencv_seconds":  276.824,
+    "model_seconds":  53.632,
+    "total_issues_reported":  3
+}

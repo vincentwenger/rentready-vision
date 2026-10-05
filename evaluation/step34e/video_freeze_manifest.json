@@ -1,0 +1,123 @@
+﻿[
+    {
+        "id":  "ext001",
+        "label":  "defect",
+        "local_path":  "positive/water_leak/ext001_water_leak_apartment.webm",
+        "expected_sha256":  "e4ff4898d39aec8eb188ba456c214bd25aa380e5ae9882833a8790265cc4f7a0",
+        "actual_sha256":  "e4ff4898d39aec8eb188ba456c214bd25aa380e5ae9882833a8790265cc4f7a0",
+        "hash_match":  true,
+        "file_size_bytes":  5183974,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Water_Dripping_into_a_Bucket_in_a_Derelict_Apartment_in_Canada.webm",
+        "license":  "CC BY 4.0"
+    },
+    {
+        "id":  "ext002",
+        "label":  "defect",
+        "local_path":  "positive/water_leak/ext002_water_leak_abandoned_house.webm",
+        "expected_sha256":  "5e48f7a3ac1a11d885c379cd60f7aeaa04faf6ea3df0a7020db64e1eced0edcf",
+        "actual_sha256":  "5e48f7a3ac1a11d885c379cd60f7aeaa04faf6ea3df0a7020db64e1eced0edcf",
+        "hash_match":  true,
+        "file_size_bytes":  31620183,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Abandoned_house_-_water_leakage_-_2023-07-24.webm",
+        "license":  "CC BY-SA 4.0"
+    },
+    {
+        "id":  "ext003",
+        "label":  "defect",
+        "local_path":  "positive/dripping_faucet/ext003_dripping_faucet.webm",
+        "expected_sha256":  "dedde3fc06311036da6d353e31baab928d99c2ed5138f5fed57f44cedb20edce",
+        "actual_sha256":  "dedde3fc06311036da6d353e31baab928d99c2ed5138f5fed57f44cedb20edce",
+        "hash_match":  true,
+        "file_size_bytes":  21357256,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Tropfender_Wasserhahn_20240827_C1004.webm",
+        "license":  "CC BY 4.0"
+    },
+    {
+        "id":  "ext004",
+        "label":  "defect",
+        "local_path":  "positive/door_damage/ext004_door_glass_damage.webm",
+        "expected_sha256":  "86bc7602612e75b770e60f5ab0553adf82b978b1622bb70d5c7c2890e3e020c6",
+        "actual_sha256":  "86bc7602612e75b770e60f5ab0553adf82b978b1622bb70d5c7c2890e3e020c6",
+        "hash_match":  true,
+        "file_size_bytes":  6847994,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Front_door_spyhole.webm",
+        "license":  "CC BY 3.0"
+    },
+    {
+        "id":  "ext006",
+        "label":  "defect",
+        "local_path":  "positive/unfinished_surface/ext006_renovation_surface_04.webm",
+        "expected_sha256":  "44c8822094fc1802964937d9216c61294d7eb34d921b06f303408eef17f63cc7",
+        "actual_sha256":  "44c8822094fc1802964937d9216c61294d7eb34d921b06f303408eef17f63cc7",
+        "hash_match":  true,
+        "file_size_bytes":  175467254,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Gouripur_House_-_Kalimpong_-_Interiors_-_04.webm",
+        "license":  "CC BY-SA 4.0"
+    },
+    {
+        "id":  "ext007",
+        "label":  "defect",
+        "local_path":  "positive/unfinished_surface/ext007_renovation_surface_05.webm",
+        "expected_sha256":  "bad47fc0f9db074cf5ace34511c1a181f3decd117ea044e43a6feefce90122c8",
+        "actual_sha256":  "bad47fc0f9db074cf5ace34511c1a181f3decd117ea044e43a6feefce90122c8",
+        "hash_match":  true,
+        "file_size_bytes":  303924134,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Gouripur_House_-_Kalimpong_-_Interiors_-_05.webm",
+        "license":  "CC BY-SA 4.0"
+    },
+    {
+        "id":  "ext008",
+        "label":  "clean",
+        "local_path":  "clean/walkthrough/ext008_clean_room_walkthrough.webm",
+        "expected_sha256":  "9d08559f3c18725848d0b53849dbc528c6ec803d4bc617cdafb2c16bdaf3304e",
+        "actual_sha256":  "9d08559f3c18725848d0b53849dbc528c6ec803d4bc617cdafb2c16bdaf3304e",
+        "hash_match":  true,
+        "file_size_bytes":  11770437,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Porto_Santo_Maria_hotel_room_tour_in_Funchal,_Madeira.webm",
+        "license":  "CC BY 3.0"
+    },
+    {
+        "id":  "ext011",
+        "label":  "clean",
+        "local_path":  "clean/plumbing/ext011_normal_sensor_faucet.webm",
+        "expected_sha256":  "0b83f05e34aff017303c65d26229c1e457fcec82ecad265b50db4d85e3c8f43d",
+        "actual_sha256":  "0b83f05e34aff017303c65d26229c1e457fcec82ecad265b50db4d85e3c8f43d",
+        "hash_match":  true,
+        "file_size_bytes":  2267471,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Sensor_faucet_in_a_hotel_room.webm",
+        "license":  "CC BY-SA 4.0"
+    },
+    {
+        "id":  "ext014",
+        "label":  "clean",
+        "local_path":  "clean/plumbing/ext014_normal_running_tap.webm",
+        "expected_sha256":  "451808fa64564947cc3fc62dd91124c97f3818dce9ddfcd7957e7af5ec578653",
+        "actual_sha256":  "451808fa64564947cc3fc62dd91124c97f3818dce9ddfcd7957e7af5ec578653",
+        "hash_match":  true,
+        "file_size_bytes":  4525800,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:A_running_tap_of_water.webm",
+        "license":  "CC BY 4.0"
+    },
+    {
+        "id":  "ext015",
+        "label":  "clean",
+        "local_path":  "clean/bathroom/ext015_normal_shower.webm",
+        "expected_sha256":  "df7d870d5025d75214beb4a3f44ade66311107cb6c7bcbfbc1da8af204c90d28",
+        "actual_sha256":  "df7d870d5025d75214beb4a3f44ade66311107cb6c7bcbfbc1da8af204c90d28",
+        "hash_match":  true,
+        "file_size_bytes":  58296877,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Some_water_coming_out_of_a_shower.webm",
+        "license":  "CC BY-SA 4.0"
+    },
+    {
+        "id":  "ext017",
+        "label":  "clean",
+        "local_path":  "clean/doors/ext017_normal_doors.webm",
+        "expected_sha256":  "a891f55e0c18132895a3bfbd89429e6164a478453fcb30dfa1e9ccd5448572c4",
+        "actual_sha256":  "a891f55e0c18132895a3bfbd89429e6164a478453fcb30dfa1e9ccd5448572c4",
+        "hash_match":  true,
+        "file_size_bytes":  28991070,
+        "source_page":  "https://commons.wikimedia.org/wiki/File:Doors_at_Wilson_House,_London.webm",
+        "license":  "CC BY-SA 4.0"
+    }
+]

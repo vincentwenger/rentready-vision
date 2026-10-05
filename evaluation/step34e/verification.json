@@ -1,0 +1,12 @@
+﻿{
+    "schema_version":  "rentready-step34e-verification/1.0",
+    "dataset":  "external_v1",
+    "videos":  11,
+    "positive_videos":  6,
+    "clean_videos":  5,
+    "defect_intervals":  17,
+    "all_files_present":  true,
+    "all_hashes_match":  true,
+    "detector_processing_performed_before_freeze":  false,
+    "status":  "FROZEN_UNSEEN_EVALUATION_SET"
+}

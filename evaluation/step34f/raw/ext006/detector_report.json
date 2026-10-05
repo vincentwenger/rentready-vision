@@ -1,0 +1,238 @@
+{
+  "detector": {
+    "profile": "detector_v2_nova_conditional_sonnet/1.0",
+    "model_ids": [
+      "us.amazon.nova-2-lite-v1:0",
+      "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    ],
+    "confidence_threshold": 0.65,
+    "selected_frame_seconds": 1.0
+  },
+  "candidate_findings": [
+    {
+      "room": "hallway",
+      "category": "paint_damage",
+      "description": "Extensive peeling and flaking paint on wall surface showing underlying layers and substrate, creating irregular patches of exposed material",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6344,
+        "y": 0.0843,
+        "width": 0.1969,
+        "height": 0.2529
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-d495cc6ad80b5e52",
+      "detail_image_id": "f1_t2"
+    },
+    {
+      "room": "hallway",
+      "category": "wall_stain",
+      "description": "Dark discoloration marks on wall surface near left edge showing irregular staining pattern",
+      "timestamp": 1.0,
+      "confidence": 0.75,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.0281,
+        "y": 0.5785,
+        "width": 0.0844,
+        "height": 0.1967
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-48f734e5c780940b",
+      "detail_image_id": "f1_t3"
+    }
+  ],
+  "source_issues": [
+    {
+      "room": "hallway",
+      "category": "paint_damage",
+      "description": "Extensive peeling and flaking paint on wall surface showing underlying layers and substrate, creating irregular patches of exposed material",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6344,
+        "y": 0.0843,
+        "width": 0.1969,
+        "height": 0.2529
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-d495cc6ad80b5e52",
+      "detail_image_id": "f1_t2"
+    },
+    {
+      "room": "hallway",
+      "category": "wall_stain",
+      "description": "Dark discoloration marks on wall surface near left edge showing irregular staining pattern",
+      "timestamp": 1.0,
+      "confidence": 0.75,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.0281,
+        "y": 0.5785,
+        "width": 0.0844,
+        "height": 0.1967
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-48f734e5c780940b",
+      "detail_image_id": "f1_t3"
+    }
+  ],
+  "issues": [
+    {
+      "room": "hallway",
+      "category": "paint_damage",
+      "description": "Extensive peeling and flaking paint on wall surface showing underlying layers and substrate, creating irregular patches of exposed material",
+      "timestamp": 1.0,
+      "confidence": 0.95,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.6344,
+        "y": 0.0843,
+        "width": 0.1969,
+        "height": 0.2529
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-d495cc6ad80b5e52",
+      "detail_image_id": "f1_t2"
+    },
+    {
+      "room": "hallway",
+      "category": "wall_stain",
+      "description": "Dark discoloration marks on wall surface near left edge showing irregular staining pattern",
+      "timestamp": 1.0,
+      "confidence": 0.75,
+      "severity_candidate": "review",
+      "bbox": {
+        "x": 0.0281,
+        "y": 0.5785,
+        "width": 0.0844,
+        "height": 0.1967
+      },
+      "group": "walls",
+      "other_label": null,
+      "evidence_frame_index": 1,
+      "evidence": {
+        "frame_index": 1,
+        "timestamp_seconds": 1.0,
+        "scene_index": 0,
+        "s3_key": "development-local/30.jpg"
+      },
+      "responsible_language": {
+        "version": "rentready-responsible-language/1.0",
+        "transformed": false,
+        "applied_rules": [],
+        "human_review_preserved": true
+      },
+      "issue_id": "issue-48f734e5c780940b",
+      "detail_image_id": "f1_t3"
+    }
+  ],
+  "pixel_refinement": {
+    "nova": [],
+    "sonnet": []
+  },
+  "fallback_crack_refinement": [],
+  "trace": [
+    {
+      "model_id": "us.amazon.nova-2-lite-v1:0",
+      "usage": {
+        "inputTokens": 2837,
+        "outputTokens": 27,
+        "totalTokens": 2864
+      },
+      "invalid_findings": 0,
+      "model_seconds": 2.151,
+      "frame_timestamps": [
+        1.0
+      ]
+    },
+    {
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "usage": {
+        "inputTokens": 6564,
+        "outputTokens": 283,
+        "totalTokens": 6847,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "invalid_findings": 0,
+      "model_seconds": 5.426,
+      "frame_timestamps": [
+        1.0
+      ]
+    }
+  ]
+}

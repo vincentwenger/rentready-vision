@@ -1,0 +1,17 @@
+{
+  "video": "ext003_dripping_faucet.webm",
+  "profile": "detector_v2_nova_conditional_sonnet/1.0",
+  "predicted_positive": false,
+  "issue_count": 0,
+  "model_requests": 2,
+  "input_tokens": 12209,
+  "output_tokens": 60,
+  "opencv_seconds": 50.798,
+  "model_seconds": 6.445,
+  "sampled_frames": 8,
+  "selected_keyframes": 1,
+  "detail_images": 5,
+  "fallback_requests": 1,
+  "crack_refinements_attempted": 0,
+  "agent_tool_calls": 0
+}

@@ -1,0 +1,17 @@
+{
+  "video": "ext008_clean_room_walkthrough.webm",
+  "profile": "detector_v2_nova_conditional_sonnet/1.0",
+  "predicted_positive": false,
+  "issue_count": 0,
+  "model_requests": 2,
+  "input_tokens": 5343,
+  "output_tokens": 60,
+  "opencv_seconds": 8.913,
+  "model_seconds": 2.867,
+  "sampled_frames": 129,
+  "selected_keyframes": 1,
+  "detail_images": 5,
+  "fallback_requests": 1,
+  "crack_refinements_attempted": 0,
+  "agent_tool_calls": 0
+}

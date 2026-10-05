@@ -1,0 +1,17 @@
+{
+  "video": "ext002_water_leak_abandoned_house.webm",
+  "profile": "detector_v2_nova_conditional_sonnet/1.0",
+  "predicted_positive": true,
+  "issue_count": 1,
+  "model_requests": 1,
+  "input_tokens": 2837,
+  "output_tokens": 119,
+  "opencv_seconds": 16.436,
+  "model_seconds": 2.238,
+  "sampled_frames": 23,
+  "selected_keyframes": 1,
+  "detail_images": 5,
+  "fallback_requests": 0,
+  "crack_refinements_attempted": 0,
+  "agent_tool_calls": 0
+}

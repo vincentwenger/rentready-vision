@@ -1,0 +1,17 @@
+{
+  "video": "ext006_renovation_surface_04.webm",
+  "profile": "detector_v2_nova_conditional_sonnet/1.0",
+  "predicted_positive": true,
+  "issue_count": 2,
+  "model_requests": 2,
+  "input_tokens": 9401,
+  "output_tokens": 310,
+  "opencv_seconds": 19.026,
+  "model_seconds": 7.577,
+  "sampled_frames": 34,
+  "selected_keyframes": 1,
+  "detail_images": 5,
+  "fallback_requests": 1,
+  "crack_refinements_attempted": 0,
+  "agent_tool_calls": 0
+}

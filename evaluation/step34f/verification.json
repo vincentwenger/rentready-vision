@@ -1,0 +1,27 @@
+﻿{
+    "schema_version":  "rentready-step34f-verification/1.0",
+    "detector_name":  "Detector v2",
+    "frozen_commit":  "4a32dfe2d6b5fbd611eb0d8a509727a67f19e201",
+    "frozen_source_verification_passed":  true,
+    "unseen_dataset":  "external_v1",
+    "expected_videos":  11,
+    "completed_runs":  11,
+    "missing_artifacts":  [
+
+                          ],
+    "all_run_artifacts_present":  true,
+    "clip_tp":  2,
+    "clip_tn":  5,
+    "clip_fp":  0,
+    "clip_fn":  4,
+    "clip_precision":  1.0,
+    "clip_recall":  0.3333333333,
+    "clip_f1":  0.5,
+    "frozen_annotated_intervals":  17,
+    "detected_intervals":  1,
+    "interval_recall":  0.0588235294,
+    "clean_false_positive_rate":  0.0,
+    "model_requests":  21,
+    "selected_keyframes":  11,
+    "passed":  true
+}
