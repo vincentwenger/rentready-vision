@@ -1,0 +1,16 @@
+{
+  "inspection_id": "0300bdb9-e679-47fa-8463-33b77d1c021b",
+  "object_key": "rentready/inspections/0300bdb9-e679-47fa-8463-33b77d1c021b/original/walkthrough.mp4",
+  "checks": {
+    "presigned_upload_over_https": true,
+    "url_lifetime_at_most_900_seconds": true,
+    "object_encrypted_with_aes256": true,
+    "object_size_matches_authorized_size": true,
+    "overwrite_returns_412": true,
+    "object_version_unchanged": true,
+    "anonymous_object_read_returns_403": true,
+    "upload_completion_succeeds": true
+  },
+  "passed": true,
+  "verified_at": "2026-10-04T22:24:54.881822+00:00"
+}

@@ -698,21 +698,22 @@ Step 37 records five measured failure cases for the competition submission rathe
 
 The documentation distinguishes implemented mitigations from recommended future controls and explicitly records that detector v2 has a frozen development measurement but **no additional unseen-property evaluation set**. Run `python scripts/verify_step37_failure_cases.py` to cross-check the Step 37 claims against the frozen Step 34, Step 34A, Step 34D, and Step 36 evidence. See [`STEP37_FAILURE_CASES.md`](STEP37_FAILURE_CASES.md) and [`evaluation/step37/`](evaluation/step37/).
 
-## Step 38 AWS + COOL deployment hardening — REPOSITORY PASS / LIVE FINAL PENDING
+## Step 38 AWS + COOL deployment hardening — COMPLETE / LIVE FINAL PASS
 
 Step 38 replaces mutable Git-clone bootstrap with a deterministic, versioned
 `rentready-vision-cool-worker` artifact. The artifact is uploaded to a versioned
 S3 deployment prefix, pinned in Terraform by SHA-256, verified before extraction,
 and installed beside the **official OpenCV COOL AWS Marketplace runtime** on the
-**EC2 Graviton4 worker**. Runtime evidence now records the deployment artifact
+**EC2 Graviton4 worker**. Runtime evidence records the deployment artifact
 version, S3 URI, SHA-256, source commit, Marketplace AMI, COOL/OpenCV identity,
 and Graviton4 instance type.
 
-The repository-side hardening can be checked with
-`python scripts/verify_step38_hardening.py`. The deployment must not be called a
-final live pass until `scripts/verify_runtime.py` is rerun on the actual judge/demo
-instance and `evaluation/step38/final_runtime_verification.json` reports
-`passed=true` with no errors. See [`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
+Repository-side hardening passes with `python scripts/verify_step38_hardening.py`.
+Final live verification was also completed successfully on the actual judge/demo
+Graviton4 instance using `scripts/verify_runtime.py`. The committed
+`evaluation/step38/final_runtime_verification.json` reports `passed=true` with no
+errors and confirms the COOL worker service is active. See
+[`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
 
 ## Step 39 S3 organization and retention - COMPLETE / LIVE AWS PASS
 
@@ -731,3 +732,33 @@ Run `python scripts/verify_step39_s3.py` for offline checks. Preview/apply the
 merged AWS lifecycle configuration with `scripts/configure_s3_lifecycle.py`, then
 verify a new inspection with `python scripts/verify_step39_s3.py --live --inspection-id ID`.
 See [`STEP39_S3_STORAGE.md`](STEP39_S3_STORAGE.md) for the complete deployment sequence.
+
+
+## Step 40 Security — COMPLETE / LIVE SECURITY PASS
+
+The website and FastAPI API are hosted at **https://rentreadyvision.com** and
+**https://www.rentreadyvision.com**. Both hostnames passed trusted HTTPS,
+HTTP-to-HTTPS redirect, authentication, and security-header checks. The small
+`t4g.small` API server uses its EC2 instance role and reads the operator token
+from the encrypted Parameter Store value `/rentready/api-token`.
+
+Hosted uploads use short-lived SigV4 presigned URLs with temporary credentials,
+signed encryption/size/tagging/conditional-write headers, and private encrypted
+S3 storage. The real upload passed all 15 checks, including anonymous-read denial
+and overwrite protection. Both approved website origins passed CORS preflight
+checks; an unapproved origin was rejected.
+
+The API and COOL worker have separately scoped IAM roles. Broad worker SSM
+parameter access was removed, and actual runtime checks confirmed that the
+worker cannot read the API token. Both EC2 disks are encrypted and IMDSv2 is
+required. The worker has no inbound access and was returned to **stopped** after
+its final security test; its official COOL OpenCV runtime remains intact.
+
+See [STEP40_SECURITY.md](STEP40_SECURITY.md), [STEP40_HOSTING.md](STEP40_HOSTING.md),
+and [evaluation/step40/README.md](evaluation/step40/README.md). Run
+`python scripts/verify_step40_completion.py` to check the retained evidence,
+and `python scripts/verify_step40_security.py --live` for a fresh resource audit.
+The individual audit deliberately leaves its aggregate IAM status pending;
+`evaluation/step40/completion_verification.json` combines the separate evidence.
+This is a single-operator demo; the shared token does not provide tenant isolation.
+Git publication is the final packaging step. All 22 frozen Step 34D sources remain unchanged.

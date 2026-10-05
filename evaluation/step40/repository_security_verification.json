@@ -1,0 +1,29 @@
+{
+  "step": 40,
+  "mode": "repository",
+  "passed": true,
+  "checks": {
+    "source_hygiene": true,
+    "frozen_detector_unchanged": true,
+    "runtime_cannot_configure_bucket_or_create_table": true,
+    "runtime_cannot_consume_queue": true,
+    "exact_resource_runtime_policy": true,
+    "s3_guardrails_defined": true,
+    "cloud_misconfiguration_refused": true
+  },
+  "source_scan": {
+    "passed": true,
+    "files_checked": 398,
+    "findings": [],
+    "scope": "Known AWS key formats, private keys, literal long secrets, signed URLs; local private env files excluded unless explicitly requested"
+  },
+  "freeze": {
+    "passed": true,
+    "errors": [],
+    "source_files_checked": 22
+  },
+  "live_aws_verified": false,
+  "security_complete": false,
+  "note": "Repository checks do not prove deployed controls or effective IAM",
+  "verified_at": "2026-10-05T00:25:02.813343+00:00"
+}

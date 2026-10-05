@@ -1,0 +1,6 @@
+# Supply RENTREADY_DOMAIN in the Caddy service environment. Use a real domain
+# whose DNS points to this host. Permit inbound 80/443 for certificate issuance.
+{$RENTREADY_DOMAIN} {
+    reverse_proxy 127.0.0.1:8000
+    # Access logging intentionally disabled: don't record authorization or URLs.
+}

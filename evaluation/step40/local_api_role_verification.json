@@ -1,0 +1,9 @@
+{
+  "runtime_identity": "arn:aws:sts::081087819788:assumed-role/rentready-vision-api-runtime/rentready-api-local",
+  "checks": {
+    "inspection_state_read_allowed": true,
+    "bucket_policy_read_denied": true
+  },
+  "passed": true,
+  "verified_at": "2026-10-04T22:18:46.246107+00:00"
+}

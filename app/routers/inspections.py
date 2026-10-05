@@ -9,6 +9,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from ..aws import s3, sqs
 from ..config import get_settings
+from ..security_config import get_security_settings
 from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
                        report_key, artifact_key)
 from ..db import (
@@ -77,6 +78,7 @@ from ..services import (
 
 router = APIRouter(prefix="/inspections", tags=["inspections"])
 settings = get_settings()
+security_settings = get_security_settings()
 ALLOWED_CONTENT_TYPES = {"video/mp4", "video/quicktime"}
 ALLOWED_EXTENSIONS = {".mp4", ".mov"}
 
@@ -129,12 +131,23 @@ def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectio
 def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> UploadUrlResponse:
     item = _require_inspection(inspection_id)
     _validate_video(payload.filename, payload.content_type)
+    if item["status"] not in {"CREATED", "UPLOAD_PENDING"}:
+        raise HTTPException(status_code=409, detail="Create a new inspection to upload another video")
     ext = PurePath(payload.filename).suffix.lower()
     s3_key = f"{prefix_for_record(inspection_id, item)}/original/walkthrough{ext}"
 
+    if security_settings.cloud_mode and payload.size_bytes is None:
+        raise HTTPException(status_code=400, detail="Upload size_bytes is required")
+    if payload.size_bytes is not None and payload.size_bytes > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="Video exceeds configured size limit")
+    params = {"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type,
+              "Tagging": VIDEO_TAGGING, "ServerSideEncryption": "AES256", "IfNoneMatch": "*"}
+    if payload.size_bytes is not None:
+        params["ContentLength"] = payload.size_bytes
+
     upload_url = s3.generate_presigned_url(
         ClientMethod="put_object",
-        Params={"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type, "Tagging": VIDEO_TAGGING},
+        Params=params,
         ExpiresIn=settings.presigned_url_ttl_seconds,
         HttpMethod="PUT",
     )
@@ -145,6 +158,7 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
         original_s3_key=s3_key,
         original_filename=payload.filename,
         content_type=payload.content_type,
+        expected_upload_bytes=payload.size_bytes,
     )
 
     return UploadUrlResponse(
@@ -152,7 +166,8 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
         upload_url=upload_url,
         s3_key=s3_key,
         expires_in_seconds=settings.presigned_url_ttl_seconds,
-        required_headers={"Content-Type": payload.content_type, "x-amz-tagging": VIDEO_TAGGING},
+        required_headers={"Content-Type": payload.content_type, "x-amz-tagging": VIDEO_TAGGING,
+                          "x-amz-server-side-encryption": "AES256", "If-None-Match": "*"},
     )
 
 
@@ -160,6 +175,10 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
 def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> InspectionResponse:
     item = _require_inspection(inspection_id)
     _validate_video(payload.filename, payload.content_type)
+    if item["status"] != "UPLOAD_PENDING":
+        raise HTTPException(status_code=409, detail="Inspection is not awaiting an upload")
+    if payload.filename != item.get("original_filename") or payload.content_type != item.get("content_type"):
+        raise HTTPException(status_code=400, detail="Upload metadata does not match the authorized request")
     s3_key = item.get("original_s3_key")
     if not s3_key:
         raise HTTPException(status_code=409, detail="Upload URL has not been created")
@@ -177,6 +196,10 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
     if size > settings.max_upload_bytes:
         raise HTTPException(status_code=413, detail="Uploaded file exceeds configured size limit")
+    if head.get("ContentType") != item["content_type"] or head.get("ServerSideEncryption") != "AES256":
+        raise HTTPException(status_code=400, detail="Uploaded object content type or encryption is invalid")
+    if item.get("expected_upload_bytes") is not None and size != item["expected_upload_bytes"]:
+        raise HTTPException(status_code=400, detail="Uploaded object size differs from the authorized request")
 
     # Tag the exact uploaded version, including clients using an older presigned URL.
     tag_args = {"Bucket": settings.s3_bucket, "Key": s3_key}

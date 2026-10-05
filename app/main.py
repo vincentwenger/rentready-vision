@@ -2,15 +2,31 @@ from botocore.exceptions import ClientError
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from pathlib import Path
+from pydantic import ValidationError
 
 from .config import get_settings
-from .routers.inspections import router as inspections_router
+from .security_config import get_security_settings
+from .security import SecurityMiddleware, load_api_token, content_security_policy
 
-settings = get_settings()
+try:
+    settings = get_settings()
+    security_settings = get_security_settings()
+except ValidationError:
+    # The frozen base settings may include extra .env values in error inputs.
+    # Never echo those values from an API startup failure.
+    raise RuntimeError("Application configuration invalid; verify settings before startup") from None
+operator_token = load_api_token(security_settings)
+from .routers.inspections import router as inspections_router
+demo_file = Path(__file__).resolve().parents[1] / "web" / "index.html"
 
 app = FastAPI(
     title="RentReady Vision API",
-    version="0.5.0",
+    version="0.6.0",
+    docs_url=None if security_settings.cloud_mode else "/docs",
+    redoc_url=None if security_settings.cloud_mode else "/redoc",
+    openapi_url=None if security_settings.cloud_mode else "/openapi.json",
     description="RentReady Vision: durable Graviton4 OpenCV COOL evidence processing, structured findings, and explicit evidence-preserving agent tools for temporal inspection, cropping, and enhancement.",
 )
 
@@ -21,6 +37,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(TrustedHostMiddleware,
+                   allowed_hosts=[host.strip() for host in security_settings.allowed_hosts.split(",") if host.strip()])
+# Outermost: TLS and response headers also cover CORS preflight / host errors.
+app.add_middleware(SecurityMiddleware, settings=security_settings, token=operator_token,
+                   csp=content_security_policy(demo_file))
 
 app.include_router(inspections_router)
 
@@ -30,6 +51,8 @@ async def aws_error_handler(_request: Request, exc: ClientError) -> JSONResponse
     """Turn opaque AWS failures into a useful local-development response."""
     error = exc.response.get("Error", {})
     code = error.get("Code", "AWSClientError")
+    if security_settings.cloud_mode:
+        return JSONResponse(status_code=503, content={"detail": "Cloud operation unavailable; contact the operator"})
     if code == "ResourceNotFoundException":
         detail = (
             "The configured AWS resource was not found. Run "
@@ -60,4 +83,4 @@ def favicon() -> Response:
 
 @app.get("/")
 def demo_page():
-    return FileResponse("web/index.html")
+    return FileResponse(demo_file)

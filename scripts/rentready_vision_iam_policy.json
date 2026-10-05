@@ -2,36 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "RentReadyVisionDynamoDb",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:CreateTable",
-        "dynamodb:DescribeTable",
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:TagResource",
-        "dynamodb:UpdateItem"
-      ],
-      "Resource": "arn:aws:dynamodb:us-west-2:*:table/rentready-vision-dev"
-    },
-    {
-      "Sid": "RentReadyVisionBucketSetup",
-      "Effect": "Allow",
-      "Action": [
-        "s3:CreateBucket",
-        "s3:GetBucketLocation",
-        "s3:ListBucket",
-        "s3:ListBucketVersions",
-        "s3:PutBucketCORS",
-        "s3:PutBucketPublicAccessBlock",
-        "s3:PutEncryptionConfiguration",
-        "s3:PutLifecycleConfiguration",
-        "s3:GetLifecycleConfiguration"
-      ],
-      "Resource": "arn:aws:s3:::rentready-vision-dev-*"
-    },
-    {
-      "Sid": "RentReadyVisionMediaObjects",
+      "Sid": "InspectionObjects",
       "Effect": "Allow",
       "Action": [
         "s3:GetObject",
@@ -42,30 +13,27 @@
         "s3:PutObjectVersionTagging"
       ],
       "Resource": [
-        "arn:aws:s3:::rentready-vision-dev-*/inspections/*",
-        "arn:aws:s3:::rentready-vision-dev-*/rentready/inspections/*"
+        "arn:aws:s3:::REPLACE_WITH_EXACT_BUCKET/inspections/*",
+        "arn:aws:s3:::REPLACE_WITH_EXACT_BUCKET/rentready/inspections/*"
       ]
     },
     {
-      "Sid": "RentReadyVisionProcessingProducer",
+      "Sid": "InspectionState",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-west-2:123456789012:table/REPLACE_WITH_EXACT_TABLE"
+    },
+    {
+      "Sid": "EnqueueJobs",
       "Effect": "Allow",
       "Action": [
         "sqs:SendMessage"
       ],
-      "Resource": "arn:aws:sqs:us-west-2:*:rentready-vision-processing"
-    },
-    {
-      "Sid": "RentReadyVisionBedrockIssueDetection",
-      "Effect": "Allow",
-      "Action": [
-        "bedrock:InvokeModel"
-      ],
-      "Resource": [
-        "arn:aws:bedrock:us-west-2:*:inference-profile/us.amazon.nova-2-lite-v1:0",
-        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0",
-        "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0",
-        "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0"
-      ]
+      "Resource": "arn:aws:sqs:us-west-2:123456789012:REPLACE_WITH_EXACT_QUEUE"
     }
   ]
 }

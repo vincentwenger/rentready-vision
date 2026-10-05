@@ -1,0 +1,13 @@
+{
+  "scope": "Worker management policy replacement; live SSM connection test pending",
+  "role_name": "rentready-vision-dev-cool-worker",
+  "checks": {
+    "narrow_management_policy_installed": true,
+    "no_managed_policies_remain": true,
+    "processing_policy_unchanged": true
+  },
+  "worker_start_requested": false,
+  "backup": "local-artifacts\\step40-iam\\worker-iam-before-management-fix-20261004T235130Z.json",
+  "verified_at": "2026-10-04T23:51:30.889090+00:00",
+  "passed": true
+}

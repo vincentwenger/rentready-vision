@@ -1,0 +1,88 @@
+"""Single-operator demo security. Never log tokens or signed URLs."""
+from __future__ import annotations
+
+import hashlib
+import hmac
+import logging
+import re
+from pathlib import Path
+
+import boto3
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+log = logging.getLogger("rentready.security")
+
+
+def load_api_token(settings, session=None) -> str | None:
+    """Resolve one token at startup; secret-store failures fail closed."""
+    token = settings.api_auth_token.get_secret_value() if settings.api_auth_token else None
+    if settings.api_auth_secret_id or settings.api_auth_ssm_parameter:
+        session = session or boto3.Session(region_name=settings.aws_region)
+        try:
+            if settings.api_auth_secret_id:
+                token = session.client("secretsmanager").get_secret_value(
+                    SecretId=settings.api_auth_secret_id).get("SecretString")
+            else:
+                parameter = session.client("ssm").get_parameter(
+                    Name=settings.api_auth_ssm_parameter, WithDecryption=True)["Parameter"]
+                if parameter.get("Type") != "SecureString":
+                    raise RuntimeError("Operator parameter must be a SecureString")
+                token = parameter["Value"]
+        except Exception:
+            raise RuntimeError("API auth secret could not be loaded; startup refused") from None
+    if token is not None and (len(token) < 32 or not re.fullmatch(r"[A-Za-z0-9_-]+", token)):
+        raise RuntimeError("API auth token must contain at least 32 URL-safe characters")
+    if settings.cloud_mode and not token:
+        raise RuntimeError("Cloud API auth token is missing; startup refused")
+    return token
+
+
+def content_security_policy(page: Path) -> str:
+    import base64
+    scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", page.read_text(encoding="utf-8"), re.S)
+    hashes = " ".join("'sha256-" + base64.b64encode(hashlib.sha256(script.encode()).digest()).decode() + "'" for script in scripts)
+    return (f"default-src 'self'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' https: blob: data:; media-src 'self' https: blob:; "
+            "connect-src 'self' https://*.amazonaws.com; object-src 'none'; "
+            "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+
+
+class SecurityMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, *, settings, token, csp):
+        super().__init__(app)
+        self.settings, self.token, self.csp = settings, token, csp
+
+    async def dispatch(self, request, call_next):
+        secure = request.url.scheme == "https"
+        response = None
+        if (not self.settings.cloud_mode and not self.token and request.client
+                and request.client.host not in {"127.0.0.1", "::1", "testclient"}):
+            # testclient is an in-process ASGI client, never a network peer IP.
+            response = JSONResponse({"detail": "Unprotected development mode is loopback-only"}, status_code=403)
+            log.warning("security_event=remote_dev_denied")
+        # TLS proxy must set ASGI scheme through Uvicorn's trusted-proxy support.
+        # Never trust an arbitrary X-Forwarded-Proto header in application code.
+        if response is None and self.settings.require_https and not secure and request.url.path != "/health":
+            response = JSONResponse({"detail": "HTTPS is required"}, status_code=400)
+            log.warning("security_event=https_required")
+        elif (response is None and request.method != "OPTIONS"
+              and (request.url.path == "/inspections" or request.url.path.startswith("/inspections/"))):
+            if self.token:
+                auth = request.headers.get("authorization", "")
+                supplied = auth[7:] if auth.lower().startswith("bearer ") else ""
+                if not hmac.compare_digest(hashlib.sha256(supplied.encode()).digest(), hashlib.sha256(self.token.encode()).digest()):
+                    response = JSONResponse({"detail": "Valid operator access token required"}, status_code=401,
+                                            headers={"WWW-Authenticate": "Bearer"})
+                    log.warning("security_event=auth_denied")
+        if response is None:
+            response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Content-Security-Policy"] = self.csp
+        if secure:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        return response

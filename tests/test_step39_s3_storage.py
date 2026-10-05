@@ -156,7 +156,7 @@ def test_upload_signs_video_tag_and_upload_complete_tags_exact_version(monkeypat
     calls = []
     class S3:
         def generate_presigned_url(self, **kwargs): calls.append(kwargs); return "https://example.test/upload"
-        def head_object(self, **kwargs): return {"ContentLength": 123, "ETag": '"abc"', "VersionId": "video-v1"}
+        def head_object(self, **kwargs): return {"ContentLength": 123, "ETag": '"abc"', "VersionId": "video-v1", "ContentType": "video/quicktime", "ServerSideEncryption": "AES256"}
         def get_object_tagging(self, **kwargs): assert kwargs["VersionId"] == "video-v1"; return {"TagSet": [{"Key": "owner", "Value": "user"}]}
         def put_object_tagging(self, **kwargs): calls.append(kwargs)
     monkeypatch.setattr(routes, "s3", S3())

@@ -1,0 +1,35 @@
+{
+  "scope": "HTTPS API and S3 browser preflight responses",
+  "checks": {
+    "https://rentreadyvision.com": {
+      "api_preflight_returns_200": true,
+      "api_allows_exact_origin": true,
+      "api_allows_authentication_header": true,
+      "s3_upload_preflight_returns_200": true,
+      "s3_upload_allows_exact_origin": true,
+      "s3_upload_allows_required_headers": true,
+      "s3_video_preflight_returns_200": true,
+      "s3_video_allows_exact_origin": true,
+      "s3_video_allows_range_header": true
+    },
+    "https://www.rentreadyvision.com": {
+      "api_preflight_returns_200": true,
+      "api_allows_exact_origin": true,
+      "api_allows_authentication_header": true,
+      "s3_upload_preflight_returns_200": true,
+      "s3_upload_allows_exact_origin": true,
+      "s3_upload_allows_required_headers": true,
+      "s3_video_preflight_returns_200": true,
+      "s3_video_allows_exact_origin": true,
+      "s3_video_allows_range_header": true
+    },
+    "unapproved_origin": {
+      "api_rejects_origin": true,
+      "api_does_not_allow_origin": true,
+      "s3_rejects_origin": true,
+      "s3_does_not_allow_origin": true
+    }
+  },
+  "passed": true,
+  "verified_at": "2026-10-04T23:33:50.532358+00:00"
+}

@@ -146,6 +146,9 @@
 
   <section class="card" id="form-card">
     <h2>New Inspection</h2>
+    <label for="access-token">Operator access token (for protected deployments)</label>
+    <input id="access-token" type="password" autocomplete="off" placeholder="Paste your access token if required" />
+    <p class="issue-note">The token is kept only in this page's memory. Reloading clears it.</p>
     <label for="property">Property inspection</label>
     <input id="property" type="text" placeholder="Property label or address (optional)" />
 
@@ -291,7 +294,9 @@ function formatTimestamp(seconds) {
 async function api(path, options = {}) {
   const response = await fetch(path, {
     ...options,
-    headers: {"Content-Type": "application/json", ...(options.headers || {})}
+    headers: {"Content-Type": "application/json", ...(options.headers || {}),
+      ...(document.getElementById("access-token").value ?
+        {"Authorization": `Bearer ${document.getElementById("access-token").value}`} : {})}
   });
   if (!response.ok) {
     let message = await response.text();
@@ -966,7 +971,7 @@ runButton.onclick = async () => {
     const contentType = file.type || "video/mp4";
     const upload = await api(`/inspections/${id}/upload`, {
       method: "POST",
-      body: JSON.stringify({filename: file.name, content_type: contentType})
+      body: JSON.stringify({filename: file.name, content_type: contentType, size_bytes: file.size})
     });
     const put = await fetch(upload.upload_url, {
       method: "PUT",

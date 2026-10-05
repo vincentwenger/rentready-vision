@@ -1,0 +1,13 @@
+{
+  "scope": "Local loopback API authentication; HTTPS not tested",
+  "checks": {
+    "health_returns_200": true,
+    "missing_token_returns_401": true,
+    "invalid_token_returns_401": true,
+    "valid_token_reaches_inspection_lookup": true,
+    "responses_disable_caching": true,
+    "responses_disable_content_sniffing": true
+  },
+  "passed": true,
+  "verified_at": "2026-10-04T22:22:16.540534+00:00"
+}

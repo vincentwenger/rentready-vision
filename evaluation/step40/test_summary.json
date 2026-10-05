@@ -1,0 +1,34 @@
+{
+  "step": 40,
+  "tested_at": "2026-10-05T00:25:02.366337+00:00",
+  "passed": true,
+  "tests": 289,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "duration_seconds": 11.501,
+  "warnings": 1,
+  "warning_note": "Existing Starlette TestClient/httpx deprecation; no test failures",
+  "dependencies": "Installed from supplied requirements.txt / requirements.lock.txt",
+  "python_version": "3.12",
+  "opencv_version": "5.0.0",
+  "test_git_commit_label": "step40-final-archive-test (synthetic isolated-test label; not a Git or deployment commit)",
+  "aws_credentials": "Synthetic isolated-test credentials; no real AWS credentials used",
+  "live_aws_verified": false,
+  "security_complete": false,
+  "browser_javascript_syntax": "node --check passed",
+  "terraform_validation": "Not run: Terraform binary unavailable; do not treat source checks as a Terraform plan",
+  "input_archive_sha256": "3466b6dd3622ce6deb79ad1767a679443bf119f7b188a576b9f30633ffd93ff4",
+  "initial_archive_run": {
+    "passed": false,
+    "tests": 289,
+    "failures": 1,
+    "reason": "Existing runtime provenance test needs Git revision; source archive has no .git metadata"
+  },
+  "supplementary_checks": {
+    "browser_javascript_syntax": "node --check passed",
+    "worker_helper_orchestration": "Six offline orchestration paths checked; final remote user-launch/Python/shell syntax checked; actual corrected worker probe passed separately",
+    "completion_verifier": "Valid bundle accepted; failed token-denial evidence, missing live audit and runtime-file mismatch rejected"
+  },
+  "docker_image_build": "Not run; hosted deployment uses Ubuntu virtual environment"
+}

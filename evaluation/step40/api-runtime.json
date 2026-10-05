@@ -1,0 +1,60 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InspectionObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:GetObjectTagging",
+        "s3:PutObjectTagging",
+        "s3:GetObjectVersionTagging",
+        "s3:PutObjectVersionTagging"
+      ],
+      "Resource": [
+        "arn:aws:s3:::rentready-vision-dev-081087819788/inspections/*",
+        "arn:aws:s3:::rentready-vision-dev-081087819788/rentready/inspections/*"
+      ]
+    },
+    {
+      "Sid": "InspectionState",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-west-2:081087819788:table/rentready-vision-dev"
+    },
+    {
+      "Sid": "EnqueueJobs",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:SendMessage"
+      ],
+      "Resource": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing"
+    },
+    {
+      "Sid": "ApprovedModels",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:us-west-2:081087819788:inference-profile/us.amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0",
+        "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0"
+      ]
+    },
+    {
+      "Sid": "ReadOperatorParameter",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter"
+      ],
+      "Resource": "arn:aws:ssm:us-west-2:081087819788:parameter/rentready/api-token"
+    }
+  ]
+}

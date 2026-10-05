@@ -1,0 +1,30 @@
+{
+  "scope": "Hosted API presigned upload, private encrypted S3 object and overwrite protection",
+  "api_hosts": [
+    "https://rentreadyvision.com",
+    "https://www.rentreadyvision.com"
+  ],
+  "checks": {
+    "presigned_upload_over_https": true,
+    "upload_targets_expected_bucket_and_key": true,
+    "url_lifetime_at_most_900_seconds": true,
+    "upload_uses_sigv4_and_temporary_credentials": true,
+    "conditional_write_size_and_encryption_headers_are_signed": true,
+    "presigned_upload_succeeds": true,
+    "actual_upload_allows_www_origin": true,
+    "object_encrypted_with_aes256": true,
+    "object_size_matches_authorized_size": true,
+    "overwrite_returns_412": true,
+    "object_version_and_etag_unchanged": true,
+    "anonymous_object_read_returns_403": true,
+    "upload_completion_succeeds": true,
+    "root_api_reads_upload_completed_through_www": true,
+    "upload_remains_unqueued": true
+  },
+  "errors": [],
+  "passed": true,
+  "stage": "finished",
+  "inspection_id": "7e8998a9-836f-490f-89f1-1431da8993a4",
+  "object_key": "rentready/inspections/7e8998a9-836f-490f-89f1-1431da8993a4/original/walkthrough.mp4",
+  "verified_at": "2026-10-04T23:42:49.561972+00:00"
+}

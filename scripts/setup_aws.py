@@ -20,6 +20,7 @@ ENV_PATH = ROOT / ".env"
 sys.path.insert(0, str(ROOT))
 from app.storage_config import StorageSettings
 from app.s3_lifecycle import read_lifecycle, merge_lifecycle, write_lifecycle
+from app.s3_security import apply_bucket_security
 
 
 def read_env(path: Path) -> dict[str, str]:
@@ -133,7 +134,6 @@ def ensure_bucket(session: boto3.Session, bucket_name: str, origins: list[str], 
             "Rules": [
                 {
                     "ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"},
-                    "BucketKeyEnabled": True,
                 }
             ]
         },
@@ -152,6 +152,7 @@ def ensure_bucket(session: boto3.Session, bucket_name: str, origins: list[str], 
             ]
         },
     )
+    apply_bucket_security(client, bucket_name, backup_dir=ROOT / "local-artifacts" / "s3-security")
     existing = read_lifecycle(client, bucket_name)
     configuration = merge_lifecycle(existing, video_days=video_days,
                                     noncurrent_days=noncurrent_days, multipart_days=multipart_days)

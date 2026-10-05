@@ -1,0 +1,50 @@
+{
+  "scope": "Live COOL worker SSM and runtime IAM check with controlled stop",
+  "instance_id": "i-0ecc68f9db17b668d",
+  "started_at": "2026-10-05T00:11:20.585482+00:00",
+  "checks": {
+    "ssm_online_with_narrow_policy": true,
+    "ssm_run_command_succeeds": true,
+    "runtime_checks_pass": true,
+    "worker_returned_to_stopped": true
+  },
+  "errors": [],
+  "worker_start_requested": true,
+  "queue_before": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesNotVisible": 0,
+    "ApproximateNumberOfMessagesDelayed": 0
+  },
+  "agent_version": "3.3.4793.0",
+  "command_id": "b92d9bf1-13f3-434f-84fa-281d316a1d38",
+  "command_status": "Success",
+  "stderr_present": false,
+  "verification": {
+    "runtime_identity": "arn:aws:sts::081087819788:assumed-role/rentready-vision-dev-cool-worker/i-0ecc68f9db17b668d",
+    "opencv_version": "5.1.0-dev",
+    "opencv_path": "/opt/cool/python_3.12/site-packages/cv2/__init__.py",
+    "checks": {
+      "runs_as_unprivileged_worker_user": true,
+      "arm_cpu_information_readable": true,
+      "credentials_come_from_instance_role": true,
+      "expected_worker_instance_role": true,
+      "official_cool_opencv_path": true,
+      "graviton_architecture": true,
+      "worker_service_active": true,
+      "inspection_state_read_allowed": true,
+      "encrypted_inspection_object_read_allowed": true,
+      "processing_queue_attributes_allowed": true,
+      "operator_token_read_denied": true,
+      "bucket_policy_read_denied": true,
+      "unassigned_dlq_access_denied": true
+    },
+    "passed": true
+  },
+  "queue_after": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesNotVisible": 0,
+    "ApproximateNumberOfMessagesDelayed": 0
+  },
+  "passed": true,
+  "verified_at": "2026-10-05T00:12:06.416511+00:00"
+}

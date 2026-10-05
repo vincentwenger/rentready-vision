@@ -1,0 +1,43 @@
+{
+  "scope": "Public HTTPS, website, redirects, API authentication and security headers",
+  "domains": {
+    "rentreadyvision.com": {
+      "checks": {
+        "trusted_https_connection": true,
+        "health_returns_200": true,
+        "website_returns_200": true,
+        "website_is_rentready": true,
+        "missing_token_returns_401": true,
+        "invalid_token_returns_401": true,
+        "valid_token_reaches_inspection_lookup": true,
+        "responses_disable_caching": true,
+        "responses_disable_content_sniffing": true,
+        "bearer_auth_challenge_present": true,
+        "hsts_at_least_one_year": true,
+        "http_redirects_to_same_hostname_over_https": true
+      },
+      "errors": [],
+      "passed": true
+    },
+    "www.rentreadyvision.com": {
+      "checks": {
+        "trusted_https_connection": true,
+        "health_returns_200": true,
+        "website_returns_200": true,
+        "website_is_rentready": true,
+        "missing_token_returns_401": true,
+        "invalid_token_returns_401": true,
+        "valid_token_reaches_inspection_lookup": true,
+        "responses_disable_caching": true,
+        "responses_disable_content_sniffing": true,
+        "bearer_auth_challenge_present": true,
+        "hsts_at_least_one_year": true,
+        "http_redirects_to_same_hostname_over_https": true
+      },
+      "errors": [],
+      "passed": true
+    }
+  },
+  "passed": true,
+  "verified_at": "2026-10-04T23:29:01.468131+00:00"
+}

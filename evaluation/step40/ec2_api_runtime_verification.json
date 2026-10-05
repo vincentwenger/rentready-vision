@@ -1,0 +1,23 @@
+{
+  "scope": "Actual API service user and EC2 runtime AWS permissions",
+  "instance_id": "i-0b86234abb75509b7",
+  "command_id": "d3802f78-9636-479d-bcce-859f843ca755",
+  "command_status": "Success",
+  "verification": {
+    "runtime_identity": "arn:aws:sts::081087819788:assumed-role/rentready-vision-api-ec2/i-0b86234abb75509b7",
+    "checks": {
+      "runs_as_unprivileged_service_user": true,
+      "static_aws_credentials_absent": true,
+      "credentials_come_from_instance_role": true,
+      "expected_api_instance_role": true,
+      "encrypted_operator_token_read_allowed": true,
+      "inspection_state_read_allowed": true,
+      "unrelated_parameter_read_denied": true,
+      "bucket_policy_read_denied": true
+    },
+    "passed": true
+  },
+  "stderr": "",
+  "verified_at": "2026-10-04T23:58:40.540847+00:00",
+  "passed": true
+}

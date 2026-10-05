@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+.venv
+__pycache__
+.pytest_cache
+local-artifacts
+output
+dist
+.terraform
+**/*.tfstate*
+**/terraform.tfvars
+**/*.pem
+**/*.key
+**/.aws

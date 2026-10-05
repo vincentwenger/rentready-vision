@@ -1,0 +1,28 @@
+{
+  "step": 40,
+  "mode": "live_read_only",
+  "passed": true,
+  "checks": {
+    "s3_public_access_block": true,
+    "s3_policy_not_public": true,
+    "s3_acl_disabled": true,
+    "s3_default_encryption": true,
+    "s3_transport_and_signature_guardrails": true,
+    "s3_cors_explicit": true,
+    "dynamodb_encryption": true,
+    "processing_queue_url_encrypted": true,
+    "processing_dlq_url_encrypted": true,
+    "sample_object_encrypted": true,
+    "api_https_health": true,
+    "api_hsts": true,
+    "api_unauthenticated_denied": true
+  },
+  "errors": [],
+  "live_aws_verified": true,
+  "api_verified": true,
+  "sample_object_checked": true,
+  "iam_review_required": true,
+  "security_complete": false,
+  "scope": "Configured bucket/table/queue controls and optional HTTPS API; effective IAM requires separate review",
+  "verified_at": "2026-10-04T23:55:05.296854+00:00"
+}

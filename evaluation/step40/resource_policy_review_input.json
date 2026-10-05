@@ -1,0 +1,91 @@
+{
+  "scope": "Read-only resource-policy review input and token metadata",
+  "bucket_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "RentReadyDenyInsecureTransport",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": [
+          "arn:aws:s3:::rentready-vision-dev-081087819788",
+          "arn:aws:s3:::rentready-vision-dev-081087819788/*"
+        ],
+        "Condition": {
+          "Bool": {
+            "aws:SecureTransport": "false"
+          }
+        }
+      },
+      {
+        "Sid": "RentReadyDenyStalePresignedRequests",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": [
+          "arn:aws:s3:::rentready-vision-dev-081087819788/rentready/inspections/*",
+          "arn:aws:s3:::rentready-vision-dev-081087819788/inspections/*"
+        ],
+        "Condition": {
+          "StringEquals": {
+            "s3:authType": "REST-QUERY-STRING"
+          },
+          "NumericGreaterThan": {
+            "s3:signatureAge": "900000"
+          }
+        }
+      }
+    ]
+  },
+  "queue_policies": {
+    "rentready-vision-processing": {
+      "Policy": {
+        "Version": "2012-10-17",
+        "Id": "__default_policy_ID",
+        "Statement": [
+          {
+            "Sid": "__owner_statement",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::081087819788:root"
+            },
+            "Action": "SQS:*",
+            "Resource": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing"
+          }
+        ]
+      }
+    },
+    "rentready-vision-processing-dlq": {
+      "Policy": {
+        "Version": "2012-10-17",
+        "Id": "__default_policy_ID",
+        "Statement": [
+          {
+            "Sid": "__owner_statement",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::081087819788:root"
+            },
+            "Action": "SQS:*",
+            "Resource": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing-dlq"
+          }
+        ]
+      },
+      "RedriveAllowPolicy": {
+        "redrivePermission": "byQueue",
+        "sourceQueueArns": [
+          "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing"
+        ]
+      }
+    }
+  },
+  "table_resource_policy": null,
+  "operator_token_metadata": {
+    "Name": "/rentready/api-token",
+    "Type": "SecureString",
+    "Tier": "Standard",
+    "KeyId": "alias/aws/ssm"
+  },
+  "recorded_at": "2026-10-04T23:59:46.745209+00:00"
+}

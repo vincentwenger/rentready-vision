@@ -1,0 +1,177 @@
+{
+  "scope": "Read-only live COOL worker IAM inventory; review pending",
+  "instance_id": "i-0ecc68f9db17b668d",
+  "instance_type": "m8g.4xlarge",
+  "instance_state": "stopped",
+  "metadata_options": {
+    "State": "applied",
+    "HttpTokens": "required",
+    "HttpPutResponseHopLimit": 1,
+    "HttpEndpoint": "enabled",
+    "HttpProtocolIpv6": "disabled",
+    "InstanceMetadataTags": "enabled"
+  },
+  "instance_profile_arn": "arn:aws:iam::081087819788:instance-profile/rentready-vision-dev-cool-worker",
+  "role_name": "rentready-vision-dev-cool-worker",
+  "role_arn": "arn:aws:iam::081087819788:role/rentready-vision-dev-cool-worker",
+  "trust_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "ec2.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  },
+  "attached_policies": [
+    {
+      "name": "AmazonSSMManagedInstanceCore",
+      "arn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+      "version": "v2",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "ssm:DescribeAssociation",
+              "ssm:GetDeployablePatchSnapshotForInstance",
+              "ssm:GetDocument",
+              "ssm:DescribeDocument",
+              "ssm:GetManifest",
+              "ssm:GetParameter",
+              "ssm:GetParameters",
+              "ssm:ListAssociations",
+              "ssm:ListInstanceAssociations",
+              "ssm:PutInventory",
+              "ssm:PutComplianceItems",
+              "ssm:PutConfigurePackageResult",
+              "ssm:UpdateAssociationStatus",
+              "ssm:UpdateInstanceAssociationStatus",
+              "ssm:UpdateInstanceInformation"
+            ],
+            "Resource": "*"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "ssmmessages:CreateControlChannel",
+              "ssmmessages:CreateDataChannel",
+              "ssmmessages:OpenControlChannel",
+              "ssmmessages:OpenDataChannel"
+            ],
+            "Resource": "*"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "ec2messages:AcknowledgeMessage",
+              "ec2messages:DeleteMessage",
+              "ec2messages:FailMessage",
+              "ec2messages:GetEndpoint",
+              "ec2messages:GetMessages",
+              "ec2messages:SendReply"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "inline_policies": [
+    {
+      "name": "rentready-worker-least-privilege",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "s3:GetObject",
+              "s3:PutObject",
+              "s3:PutObjectTagging"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::rentready-vision-dev-081087819788/inspections/*",
+              "arn:aws:s3:::rentready-vision-dev-081087819788/rentready/inspections/*",
+              "arn:aws:s3:::rentready-vision-dev-081087819788/runtime-evidence/*"
+            ],
+            "Sid": "ReadWriteRentReadyObjects"
+          },
+          {
+            "Action": [
+              "s3:GetObject",
+              "s3:GetObjectVersion"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:s3:::rentready-vision-dev-081087819788/deployments/cool-worker/step39-aa728e2/rentready-vision-cool-worker-step39-aa728e2.tar.gz",
+            "Sid": "ReadVersionedWorkerArtifact"
+          },
+          {
+            "Action": [
+              "dynamodb:DescribeTable",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:dynamodb:us-west-2:081087819788:table/rentready-vision-dev",
+            "Sid": "UpdateInspectionState"
+          },
+          {
+            "Action": [
+              "sqs:ChangeMessageVisibility",
+              "sqs:DeleteMessage",
+              "sqs:GetQueueAttributes",
+              "sqs:GetQueueUrl",
+              "sqs:ReceiveMessage"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:sqs:us-west-2:081087819788:rentready-vision-processing",
+            "Sid": "ConsumeProcessingQueue"
+          },
+          {
+            "Action": [
+              "logs:CreateLogStream",
+              "logs:DescribeLogStreams",
+              "logs:PutLogEvents"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:logs:us-west-2:081087819788:log-group:/rentready-vision/cool-worker:*",
+            "Sid": "WriteWorkerLogs"
+          },
+          {
+            "Action": "cloudwatch:PutMetricData",
+            "Condition": {
+              "StringEquals": {
+                "cloudwatch:namespace": "RentReadyVision/Processing"
+              }
+            },
+            "Effect": "Allow",
+            "Resource": "*",
+            "Sid": "PublishProcessingMetrics"
+          },
+          {
+            "Action": [
+              "bedrock:InvokeModel",
+              "bedrock:InvokeModelWithResponseStream"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:bedrock:us-west-2:081087819788:inference-profile/us.amazon.nova-2-lite-v1:0",
+              "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0",
+              "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0",
+              "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0"
+            ],
+            "Sid": "InvokeApprovedBedrockModels"
+          }
+        ]
+      }
+    }
+  ],
+  "permissions_boundary": null,
+  "recorded_at": "2026-10-04T23:48:45.754515+00:00"
+}

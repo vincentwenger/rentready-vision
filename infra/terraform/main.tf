@@ -146,9 +146,33 @@ resource "aws_iam_role" "cool_worker" {
   tags = local.common_tags
 }
 
-resource "aws_iam_role_policy_attachment" "ssm" {
-  role       = aws_iam_role.cool_worker.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+resource "aws_iam_role_policy" "ssm" {
+  name = "rentready-worker-management-minimal"
+  role = aws_iam_role.cool_worker.id
+  # Agent communication only: the worker must not read the operator API token
+  # or unrelated Parameter Store values. Keep legacy message transport until
+  # the Marketplace worker's SSM Agent version is verified on its next start.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid    = "WorkerAgentCommunication"
+      Effect = "Allow"
+      Action = [
+        "ssm:UpdateInstanceInformation",
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel",
+        "ec2messages:AcknowledgeMessage",
+        "ec2messages:DeleteMessage",
+        "ec2messages:FailMessage",
+        "ec2messages:GetEndpoint",
+        "ec2messages:GetMessages",
+        "ec2messages:SendReply"
+      ]
+      Resource = "*"
+    }]
+  })
 }
 
 resource "aws_iam_role_policy" "cool_worker" {
@@ -221,7 +245,7 @@ resource "aws_iam_role_policy" "cool_worker" {
       {
         Sid    = "InvokeApprovedBedrockModels"
         Effect = "Allow"
-        Action = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
+        Action = ["bedrock:InvokeModel"]
         Resource = var.bedrock_model_arns
       }
     ])
@@ -310,7 +334,7 @@ resource "aws_instance" "cool_worker" {
 
   depends_on = [
     aws_iam_role_policy.cool_worker,
-    aws_iam_role_policy_attachment.ssm,
+    aws_iam_role_policy.ssm,
     aws_sqs_queue_redrive_allow_policy.processing_dlq
   ]
 }

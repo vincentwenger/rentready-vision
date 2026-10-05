@@ -1,0 +1,30 @@
+{
+  "scope": "Live COOL worker SSM and runtime IAM check with controlled stop",
+  "instance_id": "i-0ecc68f9db17b668d",
+  "started_at": "2026-10-05T00:10:33.035714+00:00",
+  "checks": {
+    "ssm_online_with_narrow_policy": true,
+    "ssm_run_command_succeeds": false,
+    "worker_returned_to_stopped": true
+  },
+  "errors": [
+    "remote_probe_failed"
+  ],
+  "worker_start_requested": true,
+  "queue_before": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesNotVisible": 0,
+    "ApproximateNumberOfMessagesDelayed": 0
+  },
+  "agent_version": "3.3.4793.0",
+  "command_id": "971ec6fc-2760-4a27-bfa7-e6862a392222",
+  "command_status": "Failed",
+  "stderr_present": true,
+  "queue_after": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesNotVisible": 0,
+    "ApproximateNumberOfMessagesDelayed": 0
+  },
+  "passed": false,
+  "verified_at": "2026-10-05T00:11:15.859857+00:00"
+}

@@ -1,4 +1,12 @@
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.tfstate
+*.tfstate.*
+.terraform/
+infra/terraform/terraform.tfvars
 .venv/
 __pycache__/
 *.py[cod]

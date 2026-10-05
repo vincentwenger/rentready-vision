@@ -1,0 +1,126 @@
+{
+  "scope": "Read-only EC2 security configuration and processing queue snapshot",
+  "servers": {
+    "api": {
+      "instance_id": "i-0b86234abb75509b7",
+      "state": "running",
+      "instance_type": "t4g.small",
+      "metadata_options": {
+        "State": "applied",
+        "HttpTokens": "required",
+        "HttpPutResponseHopLimit": 1,
+        "HttpEndpoint": "enabled",
+        "HttpProtocolIpv6": "disabled",
+        "InstanceMetadataTags": "disabled"
+      },
+      "volumes": [
+        {
+          "volume_id": "vol-0afc95780f72add11",
+          "encrypted": true,
+          "volume_type": "gp3",
+          "size_gb": 16
+        }
+      ],
+      "security_groups": [
+        {
+          "group_id": "sg-0a07045358af1e525",
+          "name": "rentready-vision-api-web",
+          "inbound": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": 80,
+              "ToPort": 80,
+              "UserIdGroupPairs": [],
+              "IpRanges": [
+                {
+                  "CidrIp": "0.0.0.0/0"
+                }
+              ],
+              "Ipv6Ranges": [],
+              "PrefixListIds": []
+            },
+            {
+              "IpProtocol": "tcp",
+              "FromPort": 443,
+              "ToPort": 443,
+              "UserIdGroupPairs": [],
+              "IpRanges": [
+                {
+                  "CidrIp": "0.0.0.0/0"
+                }
+              ],
+              "Ipv6Ranges": [],
+              "PrefixListIds": []
+            }
+          ],
+          "outbound": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": 443,
+              "ToPort": 443,
+              "UserIdGroupPairs": [],
+              "IpRanges": [
+                {
+                  "CidrIp": "0.0.0.0/0"
+                }
+              ],
+              "Ipv6Ranges": [],
+              "PrefixListIds": []
+            }
+          ]
+        }
+      ]
+    },
+    "cool_worker": {
+      "instance_id": "i-0ecc68f9db17b668d",
+      "state": "stopped",
+      "instance_type": "m8g.4xlarge",
+      "metadata_options": {
+        "State": "applied",
+        "HttpTokens": "required",
+        "HttpPutResponseHopLimit": 1,
+        "HttpEndpoint": "enabled",
+        "HttpProtocolIpv6": "disabled",
+        "InstanceMetadataTags": "enabled"
+      },
+      "volumes": [
+        {
+          "volume_id": "vol-04db1b6225fadb166",
+          "encrypted": true,
+          "volume_type": "gp3",
+          "size_gb": 100
+        }
+      ],
+      "security_groups": [
+        {
+          "group_id": "sg-0bfa659bfa5e96b24",
+          "name": "rentready-vision-dev-cool-worker-bc60fe49b851264938ddb69b8f",
+          "inbound": [],
+          "outbound": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": 443,
+              "ToPort": 443,
+              "UserIdGroupPairs": [],
+              "IpRanges": [
+                {
+                  "Description": "HTTPS to SSM, S3, SQS, DynamoDB, CloudWatch, Bedrock, and package sources",
+                  "CidrIp": "0.0.0.0/0"
+                }
+              ],
+              "Ipv6Ranges": [],
+              "PrefixListIds": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "processing_queue": {
+    "ApproximateNumberOfMessages": "0",
+    "ApproximateNumberOfMessagesNotVisible": "0",
+    "ApproximateNumberOfMessagesDelayed": "0"
+  },
+  "worker_start_requested": false,
+  "recorded_at": "2026-10-04T23:56:22.087841+00:00"
+}

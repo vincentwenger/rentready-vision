@@ -33,6 +33,7 @@ class CreateInspectionResponse(BaseModel):
 class CreateUploadUrlRequest(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     content_type: str
+    size_bytes: int | None = Field(default=None, ge=1)
 
 
 class UploadUrlResponse(BaseModel):
