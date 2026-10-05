@@ -1,0 +1,72 @@
+﻿{
+    "schema_version":  "rentready-step42b4c-design/1.0",
+    "step":  "42B-4C",
+    "candidate_name":  "wall_surface_multiregion_attention_v1",
+    "purpose":  "Increase wall-defect salience by subdividing the same fixed generic wall region into four overlapping subregions without using defect-specific coordinates.",
+    "source":  {
+                   "baseline":  "42B-4A wall_surface_regional_attention_full_v1",
+                   "current_owner_verified_intervals":  "5/9",
+                   "target_miss":  "defect_14 wall hole below window"
+               },
+    "evidence_policy":  {
+                            "full_frame":  true,
+                            "parent_wall_region":  {
+                                                       "x":  0.18,
+                                                       "y":  0.25,
+                                                       "width":  0.64,
+                                                       "height":  0.68
+                                                   },
+                            "fixed_subregions":  [
+                                                     {
+                                                         "name":  "top_left",
+                                                         "x":  0,
+                                                         "y":  0,
+                                                         "width":  0.58,
+                                                         "height":  0.58
+                                                     },
+                                                     {
+                                                         "name":  "top_right",
+                                                         "x":  0.42,
+                                                         "y":  0,
+                                                         "width":  0.58,
+                                                         "height":  0.58
+                                                     },
+                                                     {
+                                                         "name":  "bottom_left",
+                                                         "x":  0,
+                                                         "y":  0.42,
+                                                         "width":  0.58,
+                                                         "height":  0.58
+                                                     },
+                                                     {
+                                                         "name":  "bottom_right",
+                                                         "x":  0.42,
+                                                         "y":  0.42,
+                                                         "width":  0.58,
+                                                         "height":  0.58
+                                                     }
+                                                 ],
+                            "views_per_call":  5,
+                            "annotation_supplied_to_model":  false,
+                            "filename_supplied_to_model":  false,
+                            "stem_supplied_to_model":  false,
+                            "expected_condition_supplied_to_model":  false
+                        },
+    "visual_review":  {
+                          "defect_14_observation":  "The same small drywall hole is clearly visible in both fixed bottom_left and bottom_right subregions because the subregions overlap.",
+                          "conclusion":  "The 2x2 fixed subdivision materially increases the wall-hole scale without requiring ground-truth coordinates."
+                      },
+    "recognition_policy":  [
+                               "Inspect wall surfaces only.",
+                               "Look for distinctly visible small holes, openings, filled holes, unfinished repair patches, surface damage, or clearly irregular wall finish.",
+                               "Do not assume a defect exists.",
+                               "Reject normal wall texture, shadows, lighting gradients, trim, outlets, reflections, and ordinary paint variation.",
+                               "Do not report the same physical defect twice if it appears in overlapping subregions."
+                           ],
+    "validation_plan":  [
+                            "First run a small label-blind diagnostic on defect_14 plus clean wall controls.",
+                            "If defect_14 is recovered while controls remain negative, evaluate the fixed policy across all eligible zero-issue development clips.",
+                            "Any crop-relative bbox must be mapped back through both the subregion and parent wall-region transforms into full-frame normalized coordinates."
+                        ],
+    "status":  "DESIGNED_NOT_RUN"
+}

@@ -1,0 +1,46 @@
+﻿{
+    "schema_version":  "rentready-step42b4c-summary/1.0",
+    "step":  "42B-4C",
+    "candidate_name":  "wall_surface_multiregion_attention_v1",
+    "status":  "DIAGNOSTIC_FAIL_NOT_PROMOTED",
+    "methodology":  {
+                        "diagnostic_only":  true,
+                        "valid_for_performance_scoring":  false,
+                        "cases":  5,
+                        "clean_controls":  4,
+                        "positive_cases":  1,
+                        "views_per_call":  5,
+                        "model_requests":  5,
+                        "input_tokens":  22285,
+                        "output_tokens":  165,
+                        "filename_supplied_to_model":  false,
+                        "stem_supplied_to_model":  false,
+                        "path_supplied_to_model":  false,
+                        "annotation_supplied_to_model":  false,
+                        "expected_condition_supplied_to_model":  false
+                    },
+    "results":  {
+                    "clips_with_findings":  0,
+                    "total_findings":  0,
+                    "defect_14_recovered":  false,
+                    "clean_control_false_positives":  0
+                },
+    "interpretation":  [
+                           "Subdividing the fixed wall region into four overlapping subregions materially increased visual scale during human review but still produced no annotation-blind model finding for defect_14.",
+                           "All four clean wall controls remained negative.",
+                           "Repeated prompt/crop variants have not yielded a reliable annotation-blind recovery path for defect_14.",
+                           "Further prompt tuning on this same development example is not justified at this stage."
+                       ],
+    "development_effect":  {
+                               "prior_owner_verified_intervals":  "5/9",
+                               "candidate_owner_verified_intervals":  "5/9",
+                               "recall_gain":  0,
+                               "new_clean_false_positive_clips":  0
+                           },
+    "next_direction":  [
+                           "Leave defect_14 unresolved for now.",
+                           "Move next to defect_09 temporal evidence, where one interval has a known recoverable rejected 2.0s frame and the second requires higher-frequency sampling.",
+                           "Keep defect_10 unresolved rather than forcing a weak heuristic."
+                       ],
+    "promoted":  false
+}
