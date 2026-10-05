@@ -1,0 +1,72 @@
+﻿{
+    "schema_version":  "rentready-step42b-labelblind-normalizing-verifier-design/1.0",
+    "candidate_name":  "detector_v3_labelblind_normalizing_verifier_v1",
+    "purpose":  "Verify the underlying physical condition while removing unsupported speculative or over-specific details instead of rejecting an otherwise real defect.",
+    "privacy_and_methodology":  [
+                                    "Never send filename, stem, path, annotation text, expected label, or ground-truth status to the model.",
+                                    "The verifier may receive only the detector-generated candidate fields and visual evidence.",
+                                    "Detector confidence is metadata, not proof."
+                                ],
+    "decision_contract":  {
+                              "reject":  [
+                                             "Reject when the underlying physical condition itself is not visibly supported.",
+                                             "Reject when only an unrelated nearby condition is visible.",
+                                             "Reject when normalization would require changing the candidate into a different physical defect."
+                                         ],
+                              "normalize_and_accept":  [
+                                                           "Accept when the underlying physical condition is visibly supported but one or more descriptive details are unsupported.",
+                                                           "Remove unsupported details.",
+                                                           "Return a conservative normalized description containing only visible evidence.",
+                                                           "Normalization may make the description less specific but must preserve the same physical condition and location."
+                                                       ],
+                              "accept_unchanged":  [
+                                                       "Accept when the candidate\u0027s core physical condition and material descriptive details are visibly supported."
+                                                   ]
+                          },
+    "required_model_output":  [
+                                  "core_condition_supported",
+                                  "same_physical_condition",
+                                  "confidence",
+                                  "normalized_description",
+                                  "unsupported_details",
+                                  "evidence_summary"
+                              ],
+    "critical_guardrail":  "A nearby different defect must never be used to validate or rewrite an unsupported candidate.",
+    "examples":  [
+                     {
+                         "input":  "Exposed mounting hole with visible screw head on cabinet door",
+                         "visible_evidence":  "Exposed mounting hole is visible; screw head is not confirmed.",
+                         "expected_result":  "ACCEPT_NORMALIZED",
+                         "normalized_description":  "Exposed mounting hole on cabinet door",
+                         "unsupported_detail":  "visible screw head"
+                     },
+                     {
+                         "input":  "Visible water droplet falling from bathtub rim",
+                         "visible_evidence":  "No falling droplet is visible; a separate bathtub crack is visible nearby.",
+                         "expected_result":  "REJECT",
+                         "reason":  "The crack is a different physical condition and cannot rescue the droplet candidate."
+                     },
+                     {
+                         "input":  "Dark staining visible on wood-grain flooring",
+                         "visible_evidence":  "Only natural wood grain and knots are visible.",
+                         "expected_result":  "REJECT",
+                         "reason":  "The underlying stain condition is unsupported."
+                     }
+                 ],
+    "replay_plan":  {
+                        "source_candidates":  6,
+                        "source":  "Same six saved 42B-1 raw observations",
+                        "historical_outputs_overwritten":  false,
+                        "annotations_opened_during_replay":  false,
+                        "expected_model_calls":  6
+                    },
+    "success_criteria":  [
+                             "Reject clean_29 wood-grain floor_stain.",
+                             "Reject defect_11 false bathtub-droplet observation.",
+                             "Accept defect_11 real bathtub crack.",
+                             "Accept defect_12 real drywall patch.",
+                             "Accept or conservatively normalize defect_13 1.0s vanity mounting observation.",
+                             "Do not require acceptance of the weaker defect_13 3.0s duplicate observation if its core physical condition is not sufficiently supported."
+                         ],
+    "status":  "DESIGNED_NOT_RUN"
+}

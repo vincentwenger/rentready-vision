@@ -1,0 +1,51 @@
+﻿{
+    "schema_version":  "rentready-step42b-wall-surface-specialist-design/1.0",
+    "candidate_name":  "detector_v3_wall_surface_specialist_verifier_v1",
+    "purpose":  "Test whether a label-blind wall-surface specialist can preserve the subtle real defect_12 patch that the global adversarial verifier rejected.",
+    "routing":  {
+                    "applicable_candidate_categories":  [
+                                                            "paint_damage",
+                                                            "wall_hole"
+                                                        ],
+                    "route_only_after_candidate_generation":  true,
+                    "filename_supplied_to_model":  false,
+                    "stem_supplied_to_model":  false,
+                    "path_supplied_to_model":  false,
+                    "annotation_supplied_to_model":  false
+                },
+    "evidence":  [
+                     "Candidate detector fields: category, description, room, bbox, timestamp.",
+                     "Full source frame.",
+                     "BBox-plus-2.5x context crop.",
+                     "BBox-plus-1.0x tight crop."
+                 ],
+    "specialist_reasoning":  [
+                                 "Inspect wall-surface evidence specifically for localized differences in texture, finish, sanding, filled holes, patch boundaries, contour, sheen, or paint consistency.",
+                                 "A real repair may be subtle and need not show dramatic damage.",
+                                 "Explicitly compare against lighting gradients, shadows, normal wall texture, clean paint variation, trim, and floor/baseboard reflections.",
+                                 "Do not require the exact speculative cause in the detector wording to be true.",
+                                 "Preserve a visibly supported wall-surface condition while removing unsupported causal wording.",
+                                 "Reject when normal lighting or normal texture is the stronger explanation."
+                             ],
+    "output_contract":  [
+                            "wall_condition_supported",
+                            "alternative_more_likely",
+                            "strongest_alternative_explanation",
+                            "confidence",
+                            "normalized_description",
+                            "unsupported_details",
+                            "evidence_summary"
+                        ],
+    "diagnostic_case":  {
+                            "source":  "Saved 42B-1 defect_12 candidate at 2.0s",
+                            "original_category":  "paint_damage",
+                            "exact_ground_truth_not_supplied_to_model":  true,
+                            "expected_model_calls":  1
+                        },
+    "interpretation":  [
+                           "This is a diagnostic-only specialist test and does not change official recall.",
+                           "If the specialist preserves defect_12, consider routing subtle wall-surface candidates to this specialist while keeping the adversarial verifier for other categories.",
+                           "If it rejects defect_12 again, specialist prompting alone is not sufficiently stable."
+                       ],
+    "status":  "DESIGNED_NOT_RUN"
+}

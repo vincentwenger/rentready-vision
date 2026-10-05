@@ -1,0 +1,57 @@
+﻿{
+    "schema_version":  "rentready-step42b-category-preserving-verifier-design/1.0",
+    "candidate_name":  "detector_v3_category_preserving_adversarial_verifier_v1",
+    "problem_found":  [
+                          "The normalizing verifier accepted clean wood grain as floor_stain.",
+                          "The normalizing verifier accepted the 3.0s vanity observation even though its own explanation said missing_hardware was not supported.",
+                          "Normalization therefore needs to preserve the original defect category/core physical class rather than merely preserve a nearby visible mark."
+                      ],
+    "required_outputs":  [
+                             "core_condition_supported",
+                             "original_category_supported",
+                             "same_physical_condition",
+                             "strongest_alternative_explanation",
+                             "alternative_more_likely",
+                             "confidence",
+                             "normalized_description",
+                             "unsupported_details",
+                             "evidence_summary"
+                         ],
+    "acceptance_rule":  [
+                            "core_condition_supported must be true",
+                            "original_category_supported must be true",
+                            "same_physical_condition must be true",
+                            "alternative_more_likely must be false",
+                            "confidence must be at least 0.65"
+                        ],
+    "normalization_rule":  [
+                               "Unsupported descriptive details may be removed.",
+                               "Normalization may become less specific.",
+                               "Normalization must not change the physical defect into another category or defect class.",
+                               "A stain cannot become missing hardware; a crack cannot rescue a droplet; a generic mark cannot rescue a hardware claim."
+                           ],
+    "benign_alternative_rule":  [
+                                    "For stains/discoloration, explicitly compare against normal material variation, wood grain, knots, lighting, shadows, and reflections.",
+                                    "For hardware claims, explicitly compare against stain, surface mark, ordinary fastener, and unrelated damage.",
+                                    "Accept only when the original defect category is better supported than the strongest competing explanation."
+                                ],
+    "diagnostic_cases":  [
+                             {
+                                 "case":  "clean_29 floor_stain",
+                                 "desired":  "REJECT",
+                                 "reason":  "Normal wood grain/material variation should be the stronger explanation."
+                             },
+                             {
+                                 "case":  "defect_13 vanity at 1.0s",
+                                 "desired":  "ACCEPT_NORMALIZED",
+                                 "reason":  "Exposed mounting hole supports the original hardware/mounting-damage class; screw-head detail may be removed."
+                             },
+                             {
+                                 "case":  "defect_13 vanity at 3.0s",
+                                 "desired":  "REJECT",
+                                 "reason":  "Visible dark mark does not establish missing hardware."
+                             }
+                         ],
+    "max_diagnostic_calls":  3,
+    "status":  "DESIGNED_NOT_RUN"
+}

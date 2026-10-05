@@ -1,0 +1,30 @@
+﻿{
+    "schema_version":  "rentready-step42b-methodology-correction/1.0",
+    "discovered_during":  "42B-4A design",
+    "issue":  "Step 42B-2 multiscale verification included the source video filename in the model-visible candidate payload.",
+    "risk":  [
+                 "Development filenames contain semantic labels such as defect_12_drywall_patch_baseboard and clean_29_quimby_vanity_level_holder.",
+                 "A model seeing those names may infer whether a clip is expected to contain a defect and may infer the expected defect type.",
+                 "Therefore the original 42B-2 verification cannot be considered fully annotation-blind even though annotation JSON content was not supplied."
+             ],
+    "affected_artifact":  "scripts/run_step42b2_multiscale_verification.py",
+    "affected_claims":  [
+                            "42B-2 verifier-supported candidate decisions",
+                            "42B-2 3/9 owner-verified interval preservation after verification",
+                            "42B-2 0/13 clean false-positive result after verification"
+                        ],
+    "unaffected_evidence":  [
+                                "42B-1 raw multi-keyframe candidate generation did not use annotation content.",
+                                "42B-1 owner human adjudication remains valid.",
+                                "42B-3 and 42B-4A diagnostic scripts explicitly avoided supplying clip names to the model where documented.",
+                                "Frozen Detector v2 source integrity is unaffected."
+                            ],
+    "correction_plan":  [
+                            "Do not modify the historical 42B-2 artifact in place.",
+                            "Create a corrected label-blind verifier that never sends video paths, filenames, stems, annotation text, or expected labels to the model.",
+                            "Replay the same six saved 42B-1 raw observations through the corrected verifier.",
+                            "Compare corrected decisions with the prior 42B-2 decisions.",
+                            "Use only the corrected verifier in the full 42B-4A candidate."
+                        ],
+    "status":  "CORRECTION_REQUIRED_BEFORE_42B4A_FULL_RUN"
+}

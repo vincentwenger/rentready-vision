@@ -1,0 +1,40 @@
+﻿{
+    "schema_version":  "rentready-step42b-wall-surface-specialist-summary/1.0",
+    "candidate_name":  "detector_v3_wall_surface_specialist_verifier_v1",
+    "status":  "DIAGNOSTIC_FAIL_USE_DISAGREEMENT_REVIEW",
+    "methodology":  {
+                        "diagnostic_only":  true,
+                        "valid_for_performance_scoring":  false,
+                        "model_requests":  1,
+                        "filename_supplied_to_model":  false,
+                        "stem_supplied_to_model":  false,
+                        "path_supplied_to_model":  false,
+                        "annotation_supplied_to_model":  false
+                    },
+    "result":  {
+                   "candidate":  "Saved 42B-1 paint_damage observation at 2.0s",
+                   "decision":  "REJECT",
+                   "wall_condition_supported":  false,
+                   "alternative_more_likely":  true,
+                   "confidence":  0.85,
+                   "normalized_description":  "Light gradient near floor level"
+               },
+    "verifier_disagreement":  {
+                                  "label_blind_multiscale":  "ACCEPT",
+                                  "category_preserving_adversarial":  "REJECT",
+                                  "wall_surface_specialist":  "REJECT",
+                                  "owner_visual_adjudication":  "REAL DEFECT",
+                                  "conclusion":  "The subtle drywall-patch candidate is visually unstable across verifier prompts. Automatic rejection would create a known false negative."
+                              },
+    "policy_direction":  [
+                             "Stop prompt-tuning this same defect as a way to force consensus.",
+                             "When a plausible wall/surface candidate receives materially conflicting verifier decisions, route it to HUMAN_REVIEW instead of auto-rejecting it.",
+                             "Keep automatic rejection when the core condition is consistently unsupported, such as normal wood grain or the false bathtub droplet.",
+                             "Keep automatic acceptance for strongly supported candidates such as the bathtub crack and 1.0s vanity mounting defect."
+                         ],
+    "scoring_note":  [
+                         "Raw owner-verified physical recall remains 3/9.",
+                         "Strict automatic category-preserving acceptance remains 2/9.",
+                         "The drywall interval can only be preserved under a review-required policy unless a future detector produces stronger evidence."
+                     ]
+}

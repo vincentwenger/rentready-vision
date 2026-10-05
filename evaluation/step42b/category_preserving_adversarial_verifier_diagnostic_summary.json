@@ -1,0 +1,50 @@
+﻿{
+    "schema_version":  "rentready-step42b-category-preserving-diagnostic-summary/1.0",
+    "candidate_name":  "detector_v3_category_preserving_adversarial_verifier_v1",
+    "status":  "DIAGNOSTIC_PASS_FULL_REPLAY_JUSTIFIED",
+    "methodology":  {
+                        "diagnostic_only":  true,
+                        "valid_for_performance_scoring":  false,
+                        "cases":  3,
+                        "model_requests":  3,
+                        "input_tokens":  10106,
+                        "output_tokens":  1191,
+                        "clip_names_supplied_to_model":  false,
+                        "annotations_supplied_to_model":  false
+                    },
+    "results":  [
+                    {
+                        "case":  "clean_29 floor_stain",
+                        "decision":  "REJECT",
+                        "confidence":  0.92,
+                        "original_category_supported":  false,
+                        "alternative_more_likely":  true,
+                        "result":  "CORRECT"
+                    },
+                    {
+                        "case":  "defect_13 vanity 1.0s",
+                        "decision":  "ACCEPT_UNCHANGED",
+                        "confidence":  0.95,
+                        "original_category_supported":  true,
+                        "alternative_more_likely":  false,
+                        "result":  "CORRECT"
+                    },
+                    {
+                        "case":  "defect_13 vanity 3.0s",
+                        "decision":  "REJECT",
+                        "confidence":  0.95,
+                        "original_category_supported":  false,
+                        "alternative_more_likely":  true,
+                        "result":  "CORRECT"
+                    }
+                ],
+    "conclusion":  [
+                       "The category-preserving adversarial verifier correctly separated all three discriminating cases.",
+                       "Explicit comparison against benign or alternate explanations suppressed the clean wood-grain false positive.",
+                       "Requiring support for the original physical defect category preserved the real 1.0s vanity mounting condition.",
+                       "The weaker 3.0s vanity mark was correctly rejected because a surface mark/discoloration was a stronger explanation than missing hardware.",
+                       "A full six-candidate label-blind replay is now justified."
+                   ],
+    "next_step":  "Replay all six saved 42B-1 candidates using the same fixed category-preserving verifier policy.",
+    "status_detail":  "Diagnostic success only; no official performance change until full replay."
+}

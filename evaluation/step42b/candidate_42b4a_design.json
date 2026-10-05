@@ -1,0 +1,55 @@
+﻿{
+    "schema_version":  "rentready-step42b4a-design/1.0",
+    "step":  "42B-4A",
+    "candidate_name":  "wall_surface_regional_attention_v1",
+    "purpose":  "Test whether generic wall-focused regional attention can recover small localized and low-contrast wall defects without supplying the exact ground-truth condition.",
+    "methodology":  {
+                        "diagnostic_only":  true,
+                        "valid_for_performance_scoring":  false,
+                        "exact_condition_supplied_to_model":  false,
+                        "annotation_text_supplied_to_model":  false,
+                        "positive_diagnostic_cases":  [
+                                                          "defect_14_wall_hole_below_window",
+                                                          "defect_15_compass_unfinished_wall_patch"
+                                                      ],
+                        "clean_controls":  [
+                                               "clean_16_compass_bedroom_entry",
+                                               "clean_17_compass_bedroom_windows",
+                                               "clean_18_compass_stairway",
+                                               "clean_23_compass_upstairs_bedroom"
+                                           ],
+                        "model_calls":  6
+                    },
+    "evidence_policy":  {
+                            "keyframe_rule":  "Use the same existing selected frame closest to 2.0 seconds.",
+                            "views_per_call":  2,
+                            "views":  [
+                                          "full frame",
+                                          "fixed generic central/lower wall-region crop"
+                                      ],
+                            "generic_focus_bbox":  {
+                                                       "x":  0.18,
+                                                       "y":  0.25,
+                                                       "width":  0.64,
+                                                       "height":  0.68
+                                                   }
+                        },
+    "prompt_policy":  [
+                          "Inspect visible wall surfaces only.",
+                          "Look for small holes, openings, filled fastener holes, unfinished repair patches, rough or uneven repaired areas, patch-edge irregularity, or clearly mismatched finish.",
+                          "Do not assume any defect exists.",
+                          "Reject normal wall texture, shadows, lighting variation, clean seams, trim, outlets, reflections, and ordinary paint variation.",
+                          "Return findings only when the wall-surface condition is distinctly visible."
+                      ],
+    "success_criteria":  [
+                             "Recover defect_14 wall hole.",
+                             "Recover defect_15 unfinished wall patch.",
+                             "Produce zero findings on the four clean wall-control clips.",
+                             "Diagnostic success does not change official development recall."
+                         ],
+    "interpretation":  [
+                           "If both positive cases are found and clean controls remain negative, build a full annotation-blind 42B-4A candidate over all eligible zero-issue clips.",
+                           "If positives are still missed, generic wall-category attention is insufficient and a different regional proposal strategy is needed."
+                       ],
+    "status":  "DESIGNED_NOT_RUN"
+}

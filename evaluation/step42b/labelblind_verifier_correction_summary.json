@@ -1,0 +1,46 @@
+﻿{
+    "schema_version":  "rentready-step42b-labelblind-correction-summary/1.0",
+    "issue":  "The original 42B-2 verifier exposed semantic filenames to the model, and the corrected label-blind replay revealed an additional exact-description brittleness.",
+    "label_blind_replay":  {
+                               "candidates":  6,
+                               "supported":  2,
+                               "unsupported":  4,
+                               "model_requests":  6,
+                               "input_tokens":  19269,
+                               "output_tokens":  2020
+                           },
+    "preserved_correct_decisions":  [
+                                        "clean_29 normal wood grain rejected",
+                                        "defect_11 false bathtub droplet rejected",
+                                        "defect_11 real bathtub crack accepted",
+                                        "defect_12 real drywall patch accepted"
+                                    ],
+    "vanity_result":  {
+                          "timestamp_seconds":  1,
+                          "original_description":  "Exposed mounting hole with visible screw head on cabinet door",
+                          "verifier_decision":  "REJECT",
+                          "verifier_confidence":  0.85,
+                          "supported_visual_core":  "Exposed mounting hole is visibly present.",
+                          "unsupported_detail":  "Visible screw head was not confirmed.",
+                          "interpretation":  "The underlying owner-verified physical vanity mounting defect remains visually supported; rejection resulted from requiring every detail of an over-specific detector description to be true."
+                      },
+    "scoring_correction":  {
+                               "raw_owner_verified_physical_intervals":  "3/9",
+                               "label_blind_exact_description_acceptance":  "2/9",
+                               "clean_false_positive_clips_after_label_blind_verification":  "0/13",
+                               "note":  "Do not replace the 3/9 owner-verified raw physical-defect recall with 2/9. The 2/9 value measures strict verifier acceptance of exact detector descriptions, not owner-verified physical defect presence."
+                           },
+    "verifier_redesign":  [
+                              "Never expose filename, stem, path, annotation text, or expected label to the verifier.",
+                              "Separate physical-condition support from support for every descriptive detail.",
+                              "Allow unsupported speculative or over-specific wording to be removed without discarding a visibly supported physical defect.",
+                              "Return a normalized verified description containing only visually supported evidence.",
+                              "Continue rejecting candidates when the core physical condition itself is unsupported."
+                          ],
+    "example":  {
+                    "input":  "Exposed mounting hole with visible screw head on cabinet door",
+                    "normalized_if_verified":  "Exposed mounting hole / cabinet mounting damage",
+                    "removed_detail":  "visible screw head"
+                },
+    "status":  "VERIFIER_REDESIGN_REQUIRED_BEFORE_42B4A_FULL_RUN"
+}

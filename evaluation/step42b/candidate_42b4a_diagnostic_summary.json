@@ -1,0 +1,47 @@
+﻿{
+    "schema_version":  "rentready-step42b4a-diagnostic-summary/1.0",
+    "step":  "42B-4A",
+    "candidate_name":  "wall_surface_regional_attention_v1",
+    "status":  "DIAGNOSTIC_PARTIAL_PASS_FULL_CANDIDATE_JUSTIFIED",
+    "diagnostic":  {
+                       "valid_for_performance_scoring":  false,
+                       "cases":  6,
+                       "clean_controls":  4,
+                       "positive_cases":  2,
+                       "model_requests":  6,
+                       "input_tokens":  24048,
+                       "output_tokens":  293
+                   },
+    "results":  {
+                    "clean_controls_with_findings":  0,
+                    "defect_14_wall_hole":  {
+                                                "recovered":  false,
+                                                "findings":  0
+                                            },
+                    "defect_15_unfinished_wall_patch":  {
+                                                            "recovered":  true,
+                                                            "findings":  1,
+                                                            "condition_type":  "filled_holes",
+                                                            "confidence":  0.85,
+                                                            "description":  "Two small filled fastener holes visible on the wall surface, appearing as slightly raised circular patches with subtle color variation from the surrounding wall",
+                                                            "owner_interpretation":  "TRUE POSITIVE evidence from the same physical unfinished/repaired wall interval."
+                                                        }
+                },
+    "conclusion":  [
+                       "Generic annotation-blind wall-focused attention recovered defect_15 while keeping all four clean controls negative.",
+                       "The recovered defect_15 finding is visually specific and corresponds to the real filled-fastener-hole evidence within the owner-verified unfinished wall repair interval.",
+                       "The same strategy did not recover the very small defect_14 wall hole.",
+                       "A full annotation-blind 42B-4A candidate is justified, but the diagnostic itself does not change official development recall.",
+                       "Wall-region crop bboxes must be transformed back to full-frame normalized coordinates before downstream verification."
+                   ],
+    "full_candidate_design":  [
+                                  "Apply the same fixed generic wall-region attention pass to all eligible zero-issue 42B-1 clips.",
+                                  "Do not expose annotations, expected conditions, or clip names to the model.",
+                                  "Map wall-region finding bboxes back into full-frame coordinates.",
+                                  "Preserve all raw regional findings.",
+                                  "Pass qualifying regional findings through the existing 42B-2 multiscale verifier.",
+                                  "Only after inference is complete should owner annotations be opened for scoring."
+                              ],
+    "official_development_recall":  "3/9",
+    "status_detail":  "Diagnostic supports a full candidate run; no performance promotion yet."
+}

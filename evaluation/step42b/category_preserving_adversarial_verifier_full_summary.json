@@ -1,0 +1,48 @@
+﻿{
+    "schema_version":  "rentready-step42b-category-preserving-full-summary/1.0",
+    "candidate_name":  "detector_v3_category_preserving_adversarial_verifier_full_v1",
+    "status":  "FULL_REPLAY_FAIL_NOT_PROMOTED",
+    "methodology":  {
+                        "label_blind":  true,
+                        "annotations_opened":  false,
+                        "clip_names_supplied_to_model":  false,
+                        "paths_supplied_to_model":  false,
+                        "expected_results_supplied_to_model":  false,
+                        "candidates":  6,
+                        "model_requests":  6,
+                        "input_tokens":  20661,
+                        "output_tokens":  2429
+                    },
+    "decisions":  [
+                      "clean_29 floor_stain -\u003e REJECT (correct)",
+                      "defect_11 false bathtub droplet -\u003e REJECT (correct)",
+                      "defect_11 real bathtub crack -\u003e ACCEPT_NORMALIZED (correct)",
+                      "defect_12 real drywall patch -\u003e REJECT (false negative)",
+                      "defect_13 vanity 1.0s -\u003e ACCEPT_UNCHANGED (correct)",
+                      "defect_13 vanity 3.0s -\u003e REJECT (correct duplicate/over-specific observation rejection)"
+                  ],
+    "verified_effect":  {
+                            "owner_verified_raw_physical_intervals":  "3/9",
+                            "verifier_accepted_unique_physical_intervals":  "2/9",
+                            "clean_false_positive_clips":  "0/13",
+                            "lost_real_interval":  "defect_12 drywall patch near baseboard"
+                        },
+    "drywall_analysis":  {
+                             "original_category":  "paint_damage",
+                             "category_family_mismatch":  false,
+                             "core_condition_supported_by_this_replay":  false,
+                             "verifier_interpretation":  "Normal lighting gradient and shadow near the baseboard; no visible patch or repair.",
+                             "conclusion":  "The failure is visual-recognition instability on a subtle real surface defect, not a category-normalization problem."
+                         },
+    "comparison":  [
+                       "Earlier label-blind multiscale verification accepted the same defect_12 patch.",
+                       "The category-preserving adversarial verifier rejected it.",
+                       "Therefore the stricter adversarial challenge improves some false-positive cases but is too aggressive as a universal single-stage gate."
+                   ],
+    "next_direction":  [
+                           "Do not promote the category-preserving adversarial verifier as the sole verifier.",
+                           "Keep its strong behavior for rejecting benign alternatives such as wood grain and unsupported hardware claims.",
+                           "For subtle wall/surface candidates, investigate a specialist wall-surface verification path rather than weakening the global verifier.",
+                           "Use disagreement between general and adversarial verification as a signal for specialist review or human review."
+                       ]
+}
