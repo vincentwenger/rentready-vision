@@ -1,0 +1,59 @@
+﻿{
+    "schema_version":  "rentready-step42b4a-owner-adjudication/1.0",
+    "step":  "42B-4A",
+    "candidate_name":  "wall_surface_regional_attention_full_v1",
+    "status":  "DEVELOPMENT_GAIN_OWNER_VERIFIED_NOT_PROMOTED",
+    "recovered_interval":  {
+                               "video":  "defect_15_compass_unfinished_wall_patch.mp4",
+                               "timestamp_seconds":  2.002,
+                               "annotated_interval_start":  0.5,
+                               "annotated_interval_end":  2.5,
+                               "predicted_category":  "paint_damage",
+                               "confidence":  0.85,
+                               "predicted_description":  "Two distinctly visible filled fastener holes in upper left portion of wall surface, appearing as small circular patches with slight texture difference from surrounding wall",
+                               "full_frame_bbox":  {
+                                                       "x":  0.276,
+                                                       "y":  0.3316,
+                                                       "width":  0.16,
+                                                       "height":  0.0544
+                                                   },
+                               "source_crop_bbox":  {
+                                                        "x":  0.15,
+                                                        "y":  0.12,
+                                                        "width":  0.25,
+                                                        "height":  0.08
+                                                    },
+                               "owner_result":  "TRUE_POSITIVE",
+                               "owner_interpretation":  "The finding corresponds to the real filled-fastener-hole / unfinished wall repair interval."
+                           },
+    "bbox_mapping_validation":  {
+                                    "fixed_wall_region":  {
+                                                              "x":  0.18,
+                                                              "y":  0.25,
+                                                              "width":  0.64,
+                                                              "height":  0.68
+                                                          },
+                                    "mapped_x":  0.276,
+                                    "mapped_y":  0.3316,
+                                    "mapped_width":  0.16,
+                                    "mapped_height":  0.0544,
+                                    "mapping_correct":  true
+                                },
+    "development_effect":  {
+                               "prior_owner_verified_intervals":  "3/9",
+                               "candidate_42b4a_owner_verified_intervals":  "4/9",
+                               "interval_recall":  0.4444444444,
+                               "eligible_clean_clips_checked":  12,
+                               "new_clean_false_positive_clips":  0,
+                               "note":  "This is owner-verified physical-defect recall for candidate generation. It is not yet an automatic production-verifier acceptance claim."
+                           },
+    "unresolved_misses":  [
+                              "defect_09 water drip interval 1.8-2.1s",
+                              "defect_09 water drip interval 15.23-15.55s",
+                              "defect_10 toilet base displacement",
+                              "defect_14 wall hole below window",
+                              "defect_16 toilet paper holder sagging"
+                          ],
+    "conclusion":  "42B-4A recovers defect_15 with no new clean findings in the 12 eligible clean controls, improving owner-verified physical interval recall from 3/9 to 4/9.",
+    "promoted":  false
+}

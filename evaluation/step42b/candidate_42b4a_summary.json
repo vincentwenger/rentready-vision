@@ -1,0 +1,73 @@
+﻿{
+    "schema_version":  "rentready-step42b4a-summary/1.0",
+    "step":  "42B-4A",
+    "candidate_name":  "wall_surface_regional_attention_full_v1",
+    "status":  "DEVELOPMENT_GAIN_NOT_PROMOTED",
+    "development_set":  {
+                            "clips":  21,
+                            "positive_clips":  8,
+                            "clean_clips":  13,
+                            "annotated_intervals":  9
+                        },
+    "regional_attention_run":  {
+                                   "eligible_zero_issue_clips":  17,
+                                   "eligible_clean_clips":  12,
+                                   "eligible_positive_clips":  5,
+                                   "clips_with_findings":  1,
+                                   "total_findings":  1,
+                                   "model_requests":  17,
+                                   "input_tokens":  68136,
+                                   "output_tokens":  686,
+                                   "annotations_opened_during_inference":  false,
+                                   "clip_names_supplied_to_model":  false,
+                                   "paths_supplied_to_model":  false,
+                                   "expected_conditions_supplied_to_model":  false
+                               },
+    "recovered_defect":  {
+                             "video":  "defect_15_compass_unfinished_wall_patch.mp4",
+                             "timestamp_seconds":  2.002,
+                             "category":  "paint_damage",
+                             "confidence":  0.85,
+                             "owner_result":  "TRUE_POSITIVE",
+                             "description":  "Two distinctly visible filled fastener holes in upper left portion of wall surface, appearing as small circular patches with slight texture difference from surrounding wall"
+                         },
+    "owner_verified_interval_metrics":  {
+                                            "prior_detected_intervals":  3,
+                                            "candidate_detected_intervals":  4,
+                                            "total_intervals":  9,
+                                            "prior_recall":  0.3333333333,
+                                            "candidate_recall":  0.4444444444,
+                                            "recall_gain_intervals":  1
+                                        },
+    "raw_clip_metrics":  {
+                             "positive_clips_detected":  4,
+                             "total_positive_clips":  8,
+                             "positive_clip_recall":  0.5,
+                             "clean_false_positive_clips":  1,
+                             "total_clean_clips":  13,
+                             "clean_false_positive_rate":  0.0769230769,
+                             "known_clean_false_positive":  "clean_29 normal wood grain misclassified as floor_stain",
+                             "new_clean_false_positives_introduced_by_42b4a":  0,
+                             "eligible_clean_clips_checked_by_42b4a":  12
+                         },
+    "interpretation":  [
+                           "42B-4A adds one genuine owner-verified physical defect interval without introducing any new findings on the 12 clean clips eligible for its regional-attention path.",
+                           "The known clean_29 wood-grain false positive originates from the earlier 42B-1 raw candidate generator and therefore remains present at the raw candidate-generation level.",
+                           "Accordingly, raw candidate generation is 4/9 owner-verified intervals with 1/13 clean false-positive clips.",
+                           "A downstream verifier or review policy is still required to remove the clean_29 false positive without discarding subtle real defects such as defect_12."
+                       ],
+    "unresolved_intervals":  [
+                                 "defect_09 water drip 1.8-2.1s",
+                                 "defect_09 water drip 15.23-15.55s",
+                                 "defect_10 toilet base displacement",
+                                 "defect_14 wall hole below window",
+                                 "defect_16 toilet paper holder sagging"
+                             ],
+    "next_direction":  [
+                           "Checkpoint 42B-4A before starting the next experiment.",
+                           "42B-4B should investigate multi-frame geometric evidence for defect_10 and defect_16.",
+                           "Temporal sampling changes for defect_09 should remain a separate later experiment.",
+                           "Do not promote Detector v3 yet."
+                       ],
+    "promoted":  false
+}
