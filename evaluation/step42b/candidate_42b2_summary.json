@@ -1,0 +1,66 @@
+﻿{
+    "schema_version":  "rentready-step42b2-summary/1.0",
+    "step":  "42B-2",
+    "candidate_name":  "detector_v3_multiscale_verification_v1",
+    "status":  "DEVELOPMENT_PASS_NOT_PROMOTED",
+    "development_set":  {
+                            "clips":  21,
+                            "positive_clips":  8,
+                            "clean_clips":  13,
+                            "annotated_intervals":  9
+                        },
+    "candidate_observations":  {
+                                   "total":  6,
+                                   "supported":  3,
+                                   "unsupported":  3,
+                                   "supported_observations":  [
+                                                                  "defect_11 bathtub rim crack at 2.0s",
+                                                                  "defect_12 drywall patch near baseboard at 2.0s",
+                                                                  "defect_13 vanity mounting damage at 1.0s"
+                                                              ],
+                                   "rejected_observations":  [
+                                                                 "clean_29 normal wood grain misclassified as floor_stain at 0.0s",
+                                                                 "defect_11 unsupported falling-water-droplet claim at 0.0s",
+                                                                 "defect_13 3.0s duplicate observation whose exact missing_hardware wording was not visually supported"
+                                                             ]
+                               },
+    "owner_verified_scoring":  {
+                                   "detected_unique_intervals":  3,
+                                   "total_intervals":  9,
+                                   "interval_recall":  0.3333333333,
+                                   "clean_false_positive_clips":  0,
+                                   "total_clean_clips":  13,
+                                   "clean_false_positive_rate":  0,
+                                   "clip_tp":  3,
+                                   "clip_tn":  13,
+                                   "clip_fp":  0,
+                                   "clip_fn":  5,
+                                   "clip_precision":  1,
+                                   "clip_recall":  0.375
+                               },
+    "comparison":  {
+                       "detector_v2_owner_verified_intervals":  "2/9",
+                       "candidate_42b1_raw_owner_verified_intervals":  "3/9",
+                       "candidate_42b1_raw_clean_false_positive_clips":  "1/13",
+                       "candidate_42b2_owner_verified_intervals":  "3/9",
+                       "candidate_42b2_clean_false_positive_clips":  "0/13",
+                       "conclusion":  "42B-2 preserves the 42B-1 recall gain while removing the confirmed clean false positive and rejecting the unsupported bathtub-droplet observation."
+                   },
+    "verifier_behavior":  [
+                              "Multiscale evidence combines the candidate full frame, a bbox-plus-2.5x context crop, and a bbox-plus-1.0x tight crop.",
+                              "The same fixed verifier policy was applied to all six saved 42B-1 observations.",
+                              "Ground-truth annotations were not supplied during verification.",
+                              "The rejected 3.0s vanity observation does not remove the underlying defect because the same owner-verified interval is independently supported by the accepted 1.0s observation.",
+                              "The 3.0s rejection is treated as rejection of an over-specific duplicate description, not a unique-interval false negative."
+                          ],
+    "cost":  {
+                 "model_requests":  6,
+                 "input_tokens":  19390,
+                 "output_tokens":  2152,
+                 "reran_21_clip_detector":  false
+             },
+    "promotion":  {
+                      "promoted":  false,
+                      "reason":  "Development evidence is encouraging but recall remains 3/9. Continue Detector v3 development before freezing and evaluating on a new unseen holdout."
+                  }
+}

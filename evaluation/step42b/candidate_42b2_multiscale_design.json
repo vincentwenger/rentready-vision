@@ -1,0 +1,49 @@
+﻿{
+    "schema_version":  "rentready-step42b2-multiscale-design/1.0",
+    "step":  "42B-2",
+    "candidate_name":  "detector_v3_multiscale_verification_v1",
+    "source":  {
+                   "candidate_generator":  "42B-1 detector_v3_multikeyframe_v1",
+                   "raw_candidate_observations":  6,
+                   "clips_with_candidates":  4,
+                   "rerun_candidate_generation":  false
+               },
+    "evidence_policy":  {
+                            "candidate_frame":  "Nearest existing OpenCV-selected keyframe to raw candidate timestamp",
+                            "candidate_frame_views":  [
+                                                          "full_frame",
+                                                          "context_crop_bbox_plus_2.5x",
+                                                          "tight_crop_bbox_plus_1.0x"
+                                                      ],
+                            "temporal_context":  "Nearby selected full frames may also be supplied for motion-dependent validation",
+                            "annotations_visible_to_verifier":  false,
+                            "detector_confidence_is_not_evidence":  true
+                        },
+    "rationale":  [
+                      "Full-frame temporal verification correctly rejected the false bathtub droplet but confused normal wood grain with staining and rejected the real drywall patch.",
+                      "Tight-crop-only verification correctly rejected normal wood grain but still rejected the subtle real drywall patch.",
+                      "Fixed full-frame plus context-crop plus tight-crop verification correctly rejected the wood-grain false positive and preserved the real drywall patch in the two-case diagnostic.",
+                      "The same multiscale policy must now be evaluated unchanged across all six saved raw candidates before promotion."
+                  ],
+    "diagnostic_results":  {
+                               "clean_29_floor_stain":  {
+                                                            "human_truth":  "FALSE_POSITIVE",
+                                                            "multiscale_supported":  false,
+                                                            "multiscale_confidence":  0.85,
+                                                            "result":  "CORRECT"
+                                                        },
+                               "defect_12_drywall_patch":  {
+                                                               "human_truth":  "TRUE_POSITIVE",
+                                                               "multiscale_supported":  true,
+                                                               "multiscale_confidence":  0.75,
+                                                               "result":  "CORRECT"
+                                                           }
+                           },
+    "promotion_rule":  [
+                           "Do not promote from the two-case diagnostic.",
+                           "Run the identical fixed policy across all six saved 42B-1 candidates.",
+                           "Compare against owner adjudication only after inference completes.",
+                           "Must preserve all three owner-verified defect intervals and eliminate the confirmed clean false positive before considering promotion."
+                       ],
+    "status":  "DIAGNOSTIC_PASS_FULL_EVALUATION_PENDING"
+}

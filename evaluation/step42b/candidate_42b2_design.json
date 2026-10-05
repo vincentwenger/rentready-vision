@@ -1,0 +1,44 @@
+﻿{
+    "schema_version":  "rentready-step42b2-design/1.0",
+    "step":  "42B-2",
+    "candidate_name":  "detector_v3_temporal_verification_v1",
+    "source":  {
+                   "candidate_generator":  "42B-1 detector_v3_multikeyframe_v1",
+                   "raw_candidate_observations":  6,
+                   "clips_with_candidates":  4,
+                   "rerun_candidate_generation":  false
+               },
+    "verification_policy":  {
+                                "verifier_model":  "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                                "evidence":  "Existing OpenCV-selected keyframes from the candidate\u0027s clip",
+                                "max_evidence_frames":  5,
+                                "annotations_visible_to_verifier":  false,
+                                "independent_from_primary_detection":  true,
+                                "verifier_instruction":  [
+                                                             "Judge the exact described physical condition, not merely a related condition in the same area.",
+                                                             "Reject normal material variation, wood grain, shadows, glare, seams, texture, and speculative interpretations.",
+                                                             "For motion claims such as droplets or leaks, require the claimed motion evidence to be visibly supported.",
+                                                             "For static damage, a clearly visible condition in one strong frame may be sufficient; persistence across frames is supporting evidence but is not mandatory."
+                                                         ]
+                            },
+    "decision_policy":  {
+                            "auto_accept":  "Verifier says candidate_visible=true AND verification confidence \u003e= 0.80",
+                            "auto_reject":  "Verifier says candidate_visible=false OR verification confidence \u003c 0.45",
+                            "human_review":  "Verification confidence from 0.45 through 0.79 unless candidate_visible=false",
+                            "original_detector_confidence_does_not_override_verification":  true
+                        },
+    "expected_development_challenges":  [
+                                            "Suppress clean_29 floor_stain hallucination on normal wood grain.",
+                                            "Reject defect_11 0.0s false water-droplet observation.",
+                                            "Preserve defect_11 2.0s real bathtub crack.",
+                                            "Preserve defect_12 2.0s real drywall patch singleton.",
+                                            "Preserve defect_13 vanity mounting observations."
+                                        ],
+    "methodology":  [
+                        "Use only saved 42B-1 raw candidate observations.",
+                        "Do not rerun the 21-clip detector.",
+                        "Do not open annotation JSON during verification.",
+                        "Human ground truth is consulted only after all six verification calls finish."
+                    ],
+    "status":  "DESIGNED_NOT_RUN"
+}
