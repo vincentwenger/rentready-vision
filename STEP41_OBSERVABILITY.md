@@ -1,6 +1,6 @@
 # Step 41 — CloudWatch observability
 
-**Status in this bundle: REPOSITORY PASS / LIVE AWS VERIFICATION PENDING**
+**Status: COMPLETE / LIVE AWS FINAL PASS**
 
 Step 41 extends the existing Step-14 CloudWatch implementation instead of creating a second monitoring stack. The production API and the Graviton4 + COOL worker use the same CloudWatch log group and metrics namespace already configured for RentReady Vision.
 
@@ -146,4 +146,4 @@ Repository instrumentation alone does not prove the deployed environment. To rea
 4. Exercise upload → processing → AI report. Exercise an agent tool and the COOL benchmark as separate paths if the normal inspection does not naturally trigger them.
 5. Run the read-only Step-41 live verifier and persist its output under `evaluation/step41/`.
 
-Until those deployed checks are run, Step 41 should be described as **REPOSITORY PASS / LIVE AWS VERIFICATION PENDING**.
+Step 41 is **COMPLETE / LIVE AWS FINAL PASS**. The final live verifier observed all 12 required lifecycle events and all 5 required metrics in CloudWatch, with live_aws_verified=true.

@@ -77,21 +77,32 @@ def verify_live(*, lookback_hours: int = 168) -> dict[str, Any]:
     logs = session.client("logs")
     cloudwatch = session.client("cloudwatch")
     start_ms = int((time.time() - max(1, lookback_hours) * 3600) * 1000)
-    response = logs.filter_log_events(
-        logGroupName=settings.cool_log_group,
-        startTime=start_ms,
-        filterPattern='{ $.event = * }',
-        limit=10000,
-    )
     found_events: set[str] = set()
-    for item in response.get("events", []):
-        try:
-            payload = json.loads(item.get("message") or "{}")
-        except json.JSONDecodeError:
-            continue
-        event = payload.get("event")
-        if event in STEP41_REQUIRED_EVENTS:
-            found_events.add(str(event))
+    next_token: str | None = None
+    while True:
+        request: dict[str, Any] = {
+            "logGroupName": settings.cool_log_group,
+            "startTime": start_ms,
+            "filterPattern": '{ $.event = * }',
+            "limit": 10000,
+        }
+        if next_token:
+            request["nextToken"] = next_token
+
+        response = logs.filter_log_events(**request)
+        for item in response.get("events", []):
+            try:
+                payload = json.loads(item.get("message") or "{}")
+            except json.JSONDecodeError:
+                continue
+            event = payload.get("event")
+            if event in STEP41_REQUIRED_EVENTS:
+                found_events.add(str(event))
+
+        new_token = response.get("nextToken")
+        if not new_token or new_token == next_token:
+            break
+        next_token = new_token
 
     metric_presence: dict[str, bool] = {}
     for metric in STEP41_METRICS:

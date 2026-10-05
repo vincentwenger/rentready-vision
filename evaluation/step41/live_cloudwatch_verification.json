@@ -1,0 +1,34 @@
+{
+  "step": 41,
+  "mode": "live_cloudwatch_read_only",
+  "generated_at": "2026-10-05T18:03:23.895297+00:00",
+  "lookback_hours": 1,
+  "log_group": "/rentready-vision/cool-worker",
+  "metrics_namespace": "RentReadyVision/Processing",
+  "passed": true,
+  "live_aws_verified": true,
+  "events_seen": [
+    "AGENT_TOOL_CALL",
+    "AGENT_VERIFICATION_COMPLETE",
+    "AI_ANALYSIS_STARTED",
+    "CANDIDATES_FOUND",
+    "COOL_BENCHMARK_COMPLETE",
+    "COOL_RUNTIME_VERIFIED",
+    "KEYFRAMES_SELECTED",
+    "OPENCV_STARTED",
+    "PROCESSING_FAILED",
+    "REPORT_COMPLETE",
+    "SCENE_EXTRACTION_COMPLETE",
+    "VIDEO_UPLOADED"
+  ],
+  "missing_events": [],
+  "metric_presence": {
+    "processing_duration_seconds": true,
+    "frames_analyzed": true,
+    "bedrock_requests": true,
+    "agent_tool_calls": true,
+    "errors": true
+  },
+  "missing_metrics": [],
+  "note": "Missing events can simply mean that path was not exercised during the lookback window; this verifier never creates synthetic traffic."
+}
