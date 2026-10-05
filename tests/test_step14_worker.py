@@ -11,7 +11,7 @@ from app.processing_jobs import (
     processing_parameters,
     validate_processing_message,
 )
-from app.telemetry import REQUIRED_EVENTS
+from app.telemetry import STEP14_REQUIRED_EVENTS
 from app.vision.video_processor import process_video
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +63,7 @@ def test_step14_message_parameters_match_real_video_processor() -> None:
 
 
 def test_step14_required_cloudwatch_events_are_declared() -> None:
-    assert REQUIRED_EVENTS == {
+    assert STEP14_REQUIRED_EVENTS == {
         "OPENCV_STARTED",
         "KEYFRAMES_SELECTED",
         "COOL_RUNTIME_VERIFIED",

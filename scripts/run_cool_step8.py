@@ -21,6 +21,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ from app.config import get_settings  # noqa: E402
 from app.storage import prefix_for_record, keyframe_name  # noqa: E402
 from app.db import get_inspection, update_inspection  # noqa: E402
 from app.runtime_evidence import collect_runtime_evidence  # noqa: E402
+from app.telemetry import CloudWatchTelemetry  # noqa: E402
 from app.vision.video_processor import process_video  # noqa: E402
 from scripts.run_baseline import PARAMETER_MAP  # noqa: E402
 
@@ -362,6 +364,11 @@ def main() -> int:
         raise SystemExit("COOL runtime verification failed:\n- " + "\n- ".join(preflight_errors))
 
     settings = get_settings()
+    telemetry = CloudWatchTelemetry(
+        namespace=settings.cloudwatch_metrics_namespace,
+        log_group=settings.cool_log_group,
+        environment=settings.app_env,
+    )
     inspection = get_inspection(args.inspection_id)
     if not inspection:
         raise SystemExit(f"Inspection does not exist in DynamoDB: {args.inspection_id}")
@@ -388,7 +395,9 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="rentready-cool-step8-") as tmp:
             output_dir = Path(tmp) / "output"
             output_dir.mkdir(parents=True)
+            benchmark_started = time.perf_counter()
             manifest = process_video(local_input, output_dir, **frozen_kwargs(benchmark))
+            benchmark_seconds = max(time.perf_counter() - benchmark_started, 1e-9)
             manifest["processing"]["runtime"]["input_s3_key"] = source_key
             manifest["processing"]["runtime"]["runtime"] = "COOL"
             manifest["processing"]["benchmark_execution"] = {
@@ -482,8 +491,33 @@ def main() -> int:
                     "cool_eligibility_gate_1_passed": gate_passed,
                 },
             )
+            telemetry.event(
+                "COOL_BENCHMARK_COMPLETE",
+                inspection_id=args.inspection_id,
+                job_id=f"benchmark-{run_id}",
+                benchmark_id=benchmark["benchmark_id"],
+                gate_passed=gate_passed,
+                comparison_status=comparison["status"],
+                report_s3_key=report_key,
+                processing_duration_seconds=round(benchmark_seconds, 3),
+            )
+            telemetry.observability_metrics(
+                inspection_id=args.inspection_id,
+                job_id=f"benchmark-{run_id}",
+                stage="cool_benchmark",
+                processing_duration_seconds=benchmark_seconds,
+                frames_analyzed=int(manifest.get("processing", {}).get("sampled_frames") or 0),
+            )
     except Exception as exc:
-        update_inspection(args.inspection_id, status="FAILED", error=f"{type(exc).__name__}: {exc}")
+        error = f"{type(exc).__name__}: {exc}"
+        update_inspection(args.inspection_id, status="FAILED", error=error)
+        telemetry.event(
+            "PROCESSING_FAILED",
+            inspection_id=args.inspection_id,
+            job_id=f"benchmark-{run_id}",
+            error=error,
+            phase="cool_benchmark",
+        )
         raise
 
     print(

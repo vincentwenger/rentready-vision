@@ -1,0 +1,32 @@
+{
+  "step": 41,
+  "generated_at": "2026-10-05T01:14:10.260952+00:00",
+  "repository_verification": {
+    "passed": true,
+    "command": "python scripts/verify_step41_observability.py"
+  },
+  "step41_tests": {
+    "passed": 7,
+    "failed": 0,
+    "command": "pytest -q tests/test_step41_observability.py"
+  },
+  "regression_tests": {
+    "passed": 294,
+    "failed": 0,
+    "deselected": 2,
+    "command": "pytest -q --deselect=tests/test_runtime_evidence.py::test_runtime_evidence_records_exact_opencv_identity --deselect=tests/test_video_processor.py::test_process_video",
+    "deselection_reason": "The execution sandbox provides OpenCV 4.13.0; these two pre-existing tests explicitly require OpenCV 5.x. They are runtime-environment checks, not Step-41 observability checks."
+  },
+  "python_compileall": {
+    "passed": true,
+    "scope": [
+      "app",
+      "scripts",
+      "tests"
+    ]
+  },
+  "terraform_fmt_check": {
+    "run": false,
+    "reason": "terraform executable is not installed in the execution sandbox"
+  }
+}

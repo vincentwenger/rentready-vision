@@ -1,0 +1,64 @@
+{
+  "step": 41,
+  "mode": "repository",
+  "generated_at": "2026-10-05T01:12:23.354614+00:00",
+  "passed": true,
+  "checks": {
+    "all_required_events_wired": true,
+    "all_required_metrics_wired": true,
+    "api_upload_event_wired": true,
+    "ai_analysis_events_wired": true,
+    "video_events_wired": true,
+    "agent_events_wired": true,
+    "benchmark_event_wired": true,
+    "failure_event_wired": true,
+    "api_cloudwatch_log_permission": true,
+    "api_cloudwatch_metric_permission": true,
+    "metric_namespace_scoped": true,
+    "low_cardinality_dimensions": true
+  },
+  "required_events": [
+    "AGENT_TOOL_CALL",
+    "AGENT_VERIFICATION_COMPLETE",
+    "AI_ANALYSIS_STARTED",
+    "CANDIDATES_FOUND",
+    "COOL_BENCHMARK_COMPLETE",
+    "COOL_RUNTIME_VERIFIED",
+    "KEYFRAMES_SELECTED",
+    "OPENCV_STARTED",
+    "PROCESSING_FAILED",
+    "REPORT_COMPLETE",
+    "SCENE_EXTRACTION_COMPLETE",
+    "VIDEO_UPLOADED"
+  ],
+  "required_metrics": {
+    "processing_duration_seconds": "Seconds",
+    "frames_analyzed": "Count",
+    "bedrock_requests": "Count",
+    "agent_tool_calls": "Count",
+    "errors": "Count"
+  },
+  "event_wiring": {
+    "AGENT_TOOL_CALL": true,
+    "AGENT_VERIFICATION_COMPLETE": true,
+    "AI_ANALYSIS_STARTED": true,
+    "CANDIDATES_FOUND": true,
+    "COOL_BENCHMARK_COMPLETE": true,
+    "COOL_RUNTIME_VERIFIED": true,
+    "KEYFRAMES_SELECTED": true,
+    "OPENCV_STARTED": true,
+    "PROCESSING_FAILED": true,
+    "REPORT_COMPLETE": true,
+    "SCENE_EXTRACTION_COMPLETE": true,
+    "VIDEO_UPLOADED": true
+  },
+  "metric_wiring": {
+    "agent_tool_calls": true,
+    "bedrock_requests": true,
+    "errors": true,
+    "frames_analyzed": true,
+    "processing_duration_seconds": true
+  },
+  "live_aws_verified": false,
+  "note": "Repository PASS proves instrumentation is wired; deploy and exercise upload, processing, AI, agent, and benchmark paths for a live CloudWatch pass."
+}

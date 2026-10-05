@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import PurePath
 from uuid import uuid4
 
@@ -40,6 +41,7 @@ from ..models import (
     UploadCompleteRequest,
     UploadUrlResponse,
 )
+from ..telemetry import CloudWatchTelemetry
 from ..processing_jobs import (
     build_crop_region_message,
     build_decision_policy_message,
@@ -81,6 +83,18 @@ settings = get_settings()
 security_settings = get_security_settings()
 ALLOWED_CONTENT_TYPES = {"video/mp4", "video/quicktime"}
 ALLOWED_EXTENSIONS = {".mp4", ".mov"}
+
+
+@lru_cache(maxsize=1)
+def _api_cloudwatch_telemetry() -> CloudWatchTelemetry | None:
+    """Create one API-side telemetry stream only for deployed cloud mode."""
+    if not security_settings.cloud_mode:
+        return None
+    return CloudWatchTelemetry(
+        namespace=settings.cloudwatch_metrics_namespace,
+        log_group=settings.cool_log_group,
+        environment=settings.app_env,
+    )
 
 
 def _require_inspection(inspection_id: str) -> dict:
@@ -215,6 +229,16 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
         upload_bytes=size,
         s3_etag=str(head.get("ETag", "")).strip('"'),
     )
+    telemetry = _api_cloudwatch_telemetry()
+    if telemetry:
+        telemetry.event(
+            "VIDEO_UPLOADED",
+            inspection_id=inspection_id,
+            job_id=f"upload-{inspection_id}",
+            input_s3_key=s3_key,
+            upload_bytes=size,
+            content_type=payload.content_type,
+        )
     return InspectionResponse(**updated)
 
 
@@ -353,7 +377,16 @@ def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
             detail=f"Inspection must be COMPLETE before issue detection; got {item.get('status')}",
         )
     try:
-        report = detect_issues_for_inspection(inspection_id, force=force)
+        telemetry = _api_cloudwatch_telemetry()
+        if telemetry:
+            report = detect_issues_for_inspection(
+                inspection_id,
+                force=force,
+                telemetry=telemetry,
+                telemetry_job_id=f"ai-{inspection_id}",
+            )
+        else:
+            report = detect_issues_for_inspection(inspection_id, force=force)
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     presented = _present_issue_report(

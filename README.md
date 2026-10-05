@@ -78,6 +78,10 @@ The validated production/judge path is now:
 
 The public inspection API is preserved while the SQS worker provides durable job ownership, retries/DLQ behavior, runtime verification, S3/DynamoDB persistence, and CloudWatch telemetry.
 
+## Step 41 — observability — REPOSITORY PASS / LIVE AWS PENDING
+
+Step 41 adds an end-to-end structured CloudWatch lifecycle covering upload, OpenCV scene/keyframe processing, Bedrock analysis, agent verification, COOL benchmarking, report completion, and failures. It also records `processing_duration_seconds`, `frames_analyzed`, `bedrock_requests`, `agent_tool_calls`, and `errors` using low-cardinality dimensions. New lifecycle events are logs rather than one custom metric per event to keep CloudWatch cost down. See [`STEP41_OBSERVABILITY.md`](STEP41_OBSERVABILITY.md) and `evaluation/step41/repository_verification.json`.
+
 
 ## Step 35 - OpenCV contribution and COOL benchmark results
 

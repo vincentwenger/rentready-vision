@@ -16,7 +16,7 @@ from .db import get_inspection, update_inspection
 from .processing_jobs import normalize_processing_parameters, processing_parameters
 from .responsible_language import responsible_language_contract, responsible_records
 from .runtime_evidence import collect_runtime_evidence
-from .telemetry import CloudWatchTelemetry, PeakMemorySampler
+from .telemetry import CloudWatchTelemetry, PeakMemorySampler, count_bedrock_requests
 from .action_log import ACTION_LOG_VERSION, action_log_document, agent_action
 from .agentic_vision import (
     AGENTIC_TRACE_VERSION,
@@ -153,6 +153,14 @@ def execute_processing_job(
                 )
 
             manifest = process_video(input_path, output_dir, **parameters)
+            if telemetry:
+                telemetry.event(
+                    "SCENE_EXTRACTION_COMPLETE",
+                    inspection_id=inspection_id,
+                    job_id=job_id,
+                    scene_count=len(manifest.get("scenes", [])),
+                    sampled_frames=int(manifest.get("processing", {}).get("sampled_frames") or 0),
+                )
             # Persist the preflight identity so the job proves what runtime was
             # verified before OpenCV execution, including the immutable S3 input.
             manifest["processing"]["runtime"] = runtime
@@ -204,10 +212,12 @@ def execute_processing_job(
 
     processing_seconds = max(time.perf_counter() - started, 1e-9)
     total_frames = int(manifest["video"].get("total_frames") or 0)
+    frames_analyzed = int(manifest.get("processing", {}).get("sampled_frames") or total_frames)
     telemetry_values = {
         "processing_seconds": round(processing_seconds, 3),
         "frames_per_second": round(total_frames / processing_seconds, 3),
         "peak_memory_mb": round(memory.peak_memory_mb, 3),
+        "frames_analyzed": frames_analyzed,
     }
     return {
         "manifest_s3_key": manifest_key,
@@ -1363,7 +1373,13 @@ def load_manifest(inspection_id: str) -> dict:
     return json.loads(obj["Body"].read())
 
 
-def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> dict[str, Any]:
+def detect_issues_for_inspection(
+    inspection_id: str,
+    *,
+    force: bool = False,
+    telemetry: CloudWatchTelemetry | None = None,
+    telemetry_job_id: str | None = None,
+) -> dict[str, Any]:
     """Run the Step-17 structured candidate detector and persist a judge-readable S3 report.
 
     This is intentionally a second stage after the frozen OpenCV evidence pipeline, so
@@ -1389,6 +1405,8 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
         if existing_report.get("schema_version") == REPORT_SCHEMA_VERSION:
             return existing_report
 
+    telemetry_job_id = telemetry_job_id or f"ai-{inspection_id}"
+    analysis_started = time.perf_counter()
     update_inspection(
         inspection_id,
         issue_detection_status="PROCESSING",
@@ -1400,10 +1418,19 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
     )
     try:
         manifest = load_manifest(inspection_id)
+        keyframes = manifest.get("keyframes", [])
+        if telemetry:
+            telemetry.event(
+                "AI_ANALYSIS_STARTED",
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                model_id=settings.issue_detection_model_id,
+                available_keyframes=len(keyframes),
+            )
         report = detect_visible_issues(
             bedrock_client=bedrock_runtime,
             bucket=settings.s3_bucket,
-            keyframes=manifest.get("keyframes", []),
+            keyframes=keyframes,
             model_id=settings.issue_detection_model_id,
             confidence_threshold=settings.issue_detection_confidence_threshold,
             batch_size=settings.issue_detection_batch_size,
@@ -1416,6 +1443,25 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
         )
         report["inspection_id"] = inspection_id
         report["source_manifest_s3_key"] = inspection.get("manifest_s3_key")
+        bedrock_requests = max(count_bedrock_requests(report), len(report.get("trace", [])))
+        frames_analyzed = int(report.get("detector", {}).get("keyframes_considered") or len(keyframes))
+        if telemetry:
+            telemetry.event(
+                "CANDIDATES_FOUND",
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                candidate_count=len(report.get("candidate_findings", [])),
+                issue_count=len(report.get("issues", [])),
+                frames_analyzed=frames_analyzed,
+                bedrock_requests=bedrock_requests,
+            )
+            telemetry.observability_metrics(
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                stage="ai_analysis",
+                frames_analyzed=frames_analyzed,
+                bedrock_requests=bedrock_requests,
+            )
         storage_prefix = prefix_for_record(inspection_id, inspection)
         report_key = inspection_report_key(storage_prefix)
         preserve_issue_evidence(s3, settings.s3_bucket, storage_prefix, report)
@@ -1444,13 +1490,46 @@ def detect_issues_for_inspection(inspection_id: str, *, force: bool = False) -> 
             issue_report_schema_version=REPORT_SCHEMA_VERSION,
             issue_detection_completed_at=report.get("generated_at"),
         )
+        if telemetry:
+            elapsed = max(time.perf_counter() - analysis_started, 1e-9)
+            telemetry.event(
+                "REPORT_COMPLETE",
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                report_s3_key=report_key,
+                candidate_count=len(report.get("candidate_findings", [])),
+                issue_count=len(report.get("issues", [])),
+                processing_duration_seconds=round(elapsed, 3),
+            )
+            telemetry.observability_metrics(
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                stage="ai_analysis",
+                processing_duration_seconds=elapsed,
+            )
         return report
     except Exception as exc:
+        error = f"{type(exc).__name__}: {exc}"
         update_inspection(
             inspection_id,
             issue_detection_status="FAILED",
-            issue_detection_error=f"{type(exc).__name__}: {exc}",
+            issue_detection_error=error,
         )
+        if telemetry:
+            elapsed = max(time.perf_counter() - analysis_started, 1e-9)
+            telemetry.event(
+                "PROCESSING_FAILED",
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                error=error,
+                phase="ai_analysis",
+            )
+            telemetry.observability_metrics(
+                inspection_id=inspection_id,
+                job_id=telemetry_job_id,
+                stage="ai_analysis",
+                processing_duration_seconds=elapsed,
+            )
         raise
 
 

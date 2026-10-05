@@ -45,7 +45,7 @@ from app.services import (  # noqa: E402
     execute_interval_inspection_job,
     execute_processing_job,
 )
-from app.telemetry import CloudWatchTelemetry  # noqa: E402
+from app.telemetry import CloudWatchTelemetry, count_bedrock_requests  # noqa: E402
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -127,6 +127,13 @@ def _handle_agent_tool_message(
         active_agent_job_id=job_id,
         last_agentic_event="AGENT_TOOL_STARTED",
     )
+    telemetry.event(
+        "AGENT_TOOL_CALL",
+        inspection_id=inspection_id,
+        job_id=job_id,
+        tool=str(body["operation"]),
+        receive_count=receive_count,
+    )
     heartbeat_stop = threading.Event()
     heartbeat = threading.Thread(
         target=_heartbeat,
@@ -205,6 +212,33 @@ def _handle_agent_tool_message(
         )
         if not committed:
             raise RuntimeError("Agent tool finished but worker no longer owns the durable job lease")
+        bedrock_requests = count_bedrock_requests(result.get("result"))
+        result_telemetry = result.get("telemetry") or {}
+        frames_analyzed = next(
+            (
+                result_telemetry.get(name)
+                for name in ("selected_frame_count", "returned_frame_count", "sampled_candidate_count")
+                if result_telemetry.get(name) is not None
+            ),
+            None,
+        )
+        telemetry.event(
+            "AGENT_VERIFICATION_COMPLETE",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool=str(body["operation"]),
+            bedrock_requests=bedrock_requests,
+            action=(result.get("result") or {}).get("action"),
+            result_s3_key=result.get("result_s3_key"),
+        )
+        telemetry.observability_metrics(
+            inspection_id=inspection_id,
+            job_id=job_id,
+            stage="agent_verification",
+            processing_duration_seconds=result_telemetry.get("processing_seconds"),
+            frames_analyzed=frames_analyzed,
+            bedrock_requests=bedrock_requests,
+        )
         sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
@@ -404,6 +438,7 @@ def _handle_message(
             processing_seconds=float(result["telemetry"]["processing_seconds"]),
             frames_per_second=float(result["telemetry"]["frames_per_second"]),
             peak_memory_mb=float(result["telemetry"]["peak_memory_mb"]),
+            frames_analyzed=int(result["telemetry"].get("frames_analyzed") or 0),
         )
         try:
             sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)

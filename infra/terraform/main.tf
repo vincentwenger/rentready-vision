@@ -257,12 +257,34 @@ resource "aws_iam_policy" "processing_producer" {
   description = "Attach to the RentReady API role so it can enqueue COOL processing jobs."
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Sid      = "EnqueueCoolProcessingJobs"
-      Effect   = "Allow"
-      Action   = "sqs:SendMessage"
-      Resource = aws_sqs_queue.processing.arn
-    }]
+    Statement = [
+      {
+        Sid      = "EnqueueCoolProcessingJobs"
+        Effect   = "Allow"
+        Action   = "sqs:SendMessage"
+        Resource = aws_sqs_queue.processing.arn
+      },
+      {
+        Sid    = "WriteInspectionObservabilityLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "${aws_cloudwatch_log_group.worker.arn}:*"
+      },
+      {
+        Sid      = "PublishInspectionObservabilityMetrics"
+        Effect   = "Allow"
+        Action   = "cloudwatch:PutMetricData"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "RentReadyVision/Processing"
+          }
+        }
+      }
+    ]
   })
   tags = local.common_tags
 }
