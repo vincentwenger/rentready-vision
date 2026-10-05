@@ -1,0 +1,59 @@
+﻿{
+    "schema_version":  "rentready-detector-v3-candidate/1.0",
+    "step":  "42B-1",
+    "candidate_name":  "detector_v3_multikeyframe_v1",
+    "purpose":  "Measure the effect of temporal coverage alone before changing sampling, prompts, thresholds, or recognition logic.",
+    "baseline":  {
+                     "detector":  "Detector v2",
+                     "development_intervals":  9,
+                     "owner_verified_detected_intervals":  2,
+                     "clean_clips":  13,
+                     "clean_false_positive_clips":  0
+                 },
+    "changes_from_v2":  [
+                            "Analyze every existing OpenCV-selected keyframe instead of selecting only one keyframe near 2 seconds."
+                        ],
+    "deliberately_unchanged":  [
+                                   "1 Hz global sampling",
+                                   "OpenCV scene and keyframe-selection thresholds",
+                                   "Nova 2 Lite primary model",
+                                   "Claude Sonnet fallback model",
+                                   "0.65 acceptance confidence threshold",
+                                   "full frame plus four overlapping detail tiles per keyframe",
+                                   "existing Detector v2 prompt and tool schema",
+                                   "pixel-refinement behavior",
+                                   "crack-refinement behavior"
+                               ],
+    "execution_policy":  {
+                             "per_keyframe":  "Run the frozen Detector v2 five-view analysis independently on each selected keyframe.",
+                             "primary":  "Nova first",
+                             "fallback":  "Use Sonnet for that keyframe when Nova produces no accepted final issue, matching Detector v2 behavior.",
+                             "annotations_visible_during_inference":  false,
+                             "score_only_after_all_development_inference":  true
+                         },
+    "development_scale":  {
+                              "clips":  21,
+                              "positive_clips":  8,
+                              "clean_clips":  13,
+                              "existing_selected_keyframes":  66,
+                              "average_keyframes_per_clip":  3.14,
+                              "maximum_keyframes_per_clip":  6,
+                              "annotated_positive_intervals":  9,
+                              "intervals_covered_by_existing_keyframes":  7,
+                              "theoretical_temporal_coverage_rate":  0.7778
+                          },
+    "not_in_this_candidate":  [
+                                  "Rescue duplicate or rejected frames",
+                                  "Higher-frequency temporal bursts",
+                                  "Prompt changes for cracked glass or deterioration",
+                                  "Lower confidence thresholds",
+                                  "Changes to the OpenCV sampler"
+                              ],
+    "success_criteria":  [
+                             "Improve owner-verified development interval recall above Detector v2\u0027s 2/9.",
+                             "Do not increase clean false-positive clips above 0/13 if possible.",
+                             "Measure model requests, tokens, runtime, and detections per keyframe.",
+                             "Do not claim Detector v3 final performance from this development experiment."
+                         ],
+    "next_if_insufficient":  "42B-2: add high-quality rejected-frame rescue to pursue 8/9 temporal coverage; later add targeted temporal bursts for the short water-drip interval."
+}

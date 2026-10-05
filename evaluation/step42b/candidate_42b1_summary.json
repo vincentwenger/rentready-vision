@@ -1,0 +1,47 @@
+﻿{
+    "schema_version":  "rentready-step42b1-summary/1.0",
+    "candidate":  "detector_v3_multikeyframe_v1",
+    "status":  "DEVELOPMENT_COMPLETE_NOT_PROMOTED",
+    "baseline_detector_v2":  {
+                                 "owner_verified_intervals":  "2/9",
+                                 "clean_false_positive_clips":  "0/13"
+                             },
+    "raw_multikeyframe":  {
+                              "owner_verified_intervals":  "3/9",
+                              "interval_recall":  0.3333,
+                              "clean_false_positive_clips":  "1/13",
+                              "confirmed_true_detections":  [
+                                                                "defect_11_bathtub_rim_crack",
+                                                                "defect_12_drywall_patch_baseboard",
+                                                                "defect_13_vanity_mounting_damage"
+                                                            ],
+                              "confirmed_false_positive":  "clean_29 wood grain misclassified as floor_stain"
+                          },
+    "heuristic_consensus":  {
+                                "promoted":  false,
+                                "reasons":  [
+                                                "Suppressed the real singleton drywall-patch detection at confidence 0.80.",
+                                                "Incorrectly merged a false water-droplet observation with the real bathtub crack.",
+                                                "Confidence alone is unsafe: the false bathtub droplet had confidence 0.95.",
+                                                "Bounding-box continuity is unreliable under handheld camera viewpoint changes."
+                                            ]
+                            },
+    "key_learning":  [
+                         "Multi-keyframe analysis improves verified development recall from 2/9 to 3/9.",
+                         "Additional temporal coverage also increases false-positive opportunity.",
+                         "Static heuristic consensus cannot reliably distinguish real singleton defects from hallucinated singleton findings.",
+                         "Candidate verification should examine nearby temporal evidence directly."
+                     ],
+    "next_candidate":  {
+                           "step":  "42B-2",
+                           "name":  "detector_v3_temporal_verification_v1",
+                           "design":  [
+                                          "Keep multi-keyframe candidate generation.",
+                                          "Preserve all raw findings.",
+                                          "For each candidate, review nearby frames with a conservative vision verification pass.",
+                                          "Verify the exact described condition, not merely a related condition in the same area.",
+                                          "Reject unsupported one-frame hallucinations such as the bathtub droplet and wood-grain stain.",
+                                          "Preserve real singleton defects such as the drywall patch when nearby visual evidence supports the same physical condition."
+                                      ]
+                       }
+}

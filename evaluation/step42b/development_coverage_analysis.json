@@ -1,0 +1,31 @@
+﻿{
+    "schema_version":  "rentready-step42b-development-coverage/1.0",
+    "development_split":  "Compass/Quimby",
+    "positive_videos":  8,
+    "annotated_intervals":  9,
+    "existing_selected_keyframes":  {
+                                        "covered_intervals":  7,
+                                        "total_intervals":  9,
+                                        "coverage_rate":  0.7778
+                                    },
+    "rejected_frame_rescue":  {
+                                  "recoverable_interval":  "defect_09_quimby_water_drip.mp4 1.8-2.1s",
+                                  "sampled_frame_seconds":  2,
+                                  "original_decision":  "rejected_duplicate",
+                                  "evidence_quality_score":  97.57,
+                                  "result_if_rescued":  "8/9 temporal coverage"
+                              },
+    "remaining_sampling_resolution_failure":  {
+                                                  "interval":  "defect_09_quimby_water_drip.mp4 15.23-15.55s",
+                                                  "nearest_sample_before_seconds":  15,
+                                                  "nearest_sample_after_seconds":  16,
+                                                  "exact_interval_sampled":  false,
+                                                  "implication":  "A 1 Hz global sampler cannot reliably capture this short motion-dependent event."
+                                              },
+    "design_conclusion":  [
+                              "Analyze all existing selected keyframes instead of collapsing each video to one frame.",
+                              "Allow rescue of high-quality rejected frames when they close temporal coverage gaps.",
+                              "Keep the normal global sampler at 1 Hz initially.",
+                              "Add targeted higher-frequency temporal bursts for motion-dependent defects rather than globally increasing sampling frequency."
+                          ]
+}

@@ -1,0 +1,53 @@
+﻿{
+    "schema_version":  "rentready-step42b1-owner-adjudication/1.0",
+    "candidate":  "detector_v3_multikeyframe_v1",
+    "verified_interval_results":  [
+                                      {
+                                          "video":  "defect_11_bathtub_rim_crack.mp4",
+                                          "annotated_condition":  "bathtub rim crack",
+                                          "detected":  true,
+                                          "true_detection_timestamp_seconds":  2,
+                                          "note":  "The crack is clearly visible and correctly reported. A separate 0.0s water-droplet finding was visually adjudicated as false."
+                                      },
+                                      {
+                                          "video":  "defect_12_drywall_patch_baseboard.mp4",
+                                          "annotated_condition":  "unfinished/repaired drywall patch near baseboard",
+                                          "detected":  true,
+                                          "true_detection_timestamp_seconds":  2,
+                                          "note":  "Human review confirms the patch is clearly visible and should be reported."
+                                      },
+                                      {
+                                          "video":  "defect_13_vanity_mounting_damage.mp4",
+                                          "annotated_condition":  "vanity mounting damage",
+                                          "detected":  true,
+                                          "true_detection_timestamps_seconds":  [
+                                                                                    1,
+                                                                                    3
+                                                                                ],
+                                          "note":  "Two observations correspond to the same real physical mounting defect."
+                                      }
+                                  ],
+    "confirmed_clean_false_positive":  {
+                                           "video":  "clean_29_quimby_vanity_level_holder.mp4",
+                                           "timestamp_seconds":  0,
+                                           "predicted_category":  "floor_stain",
+                                           "confidence":  0.75,
+                                           "human_result":  "FALSE_POSITIVE",
+                                           "note":  "Normal wood grain knotting and natural flooring variation."
+                                       },
+    "raw_verified_metrics":  {
+                                 "annotated_intervals":  9,
+                                 "owner_verified_detected_intervals":  3,
+                                 "interval_recall":  0.3333,
+                                 "clean_clips":  13,
+                                 "clean_false_positive_clips":  1,
+                                 "clean_false_positive_rate":  0.0769
+                             },
+    "baseline_comparison":  {
+                                "detector_v2_owner_verified_intervals":  "2/9",
+                                "candidate_42b1_owner_verified_intervals":  "3/9",
+                                "detector_v2_clean_false_positives":  "0/13",
+                                "candidate_42b1_raw_clean_false_positives":  "1/13"
+                            },
+    "conclusion":  "Multi-keyframe coverage improves verified recall from 2/9 to 3/9, but raw aggregation introduces one confirmed clean false positive. The current consensus policy requires redesign before promotion."
+}
