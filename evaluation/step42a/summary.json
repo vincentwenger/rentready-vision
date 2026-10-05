@@ -1,0 +1,58 @@
+﻿{
+    "schema_version":  "rentready-step42a-summary/1.0",
+    "status":  "COMPLETE",
+    "source_evaluation":  "step34f",
+    "baseline_detector":  "Detector v2",
+    "baseline_commit":  "4a32dfe2d6b5fbd611eb0d8a509727a67f19e201",
+    "baseline":  {
+                     "frozen_intervals":  17,
+                     "detected_intervals":  1,
+                     "interval_recall":  0.0588,
+                     "clean_videos":  5,
+                     "clean_false_positives":  0
+                 },
+    "findings":  [
+                     {
+                         "id":  "F1",
+                         "finding":  "Detector v2 analyzes only one selected keyframe per video.",
+                         "measured_coverage":  "6/17",
+                         "coverage_rate":  0.3529
+                     },
+                     {
+                         "id":  "F2",
+                         "finding":  "Using all existing OpenCV keyframes raises temporal coverage without changing sampling.",
+                         "measured_coverage":  "13/17",
+                         "coverage_rate":  0.7647
+                     },
+                     {
+                         "id":  "F3",
+                         "finding":  "All four intervals not covered by existing keyframes were nevertheless captured by the 1 Hz sampler.",
+                         "true_sampling_failures":  0,
+                         "selection_or_quality_filter_failures":  4
+                     },
+                     {
+                         "id":  "F4",
+                         "finding":  "Motion-dependent defects such as water leaks and dripping faucets may not be visible in one still frame.",
+                         "temporal_evidence_failures_confirmed":  3
+                     },
+                     {
+                         "id":  "F5",
+                         "finding":  "Static visible defects can still be missed by the vision models.",
+                         "model_recognition_failures_confirmed":  2,
+                         "examples":  [
+                                          "cracked/broken glass",
+                                          "weathering/moss/deterioration"
+                                      ]
+                     }
+                 ],
+    "detector_v3_design_direction":  [
+                                         "Replace the one-keyframe-per-video policy with multi-keyframe temporal coverage.",
+                                         "Reuse the existing 1 Hz sampler initially; do not increase sampling frequency yet.",
+                                         "Preserve selected keyframes across the video rather than collapsing them to one frame.",
+                                         "Rescue useful rejected samples when temporal gaps would otherwise remain, including frames rejected as duplicates, low marginal value, or fast camera motion.",
+                                         "Use short multi-frame temporal evidence for motion-dependent defects such as leaks and dripping faucets.",
+                                         "Improve static-defect recognition for cracked glass, weathering, moisture damage and deterioration.",
+                                         "Protect Detector v2\u0027s zero-clean-false-positive baseline while increasing recall."
+                                     ],
+    "next_step":  "Step 42B — implement and evaluate the first Detector v3 temporal-coverage candidate before changing the 1 Hz sampler."
+}

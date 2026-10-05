@@ -1,0 +1,60 @@
+﻿{
+    "schema_version":  "rentready-step42a-selection-loss/1.0",
+    "source_evaluation":  "step34f",
+    "detector":  "Detector v2",
+    "uncovered_intervals":  [
+                                {
+                                    "id":  "ext006",
+                                    "interval":  "29-32s",
+                                    "sampled":  true,
+                                    "sampled_frame_count":  4,
+                                    "loss_stage":  "keyframe_selection",
+                                    "causes":  [
+                                                   "near_duplicate",
+                                                   "low_marginal_keyframe_value"
+                                               ],
+                                    "note":  "All four 1 Hz samples were sharp/stable; none survived as keyframes."
+                                },
+                                {
+                                    "id":  "ext007",
+                                    "interval":  "9-11s",
+                                    "sampled":  true,
+                                    "sampled_frame_count":  2,
+                                    "loss_stage":  "quality_and_deduplication",
+                                    "causes":  [
+                                                   "fast_camera_motion",
+                                                   "near_duplicate"
+                                               ],
+                                    "note":  "10.008s was rejected as a duplicate of selected frame 11.008s, only 0.008s beyond the annotated interval boundary."
+                                },
+                                {
+                                    "id":  "ext007",
+                                    "interval":  "30-32s",
+                                    "sampled":  true,
+                                    "sampled_frame_count":  2,
+                                    "loss_stage":  "quality_filter",
+                                    "causes":  [
+                                                   "fast_camera_motion"
+                                               ],
+                                    "note":  "Both available samples were rejected for fast camera motion."
+                                },
+                                {
+                                    "id":  "ext007",
+                                    "interval":  "33-35s",
+                                    "sampled":  true,
+                                    "sampled_frame_count":  2,
+                                    "loss_stage":  "quality_filter",
+                                    "causes":  [
+                                                   "fast_camera_motion"
+                                               ],
+                                    "note":  "Both available samples were rejected for fast camera motion."
+                                }
+                            ],
+    "summary":  {
+                    "uncovered_intervals":  4,
+                    "intervals_with_1hz_samples":  4,
+                    "true_sampling_failures":  0,
+                    "selection_or_quality_filter_failures":  4
+                },
+    "conclusion":  "The remaining temporal-coverage gaps are not caused by the 1 Hz sampler. Relevant frames were sampled but removed by duplicate, marginal-value, or fast-motion filtering. Detector v3 should first preserve or reconsider rejected temporal evidence before increasing sampling frequency."
+}

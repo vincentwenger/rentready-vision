@@ -1,0 +1,152 @@
+﻿{
+    "schema_version":  "rentready-step42a-keyframe-coverage/1.0",
+    "source_evaluation":  "step34f",
+    "detector":  "Detector v2",
+    "frozen_commit":  "4a32dfe2d6b5fbd611eb0d8a509727a67f19e201",
+    "total_frozen_intervals":  17,
+    "covered_by_selected_keyframe":  6,
+    "not_covered_by_selected_keyframe":  11,
+    "keyframe_coverage_rate":  0.3529,
+    "keyframe_miss_rate":  0.6471,
+    "detected_frozen_intervals":  1,
+    "recognition_rate_given_keyframe_coverage":  0.1667,
+    "conclusion":  "Detector v2 has two distinct recall bottlenecks: insufficient temporal coverage from the one-selected-keyframe-per-video policy, and missed recognition even when annotated defects are visible in the selected frame.",
+    "intervals":  [
+                      {
+                          "Id":  "ext001",
+                          "SelectedFrameSec":  2.022,
+                          "IntervalStart":  null,
+                          "IntervalEnd":  null,
+                          "EntireVideo":  true,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext002",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  0,
+                          "IntervalEnd":  12,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext003",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  null,
+                          "IntervalEnd":  null,
+                          "EntireVideo":  true,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext004",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  null,
+                          "IntervalEnd":  null,
+                          "EntireVideo":  true,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext006",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  0,
+                          "IntervalEnd":  5,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext006",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  21,
+                          "IntervalEnd":  24,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext006",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  24,
+                          "IntervalEnd":  29,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext006",
+                          "SelectedFrameSec":  1,
+                          "IntervalStart":  29,
+                          "IntervalEnd":  32,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  0,
+                          "IntervalEnd":  2,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  true
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  5,
+                          "IntervalEnd":  8,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  9,
+                          "IntervalEnd":  11,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  11,
+                          "IntervalEnd":  16,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  18,
+                          "IntervalEnd":  24,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  24,
+                          "IntervalEnd":  27,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  27,
+                          "IntervalEnd":  28,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  30,
+                          "IntervalEnd":  32,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      },
+                      {
+                          "Id":  "ext007",
+                          "SelectedFrameSec":  1.001,
+                          "IntervalStart":  33,
+                          "IntervalEnd":  35,
+                          "EntireVideo":  false,
+                          "CoveredByFrame":  false
+                      }
+                  ]
+}

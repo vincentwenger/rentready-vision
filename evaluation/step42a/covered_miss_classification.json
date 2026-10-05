@@ -1,0 +1,57 @@
+﻿{
+    "schema_version":  "rentready-step42a-covered-miss-classification/1.0",
+    "source_evaluation":  "step34f",
+    "detector":  "Detector v2",
+    "cases":  [
+                  {
+                      "id":  "ext001",
+                      "annotated_defect":  "water_leak",
+                      "selected_frame_seconds":  2.022,
+                      "defect_visible_in_selected_frame":  false,
+                      "frame_human_usable":  true,
+                      "failure_class":  "temporal_evidence_selection",
+                      "note":  "Leak visible in video, but no falling drop is visible in the selected still image."
+                  },
+                  {
+                      "id":  "ext002",
+                      "annotated_defect":  "water_leak",
+                      "selected_frame_seconds":  1,
+                      "defect_visible_in_selected_frame":  false,
+                      "frame_human_usable":  true,
+                      "failure_class":  "temporal_evidence_selection",
+                      "note":  "Water leak is not visible in the selected still. A separate visible wall-hole defect was correctly detected."
+                  },
+                  {
+                      "id":  "ext003",
+                      "annotated_defect":  "dripping_faucet",
+                      "selected_frame_seconds":  1.001,
+                      "defect_visible_in_selected_frame":  false,
+                      "frame_human_usable":  true,
+                      "failure_class":  "temporal_evidence_selection",
+                      "note":  "Faucet is visible, but the active drip is not visible in the selected still."
+                  },
+                  {
+                      "id":  "ext004",
+                      "annotated_defect":  "broken_or_cracked_glass",
+                      "selected_frame_seconds":  1,
+                      "defect_visible_in_selected_frame":  true,
+                      "frame_human_usable":  true,
+                      "failure_class":  "model_recognition",
+                      "note":  "Cracked or broken glass is clearly visible, but Nova and Sonnet returned no finding."
+                  },
+                  {
+                      "id":  "ext007",
+                      "annotated_defect":  "weathering_moss_deterioration",
+                      "selected_frame_seconds":  1.001,
+                      "defect_visible_in_selected_frame":  true,
+                      "frame_human_usable":  true,
+                      "failure_class":  "model_recognition",
+                      "note":  "Weathering, moss and deterioration are clearly visible in a sharp frame, but Nova and Sonnet returned no finding."
+                  }
+              ],
+    "summary":  {
+                    "covered_but_missed_cases":  5,
+                    "temporal_evidence_selection_failures":  3,
+                    "model_recognition_failures":  2
+                }
+}
