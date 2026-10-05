@@ -1,0 +1,90 @@
+﻿{
+    "schema_version":  "rentready-step42b3-analysis/1.0",
+    "step":  "42B-3",
+    "candidate_name":  "detector_v3_fine_crop_second_look_v1",
+    "source":  {
+                   "baseline":  "42B-2 detector_v3_multiscale_verification_v1",
+                   "development_split":  "Compass/Quimby",
+                   "annotated_intervals":  9,
+                   "currently_verified_intervals":  3,
+                   "remaining_missed_intervals":  6
+               },
+    "miss_classification":  {
+                                "missed_but_existing_keyframe_covered":  4,
+                                "missed_without_existing_keyframe_coverage":  2,
+                                "covered_misses":  [
+                                                       "defect_10_toilet_base_displacement",
+                                                       "defect_14_wall_hole_below_window",
+                                                       "defect_15_compass_unfinished_wall_patch",
+                                                       "defect_16_toilet_paper_holder_sagging"
+                                                   ],
+                                "uncovered_misses":  [
+                                                         "defect_09_quimby_water_drip 1.8-2.1s",
+                                                         "defect_09_quimby_water_drip 15.23-15.55s"
+                                                     ]
+                            },
+    "covered_miss_root_cause":  {
+                                    "detector_candidate_findings":  0,
+                                    "threshold_rejections":  0,
+                                    "downstream_refinement_removals":  0,
+                                    "conclusion":  [
+                                                       "All four temporally covered misses produced zero candidate findings.",
+                                                       "These are recognition/attention failures rather than confidence-threshold or refinement failures.",
+                                                       "The existing frozen Detector v2 prompt already explicitly asks about these condition types, so merely adding their names to the prompt is unlikely to be sufficient."
+                                                   ]
+                                },
+    "visual_review":  {
+                          "defect_10_toilet_base_displacement":  {
+                                                                     "zoom_helpfulness":  "PARTIAL",
+                                                                     "primary_failure_mode":  "RELATIONAL_GEOMETRY",
+                                                                     "observation":  "The toilet base perimeter and floor-contact seam become easier to inspect with zoom, but the displacement remains subtle and requires comparison against the old caulk/alignment footprint.",
+                                                                     "recommended_action":  "Use finer base/floor crops plus a second-look geometry/alignment pass."
+                                                                 },
+                          "defect_14_wall_hole_below_window":  {
+                                                                   "zoom_helpfulness":  "HIGH",
+                                                                   "primary_failure_mode":  "SMALL_LOCALIZED_DEFECT",
+                                                                   "observation":  "The small wall defect below the window becomes materially easier to inspect in finer zoom views.",
+                                                                   "recommended_action":  "Use finer wall-region crops and a second-look pass for small localized wall defects."
+                                                               },
+                          "defect_15_compass_unfinished_wall_patch":  {
+                                                                          "zoom_helpfulness":  "HIGH",
+                                                                          "primary_failure_mode":  "LOW_CONTRAST_SURFACE_DEFECT",
+                                                                          "observation":  "The filled holes, unfinished patch, and uneven wall finish become materially clearer in the finer zoom views.",
+                                                                          "recommended_action":  "Use finer wall-surface crops followed by a conservative second-look recognition pass."
+                                                                      },
+                          "defect_16_toilet_paper_holder_sagging":  {
+                                                                        "zoom_helpfulness":  "PARTIAL",
+                                                                        "primary_failure_mode":  "RELATIONAL_GEOMETRY",
+                                                                        "observation":  "The holder and its mount become easier to inspect with zoom, but identifying sagging still requires reasoning about angle and alignment.",
+                                                                        "recommended_action":  "Use finer hardware crops plus a second-look geometry/alignment pass."
+                                                                    }
+                      },
+    "design_conclusion":  [
+                              "42B-3 should combine finer localized crops with a second-look recognition pass.",
+                              "Finer crops address scale-limited misses such as the small wall hole and subtle unfinished wall patch.",
+                              "Second-look reasoning addresses relational/geometric misses such as toilet-base displacement and toilet-paper-holder sagging.",
+                              "Do not globally increase model calls across every frame yet.",
+                              "Apply the second-look path only when the normal multi-keyframe candidate generator returns no usable finding for a selected keyframe.",
+                              "Keep 42B-2 multiscale verification after candidate generation to preserve the clean false-positive improvements."
+                          ],
+    "proposed_pipeline":  [
+                              "Stage 1: existing 42B-1 multi-keyframe candidate generation.",
+                              "Stage 2: if a selected keyframe yields no usable candidate, create finer generic zoom crops.",
+                              "Stage 3: run a conservative second-look recognition pass across the full frame plus finer crops.",
+                              "Stage 4: send resulting candidates through the existing 42B-2 multiscale verifier.",
+                              "Stage 5: preserve raw findings and evaluate on the fixed development split before any promotion."
+                          ],
+    "temporal_sampling_followup":  {
+                                       "deferred_until_after_recognition_experiment":  true,
+                                       "recoverable_interval":  "defect_09 water drip 1.8-2.1s via rejected high-quality 2.0s frame",
+                                       "genuine_sampling_resolution_failure":  "defect_09 water drip 15.23-15.55s",
+                                       "future_direction":  "Use targeted higher-frequency temporal bursts for motion-dependent events rather than globally increasing the 1 Hz sampler."
+                                   },
+    "target":  {
+                   "current_verified_intervals":  "3/9",
+                   "theoretical_if_all_four_covered_misses_recovered":  "7/9",
+                   "clean_false_positive_target":  "0/13",
+                   "note":  "7/9 is a development upper bound for the recognition portion only; it is not a performance claim."
+               },
+    "status":  "ANALYSIS_COMPLETE_DESIGN_READY_NOT_RUN"
+}

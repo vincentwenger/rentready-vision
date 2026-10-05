@@ -1,0 +1,51 @@
+﻿{
+    "schema_version":  "rentready-step42b3-focused-diagnostic-design/1.0",
+    "step":  "42B-3 diagnostic",
+    "name":  "focused_region_recognition_capability_test",
+    "purpose":  "Determine whether the vision model can recognize each covered missed defect when the relevant condition and region are explicitly supplied.",
+    "methodology_warning":  [
+                                "This diagnostic is label-informed.",
+                                "Ground-truth condition identity may be used in the question.",
+                                "Results MUST NOT be counted as detector recall or development performance.",
+                                "The diagnostic exists only to distinguish recognition capability from annotation-blind attention/region-selection failure."
+                            ],
+    "cases":  [
+                  {
+                      "stem":  "defect_10_toilet_base_displacement",
+                      "timestamp_seconds":  2,
+                      "question":  "Is the toilet base visibly displaced or offset relative to the old caulk/sealant outline or floor contact footprint?",
+                      "diagnostic_type":  "RELATIONAL_GEOMETRY"
+                  },
+                  {
+                      "stem":  "defect_14_wall_hole_below_window",
+                      "timestamp_seconds":  2,
+                      "question":  "Is there a small visible drywall hole directly below the window sill?",
+                      "diagnostic_type":  "SMALL_LOCALIZED_DEFECT"
+                  },
+                  {
+                      "stem":  "defect_15_compass_unfinished_wall_patch",
+                      "timestamp_seconds":  2.002,
+                      "question":  "Is there a visibly unfinished or repaired wall patch with filled holes, uneven finish, or patch-edge irregularity?",
+                      "diagnostic_type":  "LOW_CONTRAST_SURFACE_DEFECT"
+                  },
+                  {
+                      "stem":  "defect_16_toilet_paper_holder_sagging",
+                      "timestamp_seconds":  2,
+                      "question":  "Is the toilet-paper-holder arm visibly sagging or tilted downward relative to its cabinet mount?",
+                      "diagnostic_type":  "RELATIONAL_GEOMETRY"
+                  }
+              ],
+    "evidence_policy":  [
+                            "Use the already selected development keyframe at the specified timestamp.",
+                            "Provide the full frame plus one deliberately focused crop around the relevant physical region.",
+                            "Ask only whether the exact named visual condition is supported.",
+                            "Do not ask the model to discover arbitrary additional defects."
+                        ],
+    "interpretation":  [
+                           "If the model recognizes a condition here but missed it in 42B-3, the main failure is attention, region selection, or open-ended request design.",
+                           "If the model still cannot recognize it here, the limitation is more likely visual ambiguity or model recognition capability.",
+                           "No result from this diagnostic changes the official 3/9 development recall."
+                       ],
+    "max_model_calls":  4,
+    "status":  "DESIGNED_NOT_RUN"
+}

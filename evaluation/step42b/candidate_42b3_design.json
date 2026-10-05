@@ -1,0 +1,67 @@
+﻿{
+    "schema_version":  "rentready-step42b3-design/1.0",
+    "step":  "42B-3",
+    "candidate_name":  "detector_v3_fine_crop_second_look_v1",
+    "baseline":  {
+                     "candidate_generation":  "42B-1 detector_v3_multikeyframe_v1",
+                     "verification":  "42B-2 detector_v3_multiscale_verification_v1",
+                     "current_owner_verified_intervals":  "3/9",
+                     "current_clean_false_positive_clips":  "0/13"
+                 },
+    "eligibility_policy":  {
+                               "trigger":  "Run second-look recognition only when the entire clip produced zero raw 42B-1 issues.",
+                               "eligible_development_clips":  17,
+                               "eligible_clean_clips":  12,
+                               "eligible_positive_clips":  5,
+                               "maximum_second_look_model_calls":  17,
+                               "annotations_used_for_selection":  false
+                           },
+    "keyframe_policy":  {
+                            "rule":  "Among existing selected keyframes with zero issues, choose the timestamp closest to 2.0 seconds.",
+                            "quality_tiebreaker":  "Higher evidence_quality_score",
+                            "sampler_changed":  false,
+                            "covered_miss_check":  {
+                                                       "defect_10_toilet_base_displacement":  2,
+                                                       "defect_14_wall_hole_below_window":  2,
+                                                       "defect_15_compass_unfinished_wall_patch":  2.002,
+                                                       "defect_16_toilet_paper_holder_sagging":  2,
+                                                       "all_four_inside_owner_annotation_intervals":  true
+                                                   }
+                        },
+    "visual_evidence_policy":  {
+                                   "views_per_second_look":  10,
+                                   "views":  [
+                                                 "1 full frame",
+                                                 "9 fixed overlapping fine crops from a 3x3 grid"
+                                             ],
+                                   "crop_width_fraction":  0.46,
+                                   "crop_height_fraction":  0.46,
+                                   "annotations_visible_to_model":  false,
+                                   "clip_name_used_as_model_evidence":  false
+                               },
+    "recognition_policy":  [
+                               "Perform an independent conservative second-look recognition pass.",
+                               "Search for distinctly visible physical rental-property conditions rather than confirming a supplied ground-truth condition.",
+                               "Pay particular attention to small localized defects, subtle surface repairs, fixture alignment, and geometric displacement.",
+                               "Do not infer looseness, leaks, hidden causes, or damage that is not visibly supported.",
+                               "Normal texture, wood grain, seams, reflections, shadows, normal hardware, and cosmetic variation are not defects by themselves."
+                           ],
+    "downstream_policy":  [
+                              "Preserve every second-look raw finding separately.",
+                              "Send qualifying second-look findings through the existing 42B-2 multiscale verifier before accepting them.",
+                              "Combine accepted second-look findings with already verified 42B-2 findings.",
+                              "Do not modify frozen Detector v2."
+                          ],
+    "recognition_targets":  {
+                                "covered_misses_available_to_recover":  4,
+                                "current_verified_intervals":  "3/9",
+                                "theoretical_recognition_upper_bound":  "7/9",
+                                "clean_false_positive_target":  "0/13"
+                            },
+    "excluded_from_recognition_claim":  {
+                                            "video":  "defect_09_quimby_water_drip",
+                                            "reason":  "Its two remaining intervals are temporal-coverage problems rather than the four covered recognition failures.",
+                                            "followup":  "Handle rejected-frame rescue and targeted higher-frequency motion sampling separately after 42B-3."
+                                        },
+    "status":  "DESIGNED_NOT_RUN"
+}

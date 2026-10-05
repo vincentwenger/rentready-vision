@@ -1,0 +1,65 @@
+﻿{
+    "schema_version":  "rentready-step42b3-summary/1.0",
+    "step":  "42B-3",
+    "candidate_name":  "detector_v3_fine_crop_second_look_v1",
+    "status":  "DEVELOPMENT_FAIL_NOT_PROMOTED",
+    "experiment":  {
+                       "eligible_clips":  17,
+                       "eligible_clean_clips":  12,
+                       "eligible_positive_clips":  5,
+                       "views_per_call":  10,
+                       "model_requests":  17,
+                       "annotations_opened_during_inference":  false,
+                       "clip_names_supplied_to_model":  false
+                   },
+    "results":  {
+                    "clips_with_raw_findings":  0,
+                    "clips_with_qualifying_findings":  0,
+                    "raw_findings":  0,
+                    "qualifying_findings":  0,
+                    "invalid_findings":  0,
+                    "targeted_covered_recognition_misses":  4,
+                    "targeted_covered_misses_recovered":  0,
+                    "clean_second_look_false_positive_clips":  0
+                },
+    "cost":  {
+                 "input_tokens":  144823,
+                 "output_tokens":  561,
+                 "model_requests":  17
+             },
+    "development_effect":  {
+                               "before_42b3_owner_verified_intervals":  "3/9",
+                               "after_42b3_owner_verified_intervals":  "3/9",
+                               "before_42b3_clean_false_positive_clips":  "0/13",
+                               "after_42b3_clean_false_positive_clips":  "0/13",
+                               "recall_gain":  0
+                           },
+    "covered_miss_results":  [
+                                 "defect_10_toilet_base_displacement: NOT RECOVERED",
+                                 "defect_14_wall_hole_below_window: NOT RECOVERED",
+                                 "defect_15_compass_unfinished_wall_patch: NOT RECOVERED",
+                                 "defect_16_toilet_paper_holder_sagging: NOT RECOVERED"
+                             ],
+    "interpretation":  [
+                           "The fixed 10-view fine-crop second-look pass was highly conservative but provided no recall benefit.",
+                           "All 12 clean controls remained negative.",
+                           "All five eligible positive clips also remained negative.",
+                           "The four temporally covered recognition misses produced zero raw findings despite finer visual crops.",
+                           "Because no second-look candidates were generated, 42B-2 multiscale verification had nothing new to evaluate.",
+                           "This candidate should not be promoted."
+                       ],
+    "hypotheses_not_yet_proven":  [
+                                      "Presenting ten overlapping images in one request may dilute attention across views.",
+                                      "The conservative second-look prompt may suppress subtle but valid conditions.",
+                                      "Some relational or geometric defects may require focused comparison rather than generic open-ended defect discovery."
+                                  ],
+    "next_direction":  [
+                           "Do not repeat the same 10-view open-ended second-look design.",
+                           "Run a small diagnostic experiment before spending on another full 17-clip evaluation.",
+                           "Test whether focused regional questioning can recover the four known covered misses when the relevant visual region is isolated.",
+                           "Keep any diagnostic label-informed tests separate from performance claims.",
+                           "If focused recognition succeeds, redesign an annotation-blind production trigger that selects regions/questions without using ground truth."
+                       ],
+    "conclusion":  "42B-3 preserved clean precision but recovered 0/4 covered recognition misses, so development performance remains 3/9 verified intervals with 0/13 clean false-positive clips.",
+    "status_detail":  "Fine-crop second-look candidate rejected; redesign required."
+}

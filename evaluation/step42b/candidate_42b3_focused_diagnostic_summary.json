@@ -1,0 +1,59 @@
+﻿{
+    "schema_version":  "rentready-step42b3-focused-diagnostic-summary/1.0",
+    "step":  "42B-3 diagnostic",
+    "name":  "focused_region_recognition_capability_test",
+    "status":  "DIAGNOSTIC_COMPLETE",
+    "methodology":  {
+                        "label_informed":  true,
+                        "valid_for_performance_scoring":  false,
+                        "cases":  4,
+                        "supported_cases":  2,
+                        "unsupported_cases":  2,
+                        "model_requests":  4,
+                        "input_tokens":  14074,
+                        "output_tokens":  696,
+                        "official_development_recall_unchanged":  "3/9"
+                    },
+    "results":  [
+                    {
+                        "stem":  "defect_10_toilet_base_displacement",
+                        "type":  "RELATIONAL_GEOMETRY",
+                        "supported":  false,
+                        "confidence":  0.85,
+                        "interpretation":  "Even with focused, label-informed questioning, the model did not see a reliable old caulk/sealant footprint or visible offset. Do not treat this as an attention-only failure."
+                    },
+                    {
+                        "stem":  "defect_14_wall_hole_below_window",
+                        "type":  "SMALL_LOCALIZED_DEFECT",
+                        "supported":  true,
+                        "confidence":  0.92,
+                        "interpretation":  "The model can recognize the drywall hole when attention is localized. The annotation-blind failure is primarily an attention/localization problem."
+                    },
+                    {
+                        "stem":  "defect_15_compass_unfinished_wall_patch",
+                        "type":  "LOW_CONTRAST_SURFACE_DEFECT",
+                        "supported":  true,
+                        "confidence":  0.85,
+                        "interpretation":  "The model can recognize the unfinished repair when attention is localized. The annotation-blind failure is primarily an attention/localization problem."
+                    },
+                    {
+                        "stem":  "defect_16_toilet_paper_holder_sagging",
+                        "type":  "RELATIONAL_GEOMETRY",
+                        "supported":  false,
+                        "confidence":  0.9,
+                        "interpretation":  "Even with focused, label-informed questioning, the model judged the holder as level. Do not treat this as an attention-only failure."
+                    }
+                ],
+    "conclusions":  [
+                        "Focused localization demonstrates recognition capability for defect_14 and defect_15.",
+                        "The generic 42B-3 open-ended ten-view pass failed to surface those same defects, indicating an annotation-blind attention/localization failure.",
+                        "Defect_10 and defect_16 remain unsupported even under label-informed focused questioning.",
+                        "Additional generic prompting is unlikely to be the right next step for the two relational-geometry cases.",
+                        "The geometric cases should be investigated using stronger reference geometry, alternate selected frames, or multi-frame comparison before designing a production detector path."
+                    ],
+    "next_steps":  {
+                       "step_42b4a":  "Annotation-blind regional attention strategy for small localized and low-contrast wall defects.",
+                       "step_42b4b":  "Separate multi-frame geometric-evidence investigation for toilet-base displacement and toilet-paper-holder sagging.",
+                       "performance_claim":  "Neither diagnostic result changes the official 3/9 verified development interval recall."
+                   }
+}
