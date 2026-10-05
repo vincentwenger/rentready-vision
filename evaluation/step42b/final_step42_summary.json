@@ -1,0 +1,139 @@
+﻿{
+    "schema_version":  "rentready-step42-final-summary/1.0",
+    "step":  "42",
+    "status":  "DEVELOPMENT_COMPLETE_NOT_PROMOTED",
+    "scope":  {
+                  "purpose":  "Improve physical-defect recall on the fixed Compass/Quimby development split while preserving frozen Detector v2 and avoiding unjustified production promotion.",
+                  "development_clips":  21,
+                  "positive_clips":  8,
+                  "clean_clips":  13,
+                  "annotated_intervals":  9,
+                  "unseen_holdout_claim":  false
+              },
+    "frozen_detector_v2_baseline":  {
+                                        "owner_verified_intervals":  2,
+                                        "total_intervals":  9,
+                                        "interval_recall":  0.2222222222,
+                                        "clean_false_positive_clips":  0,
+                                        "total_clean_clips":  13
+                                    },
+    "final_step42_development_result":  {
+                                            "owner_verified_intervals":  5,
+                                            "total_intervals":  9,
+                                            "interval_recall":  0.5555555556,
+                                            "positive_clips_detected":  5,
+                                            "total_positive_clips":  8,
+                                            "positive_clip_recall":  0.625,
+                                            "raw_clean_false_positive_clips":  1,
+                                            "total_clean_clips":  13,
+                                            "raw_clean_false_positive_rate":  0.0769230769,
+                                            "known_raw_clean_false_positive":  "clean_29 normal wood grain misclassified as floor_stain"
+                                        },
+    "improvement_vs_v2":  {
+                              "additional_owner_verified_intervals":  3,
+                              "recall_percentage_point_gain":  33.33333334,
+                              "relative_interval_recall_multiplier":  2.5,
+                              "clean_false_positive_clip_change":  "+1/13 at raw candidate-generation level"
+                          },
+    "owner_verified_recovered_intervals":  [
+                                               {
+                                                   "source":  "42B-1",
+                                                   "defect":  "defect_11 bathtub rim crack"
+                                               },
+                                               {
+                                                   "source":  "42B-1",
+                                                   "defect":  "defect_12 drywall patch near baseboard"
+                                               },
+                                               {
+                                                   "source":  "42B-1",
+                                                   "defect":  "defect_13 vanity mounting damage"
+                                               },
+                                               {
+                                                   "source":  "42B-4A",
+                                                   "defect":  "defect_15 unfinished wall patch / filled fastener holes"
+                                               },
+                                               {
+                                                   "source":  "42B-4B",
+                                                   "defect":  "defect_16 toilet paper holder sagging"
+                                               }
+                                           ],
+    "development_components_retained":  [
+                                            {
+                                                "component":  "Multi-keyframe candidate generation",
+                                                "evidence":  "Improved owner-verified interval coverage from 2/9 to 3/9.",
+                                                "limitation":  "Introduced the clean_29 raw false positive."
+                                            },
+                                            {
+                                                "component":  "Fixed wall-surface regional attention",
+                                                "evidence":  "Recovered defect_15 and introduced no new findings on the 12 eligible clean clips.",
+                                                "limitation":  "Development evidence only; not a production-verifier acceptance claim."
+                                            },
+                                            {
+                                                "component":  "Deterministic holder geometry",
+                                                "evidence":  "Recovered defect_16 across the full 21-clip development set with zero clean geometry false positives.",
+                                                "limitation":  "Development evidence only; unseen-holdout validation still required."
+                                            }
+                                        ],
+    "rejected_or_unpromoted_methods":  [
+                                           {
+                                               "experiment":  "42B-1 heuristic consensus",
+                                               "reason":  "Suppressed a real singleton defect and merged an unrelated false observation with a real defect."
+                                           },
+                                           {
+                                               "experiment":  "Original 42B-2 verifier",
+                                               "reason":  "Methodology invalidated for final performance claims because semantic filenames were exposed to the model."
+                                           },
+                                           {
+                                               "experiment":  "Corrected automatic verifier variants",
+                                               "reason":  "Could not reliably remove false positives without rejecting subtle true defects."
+                                           },
+                                           {
+                                               "experiment":  "42B-3 generic second look",
+                                               "reason":  "Recovered no missed defects."
+                                           },
+                                           {
+                                               "experiment":  "42B-4C wall multiregion attention",
+                                               "reason":  "Did not recover defect_14."
+                                           },
+                                           {
+                                               "experiment":  "42B-5 transient-motion water-drip heuristic",
+                                               "reason":  "Clean controls generated many equal or stronger motion residuals, making the signal non-discriminative."
+                                           },
+                                           {
+                                               "experiment":  "Toilet-base deterministic geometry",
+                                               "reason":  "Old caulk/sealant footprint could not be isolated reliably enough for a fixed rule."
+                                           }
+                                       ],
+    "unresolved_intervals":  [
+                                 "defect_09 water drip 1.8-2.1s",
+                                 "defect_09 water drip 15.23-15.55s",
+                                 "defect_10 toilet base displacement",
+                                 "defect_14 wall hole below window"
+                             ],
+    "methodology_guardrails":  {
+                                   "owner_verified_physical_recall_is_primary_candidate_generation_metric":  true,
+                                   "raw_candidate_generation_is_distinct_from_automatic_verifier_acceptance":  true,
+                                   "diagnostic_label_informed_results_are_not_performance_claims":  true,
+                                   "filenames_stems_paths_annotations_and_expected_labels_must_not_be_model_visible":  true,
+                                   "original_42b2_label_leaked_claims_excluded_from_final_performance":  true,
+                                   "development_result_is_not_an_unseen_holdout_claim":  true
+                               },
+    "frozen_v2_integrity":  {
+                                "verification_passed":  true,
+                                "errors":  [
+
+                                           ],
+                                "source_files_checked":  22,
+                                "frozen_source_modified":  false
+                            },
+    "production_decision":  {
+                                "detector_v3_promoted":  false,
+                                "reason":  "Step 42 demonstrates substantial development recall improvement, but the final combined candidate still has one known raw clean false positive and has not yet been evaluated on a new unseen v3 holdout."
+                            },
+    "next_step":  {
+                      "action":  "Freeze the selected v3 development design before any new evaluation.",
+                      "then":  "Build a new unseen v3 holdout that has not been used for Step 42 tuning and run a one-shot evaluation.",
+                      "prohibition":  "Do not continue tuning Step 42 against the existing Compass/Quimby development examples."
+                  },
+    "conclusion":  "Step 42 is complete as development research. Owner-verified physical interval recall improved from 2/9 to 5/9, while the final raw candidate-generation path retains one known clean false-positive clip. No production promotion or unseen-holdout performance claim is made."
+}
