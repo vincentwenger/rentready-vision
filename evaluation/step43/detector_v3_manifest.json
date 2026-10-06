@@ -1,0 +1,199 @@
+{
+  "schema_version": "rentready-detector-v3-freeze/1.0",
+  "detector": "detector_v3",
+  "status": "FROZEN_PRE_HOLDOUT",
+  "source": {
+    "step": 42,
+    "git_commit": "d652215e44cc4997fbab8cf0cf28ef21ef09999e",
+    "git_tag": "detector-v3-step42-candidate",
+    "commit_message": "Complete Step 42 development closeout"
+  },
+  "methodology": {
+    "development_only_selection": true,
+    "external_v3_evaluated_before_freeze": false,
+    "external_v3_results_used_for_tuning": false,
+    "post_holdout_tuning_allowed": false,
+    "rule_after_holdout": "Any detector change after external-v3 evaluation creates a new detector version and requires a new untouched holdout.",
+    "semantic_filename_verifier_excluded": true,
+    "prediction_policy": "Raw multi-keyframe findings plus retained zero-issue wall-attention path plus deterministic holder geometry. Experimental cross-keyframe consensus is not part of the frozen prediction decision."
+  },
+  "development_reference": {
+    "clips": 21,
+    "positive_clips": 8,
+    "clean_clips": 13,
+    "annotated_positive_intervals": 9,
+    "detected_intervals": 5,
+    "interval_recall": 0.5556,
+    "detected_positive_clips": 5,
+    "raw_clean_false_positive_clips": 1,
+    "known_raw_clean_false_positive": "clean_29",
+    "recovered_intervals": [
+      "defect_11",
+      "defect_12",
+      "defect_13",
+      "defect_15",
+      "defect_16"
+    ],
+    "unresolved_intervals": [
+      "defect_09 water drip interval 1",
+      "defect_09 water drip interval 2",
+      "defect_10 toilet-base displacement",
+      "defect_14 wall hole below window"
+    ]
+  },
+  "components": {
+    "keyframe_preprocessing": {
+      "issue_detection_max_keyframes": 120,
+      "minimum_keyframes_per_scene": 3,
+      "maximum_keyframes_per_scene": 8,
+      "preferred_keyframe_separation_seconds": 4,
+      "keyframe_marginal_score_threshold": 0.62,
+      "weights": {
+        "sharpness": 0.3,
+        "brightness": 0.15,
+        "camera_stability": 0.2,
+        "distinctiveness": 0.25,
+        "temporal_distance": 0.1
+      },
+      "maximum_output_keyframes": 120,
+      "minimum_output_keyframes": 3
+    },
+    "multi_keyframe": {
+      "profile": "detector_v3_multikeyframe_v1/1.0",
+      "behavior": "Analyze every existing OpenCV-selected keyframe independently.",
+      "primary_prediction_uses_raw_findings": true,
+      "experimental_consensus_promoted": false,
+      "inherited_detector_v2": {
+        "profile": "detector_v2_nova_conditional_sonnet/1.0",
+        "nova_model": "us.amazon.nova-2-lite-v1:0",
+        "sonnet_fallback_model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "confidence_threshold": 0.65,
+        "max_tokens": 1800,
+        "temperature": 0,
+        "nova_top_p": 0.1,
+        "sonnet_only_when_nova_has_no_accepted_issue": true,
+        "pixel_refinement": true,
+        "crack_refinement": true
+      }
+    },
+    "wall_attention": {
+      "profile": "wall_surface_regional_attention_full_v1/1.0",
+      "diagnostic_profile": "wall_surface_regional_attention_v1/1.0",
+      "eligibility": "Run only when the raw multi-keyframe path produced zero issues.",
+      "model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "selected_frame_rule": "Existing selected keyframe closest to 2.0 seconds; tie-break by higher evidence-quality score then earlier timestamp.",
+      "jpeg_quality": 92,
+      "max_tokens": 1000,
+      "temperature": 0,
+      "downstream_confidence_threshold": null,
+      "accept_all_structured_findings": true,
+      "focus_bbox": {
+        "x": 0.18,
+        "y": 0.25,
+        "width": 0.64,
+        "height": 0.68
+      }
+    },
+    "holder_geometry": {
+      "profile": "detector_v3_holder_geometry_v1/1.0",
+      "bedrock_calls": 0,
+      "relative_angle_threshold_deg": -8,
+      "minimum_supporting_frames": 2,
+      "hough": {
+        "canny_low": 50,
+        "canny_high": 150,
+        "hough_threshold": 30,
+        "minimum_line_length": 35,
+        "maximum_line_gap": 10
+      },
+      "holder_region": {
+        "minimum_length": 70,
+        "minimum_center_x": 0.42,
+        "minimum_center_y": 0.45,
+        "maximum_center_y": 0.78,
+        "maximum_abs_angle_deg": 30,
+        "maximum_retained_lines": 8
+      },
+      "reference_region": {
+        "minimum_length": 100,
+        "minimum_center_y": 0.12,
+        "maximum_center_y": 0.4,
+        "maximum_abs_angle_deg": 12,
+        "maximum_retained_lines": 8
+      },
+      "aggregation": "Median holder angle minus median reference angle."
+    },
+    "orchestration": {
+      "profile": "detector_v3_frozen_candidate/1.0",
+      "final_clip_rule": "raw_multi_keyframe OR zero_issue_wall_attention OR deterministic_holder_geometry",
+      "experimental_consensus_used": false,
+      "annotations_opened": false
+    }
+  },
+  "frozen_files": [
+    {
+      "path": "app/config.py",
+      "sha256": "9256e46f2bc58d3ba0f8a1a67ce4c7576c97a0c3b20543296ca38a1fbd0784ec"
+    },
+    {
+      "path": "app/vision/video_processor.py",
+      "sha256": "1d6be6f37c52e03d8f70960a9fd2946ecf7436a8ca9280a93878efa78b9fd196"
+    },
+    {
+      "path": "app/vision/issue_detector.py",
+      "sha256": "60052895ed083ee5a5f020ce4b13b1f48b80878ef71faae0e245292cdbee71a0"
+    },
+    {
+      "path": "app/vision/issue_taxonomy.py",
+      "sha256": "78e7e74ff458ded84baffdc4576e632c3a3fb93517635697d71b186b52e6feaf"
+    },
+    {
+      "path": "scripts/run_step34d_detector_v2.py",
+      "sha256": "911c947f0797919d8ed1a700867900dd32afe83d39b31625e296a64cc25abf33"
+    },
+    {
+      "path": "scripts/evaluate_step34b_compact.py",
+      "sha256": "ca8365c644787dc7b2609cc5b87d9d2413d1524f7b28926f9593e1faae464aee"
+    },
+    {
+      "path": "scripts/evaluate_step34b_detail_scan.py",
+      "sha256": "43af128bdf45b216e75a82e5ec0799e8de9669d788cb477635cf5c9bccc22e3f"
+    },
+    {
+      "path": "scripts/evaluate_step34b_fixture_geometry.py",
+      "sha256": "aa4ffe2bd47f470f73fc91df926f77a7509b7d338900875ef882b80dce9cb8fb"
+    },
+    {
+      "path": "scripts/evaluate_step34b_crack_fallback.py",
+      "sha256": "56014c846843283dd51c67b65d1c417c86731656d369964f83dfe3914f40bc48"
+    },
+    {
+      "path": "scripts/evaluate_step34b_v3_clean_control.py",
+      "sha256": "6522cb61dfc023421dff37adb90ccc3187f349474851c743351757b3f56fb25c"
+    },
+    {
+      "path": "scripts/evaluate_step34b_pixel_location.py",
+      "sha256": "13acf8451480252224f2b0202e3679a3e0e6092f0b5f048897a5d61ff1c42286"
+    },
+    {
+      "path": "scripts/run_step42b1_multikeyframe.py",
+      "sha256": "ddf3b1beb06cca9fbb6e88a4f5c80e799e66c61c4693f9324bf0dfc3a35735c5"
+    },
+    {
+      "path": "scripts/run_step42b4a_wall_attention_diagnostic.py",
+      "sha256": "a3fdbf5c746d857ea5202d7be70164c776375698016a124cf1d3970741f65a4d"
+    },
+    {
+      "path": "scripts/run_step42b4a_full_wall_attention.py",
+      "sha256": "fa2e58121a60e36897456fa858212eebda255d6ecff1f91398d421f662c042cb"
+    },
+    {
+      "path": "scripts/evaluate_step42b4b_holder_geometry.py",
+      "sha256": "8ff8d220cae0c7bba2eb4f72263eb4938f4cd944b2db2789d34e283f5906e9f4"
+    },
+    {
+      "path": "scripts/run_detector_v3_frozen.py",
+      "sha256": "e3cc17f4a446f83a3386036e0a3829057ac66034aae43aa66418f1b6ff4772c3"
+    }
+  ]
+}
