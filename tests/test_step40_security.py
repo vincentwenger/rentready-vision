@@ -140,7 +140,7 @@ def test_csp_hashes_inline_script_and_token_is_not_persisted():
     csp = content_security_policy(ROOT / "web/index.html")
     assert "script-src 'self' 'sha256-" in csp
     assert "frame-ancestors 'none'" in csp
-    source = (ROOT / "web/index.html").read_text()
+    source = (ROOT / "web/index.html").read_text(encoding="utf-8")
     assert "localStorage" not in source and "sessionStorage" not in source
     assert 'headers: upload.required_headers' in source
     assert 'size_bytes: file.size' in source

@@ -61,6 +61,21 @@ def _video(path: Path) -> None:
     writer.release()
 
 
+def _featureless_video(path: Path) -> None:
+    frame = np.full((270, 480, 3), 110, dtype=np.uint8)
+    writer = cv2.VideoWriter(
+        str(path),
+        cv2.VideoWriter_fourcc(*"MJPG"),
+        5.0,
+        (480, 270),
+    )
+    if not writer.isOpened():
+        pytest.skip("MJPG VideoWriter is unavailable")
+    for _ in range(25):
+        writer.write(frame)
+    writer.release()
+
+
 def _message() -> dict:
     return build_other_angle_message(
         inspection_id="inspection-123",
@@ -133,6 +148,111 @@ def test_other_angle_rejects_invalid_controls(tmp_path: Path, kwargs: dict, mess
     }
     with pytest.raises(ValueError, match=message):
         inspect_other_angle(video_path, tmp_path / "out", **parameters)
+
+
+def test_service_low_feature_other_angle_completes_without_retry_or_bedrock(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("S3_BUCKET", "rentready-test-bucket")
+    from app import services
+
+    source_video = tmp_path / "featureless.avi"
+    _featureless_video(source_video)
+    source_bytes = source_video.read_bytes()
+
+    uploads: list[str] = []
+    puts: list[dict] = []
+
+    class FakeS3:
+        def head_object(self, **_kwargs):
+            return {"ETag": '"video-etag"'}
+
+        def download_file(self, _bucket, _key, filename):
+            Path(filename).write_bytes(source_bytes)
+
+        def upload_file(self, filename, _bucket, key, ExtraArgs=None):
+            assert Path(filename).is_file()
+            uploads.append(key)
+
+        def put_object(self, **kwargs):
+            puts.append(kwargs)
+
+    monkeypatch.setattr(services, "s3", FakeS3())
+    monkeypatch.setattr(
+        services,
+        "_verify_runtime",
+        lambda **_kwargs: {
+            "runtime": "COOL",
+            "architecture": "aarch64",
+            "opencv_version": "5.1.0-dev",
+            "cv2_path": "/opt/cool/lib/python3.12/site-packages/cv2/__init__.py",
+            "instance_type": "m8g.4xlarge",
+        },
+    )
+
+    def unexpected_bedrock(**_kwargs):
+        raise AssertionError(
+            "Bedrock reassessment must not run when no alternate viewpoint exists"
+        )
+
+    monkeypatch.setattr(
+        services,
+        "reassess_other_angle_evidence",
+        unexpected_bedrock,
+    )
+
+    parameters = {
+        "video_id": "inspection-low-feature",
+        "timestamp": 2.0,
+        "bounding_box": {
+            "x": 0.30,
+            "y": 0.25,
+            "width": 0.40,
+            "height": 0.50,
+        },
+        "search_seconds_before": 2.0,
+        "search_seconds_after": 2.0,
+        "sample_every_seconds": 0.5,
+        "max_results": 3,
+        "min_viewpoint_change": 0.02,
+    }
+
+    response = services.execute_other_angle_job(
+        inspection_id="inspection-low-feature",
+        source_key="inspections/inspection-low-feature/original/walkthrough.avi",
+        parameters=parameters,
+        agent_context={
+            "description": "Possible visible condition",
+            "confidence_before": 0.70,
+        },
+        job_id="rv-low-feature",
+        require_cool=True,
+        expected_source_etag="video-etag",
+    )
+
+    trace = response["result"]
+
+    assert trace["other_angle_result"]["has_other_view_candidates"] is False
+    assert (
+        trace["other_angle_result"]["unavailable_reason"]
+        == "insufficient_reference_features"
+    )
+    assert trace["multi_view_confirmed"] is False
+    assert trace["confidence_before"] == 0.70
+    assert trace["confidence_after"] == 0.70
+    assert trace["action"] == "REQUEST_HUMAN_APPROVAL"
+    assert trace["human_control"]["required"] is True
+
+    # No unreliable geometric evidence is fabricated or uploaded.
+    assert len(uploads) == 0
+    assert trace["other_angle_result"]["selected_frame_count"] == 0
+    assert trace["other_angle_result"]["frames"] == []
+
+    # The trace is persisted normally, proving this path completes rather than
+    # propagating an exception to the SQS retry layer.
+    assert len(puts) == 1
+    assert puts[0]["Key"].endswith("step21-other-angle-trace.json")
 
 
 def test_other_angle_message_is_deterministic_and_strictly_validated() -> None:

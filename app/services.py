@@ -54,6 +54,7 @@ from .vision.interval_inspector import inspect_interval
 from .vision.region_cropper import CROP_TRACE_VERSION, write_crop_region
 from .vision.region_enhancer import ENHANCE_TRACE_VERSION, write_enhanced_region
 from .vision.other_angle_inspector import (
+    OTHER_ANGLE_TOOL_VERSION,
     OTHER_ANGLE_TRACE_VERSION,
     inspect_other_angle,
 )
@@ -1353,17 +1354,74 @@ def execute_other_angle_job(
             input_path = tmp_path / f"walkthrough{suffix}"
             evidence_dir = tmp_path / "other_angle"
             s3.download_file(settings.s3_bucket, source_key, str(input_path))
-            search = inspect_other_angle(
-                input_path,
-                evidence_dir,
-                timestamp=float(parameters["timestamp"]),
-                bounding_box=parameters["bounding_box"],
-                search_seconds_before=float(parameters["search_seconds_before"]),
-                search_seconds_after=float(parameters["search_seconds_after"]),
-                sample_every_seconds=float(parameters["sample_every_seconds"]),
-                max_results=int(parameters["max_results"]),
-                min_viewpoint_change=float(parameters["min_viewpoint_change"]),
-            )
+            try:
+                search = inspect_other_angle(
+                    input_path,
+                    evidence_dir,
+                    timestamp=float(parameters["timestamp"]),
+                    bounding_box=parameters["bounding_box"],
+                    search_seconds_before=float(parameters["search_seconds_before"]),
+                    search_seconds_after=float(parameters["search_seconds_after"]),
+                    sample_every_seconds=float(parameters["sample_every_seconds"]),
+                    max_results=int(parameters["max_results"]),
+                    min_viewpoint_change=float(parameters["min_viewpoint_change"]),
+                )
+            except RuntimeError as exc:
+                if str(exc) != (
+                    "Candidate region has insufficient visual features for reliable "
+                    "other-angle matching"
+                ):
+                    raise
+
+                timestamp = float(parameters["timestamp"])
+                search_seconds_before = float(parameters["search_seconds_before"])
+                search_seconds_after = float(parameters["search_seconds_after"])
+
+                search = {
+                    "tool": "inspect_other_angle",
+                    "tool_version": OTHER_ANGLE_TOOL_VERSION,
+                    "request": {
+                        "timestamp": round(timestamp, 3),
+                        "bounding_box": {
+                            name: float(parameters["bounding_box"][name])
+                            for name in ("x", "y", "width", "height")
+                        },
+                        "search_seconds_before": search_seconds_before,
+                        "search_seconds_after": search_seconds_after,
+                        "sample_every_seconds": float(parameters["sample_every_seconds"]),
+                        "max_results": int(parameters["max_results"]),
+                        "min_viewpoint_change": float(parameters["min_viewpoint_change"]),
+                    },
+                    "source": {
+                        "fps": None,
+                        "frame_count": None,
+                        "duration_seconds": None,
+                    },
+                    "search": {
+                        "requested_start_seconds": round(
+                            max(0.0, timestamp - search_seconds_before),
+                            3,
+                        ),
+                        "requested_end_seconds": round(
+                            timestamp + search_seconds_after,
+                            3,
+                        ),
+                        "effective_end_seconds": None,
+                        "sampled_candidate_count": 0,
+                        "geometrically_matched_count": 0,
+                        "rejected": {
+                            "read_failed": 0,
+                            "too_few_matches": 0,
+                            "geometry_failed": 0,
+                            "view_too_similar": 0,
+                        },
+                    },
+                    "reference_feature_count": None,
+                    "selected_frame_count": 0,
+                    "has_other_view_candidates": False,
+                    "unavailable_reason": "insufficient_reference_features",
+                    "frames": [],
+                }
             prefix = artifact_key(storage_prefix, f"agentic/{job_id}/other-angle", context=agent_context)
             public_frames: list[dict[str, Any]] = []
             for frame in search["frames"]:
