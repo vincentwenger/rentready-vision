@@ -1,0 +1,72 @@
+﻿[
+    {
+        "case_id":  "case_001",
+        "filename":  "case_001.webm",
+        "sha256":  "3ae8bea290db11fb98f2ca62c69769bf366e35de4b3b4c176811e3f30a8f717f"
+    },
+    {
+        "case_id":  "case_002",
+        "filename":  "case_002.webm",
+        "sha256":  "89796b04d12ee980a9d80367fc3e96800589d99c4e94a15bad07717b8735d87c"
+    },
+    {
+        "case_id":  "case_003",
+        "filename":  "case_003.webm",
+        "sha256":  "ac103210eea4f4b9eec5424aaa2778a8d9d1a51efc20453775d53180dcaa118d"
+    },
+    {
+        "case_id":  "case_004",
+        "filename":  "case_004.webm",
+        "sha256":  "71177c0d1adc26987fe42d359d3f0e4e4e32c6a295ea5530a834f1393660a1cd"
+    },
+    {
+        "case_id":  "case_005",
+        "filename":  "case_005.webm",
+        "sha256":  "009c468649f47fc47a7e2a206f86cf286cfd3b58bfd0ed1edb3af5c96a885a97"
+    },
+    {
+        "case_id":  "case_006",
+        "filename":  "case_006.mp4",
+        "sha256":  "2af095434aa97326976b143811fda0250f0cd8302edb1962280ee4d767988bed"
+    },
+    {
+        "case_id":  "case_007",
+        "filename":  "case_007.mp4",
+        "sha256":  "f8aa1c3b30db2967db3f1f0019d73295ec7903b177129b86a8bb542b3b3c3002"
+    },
+    {
+        "case_id":  "case_008",
+        "filename":  "case_008.mp4",
+        "sha256":  "14bc82aa130f9b919fa3e5f30f04d45bf25471823c8df3d0a390d625908f495b"
+    },
+    {
+        "case_id":  "case_009",
+        "filename":  "case_009.mp4",
+        "sha256":  "f466bd053a9ca99f308e4795846f30555a3986186c52a24b5c687f38d2a0ded2"
+    },
+    {
+        "case_id":  "case_010",
+        "filename":  "case_010.mp4",
+        "sha256":  "f2444452e21c3b4f1f5cd2b9885c13130c1316806b17f1c9bd1305b68c62abaf"
+    },
+    {
+        "case_id":  "case_011",
+        "filename":  "case_011.mp4",
+        "sha256":  "3fdcfc205984dafeb00a4a086b7e5a141fc56797cd3dc3fcbb2625398403c1ca"
+    },
+    {
+        "case_id":  "case_012",
+        "filename":  "case_012.mp4",
+        "sha256":  "6d01edf49df53d04bace7da63c251e0111c3d07dad32cb02e43277d6c8aa9d66"
+    },
+    {
+        "case_id":  "case_013",
+        "filename":  "case_013.mp4",
+        "sha256":  "a41f32ef5c229bb487a8be0411b644cf2e03cc17ccd860beeee8f9b903fff8ea"
+    },
+    {
+        "case_id":  "case_014",
+        "filename":  "case_014.mp4",
+        "sha256":  "e4e9a0655e4d67eb799ea366b84e2e4e787af9f6a71c2c16e8c5abf60db45ac3"
+    }
+]

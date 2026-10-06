@@ -1,0 +1,76 @@
+===== DETECTOR V3 FREEZE VERIFICATION: PASS =====
+[PASS] Source commit: d652215e44cc4997fbab8cf0cf28ef21ef09999e
+[PASS] Source tag: detector-v3-step42-candidate
+[PASS] Frozen prediction files: 16
+[PASS] Raw multi-keyframe path frozen
+[PASS] Experimental consensus excluded
+[PASS] Zero-issue wall-attention path frozen
+[PASS] Deterministic holder geometry frozen
+[PASS] Final OR orchestration frozen
+[PASS] External-v3 tuning prohibited
+===== STEP 44 LABEL-BLIND ONE-SHOT PLAN =====
+Frozen detector commit: f17881ba0adf210546b32ef2154755efcb8f398b
+Blind cases: 14
+Ground-truth manifest opened during inference: False
+Expected labels available during inference: False
+[01/14] case_001  case_001.webm  3ae8bea290db11fb98f2ca62c69769bf366e35de4b3b4c176811e3f30a8f717f
+[02/14] case_002  case_002.webm  89796b04d12ee980a9d80367fc3e96800589d99c4e94a15bad07717b8735d87c
+[03/14] case_003  case_003.webm  ac103210eea4f4b9eec5424aaa2778a8d9d1a51efc20453775d53180dcaa118d
+[04/14] case_004  case_004.webm  71177c0d1adc26987fe42d359d3f0e4e4e32c6a295ea5530a834f1393660a1cd
+[05/14] case_005  case_005.webm  009c468649f47fc47a7e2a206f86cf286cfd3b58bfd0ed1edb3af5c96a885a97
+[06/14] case_006  case_006.mp4  2af095434aa97326976b143811fda0250f0cd8302edb1962280ee4d767988bed
+[07/14] case_007  case_007.mp4  f8aa1c3b30db2967db3f1f0019d73295ec7903b177129b86a8bb542b3b3c3002
+[08/14] case_008  case_008.mp4  14bc82aa130f9b919fa3e5f30f04d45bf25471823c8df3d0a390d625908f495b
+[09/14] case_009  case_009.mp4  f466bd053a9ca99f308e4795846f30555a3986186c52a24b5c687f38d2a0ded2
+[10/14] case_010  case_010.mp4  f2444452e21c3b4f1f5cd2b9885c13130c1316806b17f1c9bd1305b68c62abaf
+[11/14] case_011  case_011.mp4  3fdcfc205984dafeb00a4a086b7e5a141fc56797cd3dc3fcbb2625398403c1ca
+[12/14] case_012  case_012.mp4  6d01edf49df53d04bace7da63c251e0111c3d07dad32cb02e43277d6c8aa9d66
+[13/14] case_013  case_013.mp4  a41f32ef5c229bb487a8be0411b644cf2e03cc17ccd860beeee8f9b903fff8ea
+[14/14] case_014  case_014.mp4  e4e9a0655e4d67eb799ea366b84e2e4e787af9f6a71c2c16e8c5abf60db45ac3
+
+===== [01/14] case_001 =====
+[RESULT] case_001 predicted_positive=True
+
+===== [02/14] case_002 =====
+[RESULT] case_002 predicted_positive=False
+
+===== [03/14] case_003 =====
+[RESULT] case_003 predicted_positive=False
+
+===== [04/14] case_004 =====
+[RESULT] case_004 predicted_positive=False
+
+===== [05/14] case_005 =====
+[RESULT] case_005 predicted_positive=False
+
+===== [06/14] case_006 =====
+[RESULT] case_006 predicted_positive=False
+
+===== [07/14] case_007 =====
+[RESULT] case_007 predicted_positive=False
+
+===== [08/14] case_008 =====
+[RESULT] case_008 predicted_positive=False
+
+===== [09/14] case_009 =====
+[RESULT] case_009 predicted_positive=False
+
+===== [10/14] case_010 =====
+[RESULT] case_010 predicted_positive=False
+
+===== [11/14] case_011 =====
+[RESULT] case_011 predicted_positive=False
+
+===== [12/14] case_012 =====
+[RESULT] case_012 predicted_positive=False
+
+===== [13/14] case_013 =====
+[RESULT] case_013 predicted_positive=False
+
+===== [14/14] case_014 =====
+[RESULT] case_014 predicted_positive=True
+
+===== STEP 44 BLIND INFERENCE COMPLETE =====
+Cases processed: 14
+Ground truth opened: False
+Predictions: C:\Users\vince\Software\RentReady_Vision\rentready-vision-git\evaluation\step44_one_shot_run\blind_predictions.json

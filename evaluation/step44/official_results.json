@@ -1,0 +1,155 @@
+﻿{
+    "schema_version":  "rentready-step44-external-v3-result/1.0",
+    "step":  44,
+    "status":  "ONE_SHOT_COMPLETE",
+    "detector":  {
+                     "profile":  "detector_v3_frozen_candidate/1.0",
+                     "git_commit":  "f17881ba0adf210546b32ef2154755efcb8f398b",
+                     "git_tag":  "detector-v3-frozen-step43",
+                     "freeze_verification":  "PASS",
+                     "post_result_tuning_allowed":  false
+                 },
+    "evaluation":  {
+                       "dataset":  "RentReady Vision External v3 Holdout",
+                       "total_videos":  14,
+                       "clean_videos":  8,
+                       "positive_videos":  6,
+                       "label_blind_inference":  true,
+                       "ground_truth_opened_during_inference":  false,
+                       "reruns_performed":  false,
+                       "blind_predictions_sha256":  "255c9c3817aff6c04522b65df8ce9e31479ec4a4bfab7281eed60cd612653f5b"
+                   },
+    "confusion_matrix":  {
+                             "true_positive":  1,
+                             "true_negative":  7,
+                             "false_positive":  1,
+                             "false_negative":  5
+                         },
+    "metrics":  {
+                    "precision":  0.5,
+                    "recall":  0.166667,
+                    "specificity":  0.875,
+                    "accuracy":  0.571429,
+                    "f1":  0.25
+                },
+    "cases":  [
+                  {
+                      "case_id":  "case_001",
+                      "holdout_id":  "v3c001",
+                      "class":  "walkthrough",
+                      "expected_label":  "clean",
+                      "predicted_positive":  true,
+                      "outcome":  "FP"
+                  },
+                  {
+                      "case_id":  "case_002",
+                      "holdout_id":  "v3c003",
+                      "class":  "ceiling_fixture",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_003",
+                      "holdout_id":  "v3p003",
+                      "class":  "water_leak",
+                      "expected_label":  "defect",
+                      "predicted_positive":  false,
+                      "outcome":  "FN"
+                  },
+                  {
+                      "case_id":  "case_004",
+                      "holdout_id":  "v3c006",
+                      "class":  "interior",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_005",
+                      "holdout_id":  "v3p005",
+                      "class":  "electrical_flicker",
+                      "expected_label":  "defect",
+                      "predicted_positive":  false,
+                      "outcome":  "FN"
+                  },
+                  {
+                      "case_id":  "case_006",
+                      "holdout_id":  "v3c008",
+                      "class":  "kitchen",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_007",
+                      "holdout_id":  "v3c009",
+                      "class":  "bathroom",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_008",
+                      "holdout_id":  "v3c010",
+                      "class":  "living_room",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_009",
+                      "holdout_id":  "v3c011",
+                      "class":  "bedroom",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_010",
+                      "holdout_id":  "v3c012",
+                      "class":  "walkthrough",
+                      "expected_label":  "clean",
+                      "predicted_positive":  false,
+                      "outcome":  "TN"
+                  },
+                  {
+                      "case_id":  "case_011",
+                      "holdout_id":  "v3p006",
+                      "class":  "fixture_condition",
+                      "expected_label":  "defect",
+                      "predicted_positive":  false,
+                      "outcome":  "FN"
+                  },
+                  {
+                      "case_id":  "case_012",
+                      "holdout_id":  "v3p007",
+                      "class":  "surface_ceiling_damage",
+                      "expected_label":  "defect",
+                      "predicted_positive":  false,
+                      "outcome":  "FN"
+                  },
+                  {
+                      "case_id":  "case_013",
+                      "holdout_id":  "v3p008",
+                      "class":  "fire_damage",
+                      "expected_label":  "defect",
+                      "predicted_positive":  false,
+                      "outcome":  "FN"
+                  },
+                  {
+                      "case_id":  "case_014",
+                      "holdout_id":  "v3p009",
+                      "class":  "window_damage",
+                      "expected_label":  "defect",
+                      "predicted_positive":  true,
+                      "outcome":  "TP"
+                  }
+              ],
+    "methodology":  {
+                        "result_policy":  "Report the frozen one-shot result even if unfavorable.",
+                        "detector_changes_after_unblinding":  false,
+                        "future_detector_change_requires_new_version":  true,
+                        "future_unbiased_evaluation_requires_new_untouched_holdout":  true
+                    }
+}
