@@ -766,3 +766,28 @@ The individual audit deliberately leaves its aggregate IAM status pending;
 `evaluation/step40/completion_verification.json` combines the separate evidence.
 This is a single-operator demo; the shared token does not provide tenant isolation.
 Git publication is the final packaging step. All 22 frozen Step 34D sources remain unchanged.
+
+## Step 45 Detector v4 research - COMPLETE / DEVELOPMENT ONLY
+
+Step 44 evaluated frozen Detector v3 once on the external-v3 holdout and recorded
+TP=1, TN=7, FP=1, FN=5 (16.7% recall, 25.0% F1). That holdout is now consumed
+and must not be reused as an unbiased Detector v4 benchmark.
+
+Step 45 performed post-holdout failure analysis and controlled Detector v4
+research without modifying frozen Detector v3. Two components survived as
+research candidates:
+
+- Arm A: whole-scene severe-damage specialist
+- Arm B1: electrical-flicker temporal specialist
+
+On the consumed Step 44 development evidence, Detector v3 OR Arm A OR Arm B1
+produced TP=4, TN=7, FP=1, FN=2 (66.7% recall, 72.7% F1).
+
+Localized water-motion research (Arm B2), the current semantic water specialist
+(Arm B3), and the fixture-condition specialist (Arm C) were not promoted.
+Further case-specific tuning against the consumed Step 44 set is prohibited.
+
+Any eventual Detector v4 must be evaluated once on a brand-new untouched
+external holdout.
+
+See [`STEP45_FINAL.md`](STEP45_FINAL.md) for the complete research record.

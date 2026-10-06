@@ -1,0 +1,33 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b3-semantic-review/1.0",
+    "step":  45,
+    "arm":  "B3",
+    "status":  "SEMANTIC_REVIEW_COMPLETE",
+    "sealed_prediction_sha256":  "95955d68521a8856f197e7d71ec00533aadeb41c5582065b267c1d1362e87bf3",
+    "detector_v3_modified":  false,
+    "predictions_rerun":  false,
+    "findings":  [
+                     {
+                         "case_id":  "case_003",
+                         "step44_class":  "water_leak",
+                         "b3_positive":  true,
+                         "semantic_assessment":  "true_water_leak_detection",
+                         "conclusion":  "B3 correctly surfaced temporal dripping-water evidence."
+                     },
+                     {
+                         "case_id":  "case_011",
+                         "step44_class":  "fixture_condition",
+                         "b3_positive":  true,
+                         "semantic_assessment":  "active_water_but_not_demonstrated_leak",
+                         "conclusion":  "The contact sheet clearly shows water flowing from a faucet/aerator. The model correctly recognized active water, but the imagery does not demonstrate an unintended leak. This is therefore a semantic false positive for the intended water-leak specialist."
+                     }
+                 ],
+    "root_cause":  "The pre-registered B3 prompt defined streaming water as sufficient for a positive result, so ordinary intentional faucet flow can satisfy the classifier even when no leak is demonstrated.",
+    "promotion":  {
+                      "current_b3":  "not_promoted_as_is",
+                      "reason":  "Objective is too broad for leak-specific RentReady use.",
+                      "future_candidate":  "Refine a future water specialist to distinguish intended plumbing flow from unintended dripping/leaking.",
+                      "requires_new_evaluation":  true
+                  },
+    "metrics_note":  "The 6 TP / 7 TN / 1 FP / 0 FN combined binary score on the consumed Step 44 set remains historically valid under the coarse defect-vs-clean labels, but it should not be presented as evidence that the B3 water-leak specialist has perfect recall."
+}

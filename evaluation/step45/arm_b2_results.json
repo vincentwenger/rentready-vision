@@ -1,0 +1,50 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b2-result/1.0",
+    "step":  45,
+    "arm":  "B2",
+    "name":  "localized_transient_motion",
+    "status":  "RESEARCH_FAIL_NO_CLASSIFIER",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "model_calls":  0,
+                        "labels_used_during_feature_extraction":  false,
+                        "case_classifier_created":  false,
+                        "promotion_to_v4":  "not_promoted",
+                        "future_unbiased_evaluation_requires_new_holdout":  true
+                    },
+    "target":  {
+                   "case_id":  "case_003",
+                   "failure_mode":  "water_leak"
+               },
+    "experiments":  [
+                        {
+                            "name":  "whole_frame_temporal_features",
+                            "conclusion":  "Water-drip signal was too small relative to whole-frame statistics."
+                        },
+                        {
+                            "name":  "translation_compensated_localized_motion",
+                            "conclusion":  "Localized residual magnitude did not uniquely distinguish case_003."
+                        },
+                        {
+                            "name":  "single_region_concentration",
+                            "conclusion":  "Concentration-gap measurements did not uniquely distinguish case_003."
+                        },
+                        {
+                            "name":  "spatial_recurrence",
+                            "conclusion":  "Spatial recurrence and localized energy were not uniquely stronger for case_003 than controls and other defect cases."
+                        }
+                    ],
+    "case_003_observations":  {
+                                  "stabilization_failures":  0,
+                                  "localization_ratio_p95":  45.8774,
+                                  "concentration_gap_p95":  0.106641,
+                                  "concentration_gap_max":  0.150608,
+                                  "best_3x3_recurrence_share":  0.3128,
+                                  "longest_3x3_consecutive_run":  8,
+                                  "best_3x3_energy_share":  0.192
+                              },
+    "conclusion":  "Do not construct a water-leak classifier from the current deterministic motion features. The measurements overlap substantially with non-water cases.",
+    "next_recommendation":  "Test a water-specific semantic temporal specialist on the same 14 consumed development cases, using identical label-blind prompting for every case. Do not continue hand-tuning motion thresholds against case_003."
+}

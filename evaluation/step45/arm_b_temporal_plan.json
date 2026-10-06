@@ -1,0 +1,100 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b-plan/1.0",
+    "step":  45,
+    "arm":  "B",
+    "name":  "temporal_transient_condition_analysis",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether deterministic short-interval temporal evidence can recover transient conditions such as dripping water and electrical flicker that sparse independent Detector v3 keyframes missed.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "detector_v3_rerun":  false,
+                        "cases":  "all 14 Step 44 cases",
+                        "input_source":  "neutral Step 44 blind-input videos",
+                        "labels_available_during_analysis":  false,
+                        "original_holdout_names_available":  false,
+                        "expected_conditions_available":  false,
+                        "sampling_fps":  4,
+                        "sampling_interval_seconds":  0.25,
+                        "selection_policy":  "Apply identical deterministic 4 fps sampling to every case. Do not select timestamps using known labels or Step 44 outcomes.",
+                        "research_targets":  [
+                                                 "visible dripping or falling liquid",
+                                                 "repeated short-window brightness changes consistent with fixture flicker",
+                                                 "other clearly transient visible property conditions"
+                                             ],
+                        "non_targets":  [
+                                            "ordinary camera motion",
+                                            "exposure changes caused by camera movement",
+                                            "reflections",
+                                            "normal moving shadows",
+                                            "general scene changes between different camera viewpoints"
+                                        ],
+                        "promotion_rule":  "Research evidence only. Arm B is not automatically adopted into Detector v4.",
+                        "extraction_rules":  {
+                                                 "start_seconds":  0,
+                                                 "interval_seconds":  0.25,
+                                                 "frame_index_rule":  "round(timestamp_seconds * source_fps)",
+                                                 "duplicate_frame_policy":  "deduplicate repeated source frame numbers while preserving first occurrence",
+                                                 "final_frame_policy":  "never request a frame index greater than total_frames - 1",
+                                                 "jpeg_quality":  92,
+                                                 "resizing":  "none",
+                                                 "cropping":  "none",
+                                                 "stabilization":  "none",
+                                                 "temporal_windowing":  "not yet applied; this step extracts deterministic 4 fps evidence only",
+                                                 "model_calls":  0,
+                                                 "tail_decode_tolerance_seconds":  1,
+                                                 "decode_failure_policy":  "If a scheduled frame cannot decode and its scheduled timestamp is within 1.0 second of the reported duration, omit that sample and record it as decode_unavailable. Any decode failure earlier than the final 1.0 second aborts extraction.",
+                                                 "substitute_neighboring_frame":  false
+                                             },
+                        "extraction_incidents":  [
+                                                     {
+                                                         "attempt":  1,
+                                                         "status":  "FAILED_NO_MODEL_CALLS",
+                                                         "case_id":  "case_003",
+                                                         "requested_frame_number":  1125,
+                                                         "requested_timestamp_seconds":  45,
+                                                         "reported_total_frames":  1129,
+                                                         "last_verified_decodable_frame":  1124,
+                                                         "reason":  "Source WebM reports trailing frames that OpenCV cannot decode.",
+                                                         "labels_used":  false,
+                                                         "model_calls":  0
+                                                     }
+                                                 ],
+                        "temporal_features":  {
+                                                  "frame_preprocessing":  {
+                                                                              "grayscale":  true,
+                                                                              "analysis_width_pixels":  320,
+                                                                              "preserve_aspect_ratio":  true,
+                                                                              "gaussian_blur_kernel":  5
+                                                                          },
+                                                  "brightness":  {
+                                                                     "frame_statistic":  "median grayscale intensity",
+                                                                     "pairwise_feature":  "absolute difference between consecutive sampled-frame medians",
+                                                                     "purpose":  "Measure rapid illumination change without assigning a defect label."
+                                                                 },
+                                                  "frame_difference":  {
+                                                                           "pairwise_feature":  "mean absolute grayscale difference between consecutive sampled frames",
+                                                                           "purpose":  "Measure total visual change, including camera motion."
+                                                                       },
+                                                  "localized_residual":  {
+                                                                             "threshold_absolute_gray_difference":  25,
+                                                                             "feature":  "fraction of pixels whose absolute consecutive-frame difference exceeds threshold",
+                                                                             "purpose":  "Measure localized transient visual change."
+                                                                         },
+                                                  "output_policy":  "Record raw per-frame and per-pair features only. Do not classify a case positive or negative in this stage.",
+                                                  "labels_used":  false,
+                                                  "model_calls":  0
+                                              }
+                    },
+    "evaluation":  {
+                       "primary_targets":  [
+                                               "case_003",
+                                               "case_005"
+                                           ],
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_every_case":  true,
+                       "report_tp_fp_fn_tn":  true,
+                       "key_question":  "Can temporal evidence recover water leak and/or electrical flicker without introducing excessive false positives from camera motion or exposure changes?"
+                   }
+}

@@ -1,0 +1,90 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-c-plan/1.0",
+    "step":  45,
+    "arm":  "C",
+    "name":  "fixture_condition_specialist",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether a dedicated visual specialist can recognize abnormal physical condition of installed fixtures or hardware that the frozen Detector v3 missed.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "cases":  "all 14 Step 44 cases",
+                        "labels_available_to_model":  false,
+                        "original_case_names_available_to_model":  false,
+                        "expected_conditions_available_to_model":  false,
+                        "source":  "frozen Step 44 selected keyframes already produced during the one-shot evaluation",
+                        "frame_policy":  {
+                                             "use_existing_selected_frames_only":  true,
+                                             "rerun_keyframe_selection":  false,
+                                             "maximum_frames_per_case":  5,
+                                             "chronological_order":  true,
+                                             "cropping":  "none",
+                                             "resizing":  "none beyond model transport requirements",
+                                             "deterministic_subsampling":  {
+                                                                               "if_five_or_fewer":  "Use every frozen selected keyframe in chronological order.",
+                                                                               "if_more_than_five":  "Select exactly five frames evenly across the chronological frozen selected-keyframe list.",
+                                                                               "index_formula":  "For n keyframes and k=5, choose zero-based index round(i*(n-1)/(k-1)) for i=0,1,2,3,4.",
+                                                                               "rounding":  "Python round-to-nearest integer.",
+                                                                               "rerun_selection":  false,
+                                                                               "labels_used":  false,
+                                                                               "semantic_content_used_for_selection":  false
+                                                                           }
+                                         },
+                        "specialist_scope":  [
+                                                 "plumbing fixtures",
+                                                 "electrical fixtures",
+                                                 "mounted hardware",
+                                                 "installed appliance hardware",
+                                                 "other permanently installed components"
+                                             ],
+                        "positive_requires":  "Visible physical evidence that an installed fixture or hardware component is broken, detached, loose, displaced, misaligned, deformed, missing a required part, improperly mounted, or otherwise visibly defective.",
+                        "do_not_count":  [
+                                             "normal fixture appearance",
+                                             "normal intentional faucet water flow",
+                                             "ordinary reflections",
+                                             "cosmetic dirt alone",
+                                             "static stains without fixture damage",
+                                             "generic wall or ceiling damage",
+                                             "camera blur",
+                                             "uncertain abnormality without visible physical evidence"
+                                         ],
+                        "uncertainty_policy":  "If the fixture condition cannot be identified as physically abnormal with reasonable visual confidence, return negative.",
+                        "model":  {
+                                      "provider":  "Amazon Bedrock",
+                                      "model":  "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                                      "temperature":  0,
+                                      "max_tokens":  1000,
+                                      "calls_per_case":  1,
+                                      "expected_total_calls":  14
+                                  },
+                        "output_schema":  {
+                                              "fixture_defect_detected":  "boolean",
+                                              "confidence":  "number from 0 to 1",
+                                              "evidence":  "short visual-evidence description"
+                                          },
+                        "classification_rule":  "Case is positive only when fixture_defect_detected=true. No post-run confidence threshold will be introduced.",
+                        "promotion_rule":  "Research evidence only. A successful Arm C may become a Detector v4 candidate component but requires a brand-new untouched holdout for unbiased validation.",
+                        "source_input_manifest_sha256":  "515ce12abad2a34c8e97cdd34f1f4321a3d29a9172b9a8bd8fab17a6428fc223",
+                        "exact_prompt":  "You are a visual specialist inspecting several views from one anonymous property-inspection video.\n\nYour task is ONLY to determine whether an INSTALLED FIXTURE OR HARDWARE COMPONENT has a clearly visible physical defect.\n\nExamples of installed fixtures or hardware include:\n- faucets and plumbing fixtures,\n- electrical fixtures,\n- mounted hardware,\n- installed appliance hardware,\n- other permanently installed components.\n\nCount as a fixture defect only when there is visible physical evidence that the installed component is:\n- broken,\n- detached,\n- loose,\n- displaced,\n- misaligned,\n- deformed,\n- missing a required part,\n- improperly mounted,\n- or otherwise visibly physically defective.\n\nDo NOT count any of the following as a fixture defect:\n- a normally installed and normally appearing fixture,\n- normal intentional faucet water flow,\n- water being used normally from a faucet,\n- ordinary reflections,\n- cosmetic dirt alone,\n- static stains without fixture damage,\n- generic wall, ceiling, floor, or surface damage,\n- camera blur,\n- perspective alone,\n- an uncertain abnormality without visible physical evidence.\n\nImportant:\nNormal water flowing from a faucet is NOT evidence of a fixture defect unless the fixture itself is visibly broken, displaced, detached, malformed, improperly mounted, or otherwise physically defective.\n\nInspect all supplied views together.\n\nIf the physical fixture condition cannot be identified as abnormal with reasonable visual confidence, return negative.\n\nReturn ONLY one JSON object with exactly these fields:\n\n{\n  \"fixture_defect_detected\": false,\n  \"confidence\": 0.0,\n  \"evidence\": \"short visual-evidence description\"\n}\n\nRules:\n- fixture_defect_detected must be true or false.\n- confidence must be from 0 to 1.\n- evidence must be concise and based only on visible evidence in the supplied images.\n- Do not return Markdown.\n- Do not add any fields.",
+                        "response_handling":  {
+                                                  "expected_format":  "single JSON object",
+                                                  "markdown_fence_handling":  "strip one surrounding JSON or Markdown code fence without another model call",
+                                                  "invalid_json_policy":  "abort immediately; do not retry model call",
+                                                  "required_fields":  [
+                                                                          "fixture_defect_detected",
+                                                                          "confidence",
+                                                                          "evidence"
+                                                                      ],
+                                                  "extra_fields_allowed":  false,
+                                                  "confidence_range":  "0 through 1 inclusive",
+                                                  "retries":  0
+                                              }
+                    },
+    "evaluation":  {
+                       "primary_research_target":  "case_011",
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_every_case":  true,
+                       "seal_predictions_before_scoring":  true
+                   }
+}

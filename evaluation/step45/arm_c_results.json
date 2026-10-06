@@ -1,0 +1,49 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-c-result/1.0",
+    "step":  45,
+    "arm":  "C",
+    "name":  "fixture_condition_specialist",
+    "status":  "RESEARCH_FAIL_TARGET_MISSED",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "input_manifest_sha256":  "515ce12abad2a34c8e97cdd34f1f4321a3d29a9172b9a8bd8fab17a6428fc223",
+                        "sealed_prediction_sha256":  "223e022f10ddeaa0d0731fd43a6dea8cbcf326ee755e85d62d35a23896db59dd",
+                        "model_calls":  14,
+                        "retries":  0,
+                        "labels_used_during_inference":  false,
+                        "ground_truth_opened_during_inference":  false,
+                        "detector_v3_modified":  false,
+                        "predictions_rerun":  false,
+                        "promotion_to_v4":  "not_promoted",
+                        "future_unbiased_evaluation_requires_new_holdout":  true
+                    },
+    "blind_result":  {
+                         "positive_cases":  [
+
+                                            ],
+                         "positive_count":  0,
+                         "negative_count":  14
+                     },
+    "primary_target":  {
+                           "case_id":  "case_011",
+                           "step44_class":  "fixture_condition",
+                           "prediction":  false,
+                           "confidence":  0.65,
+                           "evidence":  "Images show a handheld showerhead with visible mineral deposits and staining on the face and hose connection, but no clear physical defect such as broken parts, detachment, or structural damage. The fixture appears intact and normally mounted despite cosmetic soiling.",
+                           "target_recovered":  false
+                       },
+    "binary_defect_metrics":  {
+                                  "true_positive":  0,
+                                  "true_negative":  8,
+                                  "false_positive":  0,
+                                  "false_negative":  6,
+                                  "precision":  0,
+                                  "recall":  0,
+                                  "specificity":  1,
+                                  "accuracy":  0.571429,
+                                  "f1":  0
+                              },
+    "conclusion":  "Arm C did not recover case_011 and produced no positive detections. Do not promote or retune this component against the consumed Step 44 set.",
+    "next_recommendation":  "Close fixture-specialist research for Step 45 rather than continuing case-specific prompt tuning. Preserve the failure as diagnostic evidence for future Detector v4 work on a new development set."
+}

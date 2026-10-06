@@ -1,0 +1,99 @@
+{
+  "case_id": "case_012",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 0.0,
+      "frame_number": 0,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 2.0,
+      "frame_number": 60,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 12.0,
+      "frame_number": 360,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [
+    {
+      "image_id": "frame_01",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_debris",
+      "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_surface_damage",
+      "description": "Walls show extensive deterioration with large areas of damaged, stained, and deteriorated surface material. Multiple wall sections exhibit severe degradation.",
+      "confidence": 0.85
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "major_debris",
+      "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "major_debris",
+      "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+      "confidence": 0.9
+    }
+  ],
+  "predicted_positive": true,
+  "usage": {
+    "inputTokens": 5829,
+    "outputTokens": 708,
+    "totalTokens": 6537,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "016dcc39-6dfe-4760-bdd1-de4bd7c73103"
+}

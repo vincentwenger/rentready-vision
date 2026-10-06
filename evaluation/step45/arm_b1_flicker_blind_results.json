@@ -1,0 +1,140 @@
+{
+  "schema_version": "rentready-step45-arm-b1-blind-results/1.0",
+  "step": 45,
+  "arm": "B1",
+  "labels_used": false,
+  "model_calls": 0,
+  "detector_v3_modified": false,
+  "rule": {
+    "minimum_brightness_p95": 20.0,
+    "minimum_brightness_to_frame_difference_ratio": 0.6
+  },
+  "cases": [
+    {
+      "case_id": "case_001",
+      "brightness_p95": 17.0,
+      "frame_difference_p95": 49.733622,
+      "brightness_to_frame_difference_ratio": 0.341821,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_002",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 7.483225,
+      "brightness_to_frame_difference_ratio": 0.133632,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_003",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 5.225458,
+      "brightness_to_frame_difference_ratio": 0.191371,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_004",
+      "brightness_p95": 12.95,
+      "frame_difference_p95": 50.514637,
+      "brightness_to_frame_difference_ratio": 0.256361,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_005",
+      "brightness_p95": 23.4,
+      "frame_difference_p95": 30.142981,
+      "brightness_to_frame_difference_ratio": 0.7763,
+      "brightness_condition": true,
+      "ratio_condition": true,
+      "predicted_positive": true
+    },
+    {
+      "case_id": "case_006",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 1.36658,
+      "brightness_to_frame_difference_ratio": 0.731754,
+      "brightness_condition": false,
+      "ratio_condition": true,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_007",
+      "brightness_p95": 7.0,
+      "frame_difference_p95": 16.276389,
+      "brightness_to_frame_difference_ratio": 0.430071,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_008",
+      "brightness_p95": 2.0,
+      "frame_difference_p95": 9.1422,
+      "brightness_to_frame_difference_ratio": 0.218766,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_009",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 1.232412,
+      "brightness_to_frame_difference_ratio": 0.811417,
+      "brightness_condition": false,
+      "ratio_condition": true,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_010",
+      "brightness_p95": 3.0,
+      "frame_difference_p95": 15.498046,
+      "brightness_to_frame_difference_ratio": 0.193573,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_011",
+      "brightness_p95": 4.0,
+      "frame_difference_p95": 5.00141,
+      "brightness_to_frame_difference_ratio": 0.799774,
+      "brightness_condition": false,
+      "ratio_condition": true,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_012",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 14.273056,
+      "brightness_to_frame_difference_ratio": 0.070062,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_013",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 5.39252,
+      "brightness_to_frame_difference_ratio": 0.185442,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    },
+    {
+      "case_id": "case_014",
+      "brightness_p95": 1.0,
+      "frame_difference_p95": 5.434377,
+      "brightness_to_frame_difference_ratio": 0.184014,
+      "brightness_condition": false,
+      "ratio_condition": false,
+      "predicted_positive": false
+    }
+  ]
+}

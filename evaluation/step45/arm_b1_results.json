@@ -1,0 +1,52 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b1-result/1.0",
+    "step":  45,
+    "arm":  "B1",
+    "name":  "electrical_flicker_temporal_brightness",
+    "status":  "RESEARCH_PASS",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "blind_result_sha256":  "f0eee7d74ecc963000295df5b3f3c781db8338ab2b5fa125c22dc98f6f4404ab",
+                        "labels_used_during_blind_application":  false,
+                        "model_calls":  0,
+                        "detector_v3_modified":  false,
+                        "promotion_to_v4":  "candidate_component_only",
+                        "future_unbiased_evaluation_requires_new_holdout":  true
+                    },
+    "rule":  {
+                 "minimum_brightness_p95":  20,
+                 "minimum_brightness_to_frame_difference_ratio":  0.6
+             },
+    "arm_b1_alone":  {
+                         "true_positive":  1,
+                         "true_negative":  8,
+                         "false_positive":  0,
+                         "false_negative":  5,
+                         "precision":  1,
+                         "recall":  0.166667,
+                         "specificity":  1,
+                         "accuracy":  0.642857,
+                         "f1":  0.285714
+                     },
+    "v3_plus_arm_a_plus_arm_b1":  {
+                                      "true_positive":  4,
+                                      "true_negative":  7,
+                                      "false_positive":  1,
+                                      "false_negative":  2,
+                                      "precision":  0.8,
+                                      "recall":  0.666667,
+                                      "specificity":  0.875,
+                                      "accuracy":  0.785714,
+                                      "f1":  0.727273
+                                  },
+    "recovered_case":  "case_005",
+    "clean_false_positives":  [
+
+                              ],
+    "remaining_false_negatives":  [
+                                      "case_003",
+                                      "case_011"
+                                  ],
+    "conclusion":  "Arm B1 is retained as a Detector v4 candidate component for electrical-flicker research. It is not yet promoted or claimed to generalize."
+}

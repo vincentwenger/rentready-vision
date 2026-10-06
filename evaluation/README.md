@@ -180,3 +180,33 @@ checks that evidence together and records its hashes. Historical failed probes
 are labeled explicitly; they do not override the subsequent final passes.
 The upload probe did not enqueue video processing; Step 39 retains its own
 processing/failure-recovery evidence. This is not a new model-accuracy evaluation.
+
+## Step 45 post-holdout Detector v4 research
+
+`step45/` contains the retained machine-readable evidence from Step 45
+post-holdout failure analysis and Detector v4 research.
+
+The Step 44 external-v3 holdout was already consumed before this research.
+Therefore Step 45 results are development diagnostics only, not a new unbiased
+benchmark.
+
+Retained v4 candidate components:
+
+- Arm A - whole-scene severe-damage specialist
+- Arm B1 - electrical-flicker temporal specialist
+
+The defensible development combination, Detector v3 OR Arm A OR Arm B1,
+recorded TP=4, TN=7, FP=1, FN=2 (80.0% precision, 66.7% recall,
+87.5% specificity, 78.6% accuracy, 72.7% F1) on the consumed Step 44 set.
+
+Arm B2 produced no defensible deterministic water classifier. Arm B3 detected
+the true water-leak example but also treated normal fixture water flow as leak
+evidence and was not promoted as implemented. Arm C missed its fixture-condition
+target and was not promoted.
+
+Large generated frame sets, per-pair diagnostic artifacts, contact-sheet JPEGs,
+and source videos remain local and are intentionally not part of the retained
+Git evidence.
+
+See [`../STEP45_FINAL.md`](../STEP45_FINAL.md) for the complete Step 45 decision.
+A future Detector v4 requires a brand-new untouched external holdout.

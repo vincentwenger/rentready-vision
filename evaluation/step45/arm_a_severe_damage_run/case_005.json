@@ -1,0 +1,38 @@
+{
+  "case_id": "case_005",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 1.001,
+      "frame_number": 30,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 4.004,
+      "frame_number": 120,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 6.006,
+      "frame_number": 180,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [],
+  "predicted_positive": false,
+  "usage": {
+    "inputTokens": 5829,
+    "outputTokens": 33,
+    "totalTokens": 5862,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "bc42b5a5-ce1f-43eb-b63c-88fbfea9ccc8"
+}

@@ -1,0 +1,175 @@
+﻿{
+    "schema_version":  "rentready-step45-failure-analysis/1.0",
+    "step":  45,
+    "status":  "POST_HOLDOUT_DIAGNOSTIC",
+    "source":  {
+                   "step44_commit":  "9ee6a2147b75baeeb7294390ddc8b88b18027d2d",
+                   "frozen_detector_commit":  "f17881ba0adf210546b32ef2154755efcb8f398b",
+                   "frozen_detector_tag":  "detector-v3-frozen-step43",
+                   "consumed_holdout":  "RentReady Vision External v3 Holdout"
+               },
+    "methodology":  {
+                        "holdout_is_no_longer_unseen":  true,
+                        "diagnostic_use_only":  true,
+                        "detector_v3_modified":  false,
+                        "detector_v3_rerun":  false,
+                        "future_v4_may_use_findings_as_development_evidence":  true,
+                        "future_unbiased_v4_evaluation_requires_new_holdout":  true
+                    },
+    "component_summary":  {
+                              "raw_multi_keyframe":  {
+                                                         "true_positive_cases":  [
+                                                                                     "case_014"
+                                                                                 ],
+                                                         "false_positive_cases":  [
+                                                                                      "case_001"
+                                                                                  ],
+                                                         "false_negative_cases":  [
+                                                                                      "case_003",
+                                                                                      "case_005",
+                                                                                      "case_011",
+                                                                                      "case_012",
+                                                                                      "case_013"
+                                                                                  ]
+                                                     },
+                              "wall_attention":  {
+                                                     "holdout_positive_contributions":  0,
+                                                     "holdout_false_positive_contributions":  0,
+                                                     "observation":  "Wall attention produced no positive decision on any of the 14 Step 44 holdout cases."
+                                                 },
+                              "holder_geometry":  {
+                                                      "holdout_positive_contributions":  0,
+                                                      "holdout_false_positive_contributions":  0,
+                                                      "notable_partial_support":  {
+                                                                                      "case_id":  "case_005",
+                                                                                      "supporting_frames":  1,
+                                                                                      "minimum_required":  2,
+                                                                                      "interpretation":  "Incidental geometry support; not evidence of the electrical-flicker defect."
+                                                                                  }
+                                                  }
+                          },
+    "cases":  [
+                  {
+                      "case_id":  "case_001",
+                      "holdout_id":  "v3c001",
+                      "class":  "walkthrough",
+                      "step44_outcome":  "FP",
+                      "detector_component":  "raw_multi_keyframe",
+                      "diagnosis":  "isolated_single_keyframe_false_positive",
+                      "evidence":  {
+                                       "supporting_keyframes":  1,
+                                       "timestamp_seconds":  22.012,
+                                       "category":  "other",
+                                       "confidence":  0.9,
+                                       "description":  "Yellow fabric curtain reported as torn/frayed."
+                                   },
+                      "research_note":  "Cross-keyframe persistence may help reject isolated findings, but must be validated because genuine defects can also appear in only one usable frame."
+                  },
+                  {
+                      "case_id":  "case_003",
+                      "holdout_id":  "v3p003",
+                      "class":  "water_leak",
+                      "step44_outcome":  "FN",
+                      "diagnosis":  "recognition_and_temporal_reasoning_failure",
+                      "selected_keyframes_seconds":  [
+                                                         21,
+                                                         32,
+                                                         43
+                                                     ],
+                      "evidence_present_in_selected_frames":  true,
+                      "candidate_findings":  0,
+                      "observation":  "Visible water accumulation/droplets were present in selected frames; strongest visible transient evidence was at 43 seconds.",
+                      "research_direction":  "Temporal multi-frame inspection for transient conditions such as dripping water."
+                  },
+                  {
+                      "case_id":  "case_005",
+                      "holdout_id":  "v3p005",
+                      "class":  "electrical_flicker",
+                      "step44_outcome":  "FN",
+                      "diagnosis":  "temporal_sampling_evidence_failure",
+                      "selected_keyframes_seconds":  [
+                                                         1.001,
+                                                         4.004,
+                                                         6.006
+                                                     ],
+                      "evidence_conclusive_in_individual_stills":  false,
+                      "candidate_findings":  0,
+                      "observation":  "Sparse independently analyzed stills do not preserve the short-window brightness changes required to identify flicker.",
+                      "research_direction":  "Short-window temporal brightness analysis of the same lighting region across consecutive frames."
+                  },
+                  {
+                      "case_id":  "case_011",
+                      "holdout_id":  "v3p006",
+                      "class":  "fixture_condition",
+                      "step44_outcome":  "FN",
+                      "diagnosis":  "static_visual_recognition_failure",
+                      "selected_keyframes_seconds":  [
+                                                         0,
+                                                         1.001,
+                                                         3.003,
+                                                         5.005,
+                                                         9.009
+                                                     ],
+                      "evidence_present_in_selected_frames":  true,
+                      "candidate_findings":  0,
+                      "observation":  "A persistent visibly abnormal fixture condition was present across all five selected close-up frames.",
+                      "research_direction":  "Fixture-condition specialist for deformation, obstruction, broken/foreign material, and abnormal fixture geometry."
+                  },
+                  {
+                      "case_id":  "case_012",
+                      "holdout_id":  "v3p007",
+                      "class":  "surface_ceiling_damage",
+                      "step44_outcome":  "FN",
+                      "diagnosis":  "major_static_recognition_domain_generalization_failure",
+                      "selected_keyframes_seconds":  [
+                                                         0,
+                                                         2,
+                                                         12
+                                                     ],
+                      "evidence_present_in_selected_frames":  true,
+                      "candidate_findings":  0,
+                      "observation":  "Large-scale visible damage was dominant in all selected frames, including missing ceiling/roof material, exposed structure, deteriorated surfaces, and debris.",
+                      "research_direction":  "Broader whole-scene structural and surface-damage recognition."
+                  },
+                  {
+                      "case_id":  "case_013",
+                      "holdout_id":  "v3p008",
+                      "class":  "fire_damage",
+                      "step44_outcome":  "FN",
+                      "diagnosis":  "static_recognition_domain_generalization_with_low_light_factor",
+                      "selected_keyframes_seconds":  [
+                                                         0,
+                                                         2,
+                                                         12
+                                                     ],
+                      "evidence_present_in_selected_frames":  true,
+                      "candidate_findings":  0,
+                      "observation":  "Selected frames clearly show severe visible property deterioration; exact fire causation is less certain from still imagery alone.",
+                      "research_direction":  "Whole-scene severe-damage recognition with improved dark-scene robustness, without requiring inference of the exact cause."
+                  },
+                  {
+                      "case_id":  "case_014",
+                      "holdout_id":  "v3p009",
+                      "class":  "window_damage",
+                      "step44_outcome":  "TP",
+                      "detector_component":  "raw_multi_keyframe",
+                      "diagnosis":  "persistent_true_positive_control",
+                      "evidence":  {
+                                       "supporting_keyframes":  2,
+                                       "timestamps_seconds":  [
+                                                                  8,
+                                                                  11
+                                                              ],
+                                       "category":  "wall_hole"
+                                   },
+                      "research_note":  "Useful control when evaluating any future cross-keyframe persistence rule: this true positive had repeated support."
+                  }
+              ],
+    "overall_conclusions":  [
+                                "The main Step 44 recall failure was not caused by the 0.65 confidence threshold; all five false negatives had zero raw candidate findings before thresholding.",
+                                "Detector v3 has both temporal-evidence weaknesses and static visual-recognition/domain-generalization weaknesses.",
+                                "Wall attention and deterministic holder geometry contributed no holdout true positives.",
+                                "Cross-keyframe persistence is worth researching for false-positive control, but it is not yet adopted as a Detector v4 rule.",
+                                "Detector v3 remains frozen and unchanged."
+                            ]
+}

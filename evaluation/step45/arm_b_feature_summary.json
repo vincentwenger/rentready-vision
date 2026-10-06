@@ -1,0 +1,41 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b-feature-summary/1.0",
+    "step":  45,
+    "arm":  "B",
+    "status":  "FEATURE_ANALYSIS_COMPLETE",
+    "methodology":  {
+                        "labels_used_for_feature_extraction":  false,
+                        "model_calls":  0,
+                        "case_classification_performed":  false,
+                        "detector_v3_modified":  false,
+                        "note":  "This record summarizes raw temporal-feature behavior before adopting any classification threshold."
+                    },
+    "conclusions":  [
+                        {
+                            "target":  "electrical_flicker",
+                            "case_id":  "case_005",
+                            "finding":  "strong_brightness_change_signal",
+                            "brightness_max":  34.5,
+                            "brightness_p95":  23.4,
+                            "comparison":  "Highest brightness-change p95 among all 14 cases.",
+                            "recommendation":  "Continue as separate Arm B1 flicker research."
+                        },
+                        {
+                            "target":  "water_leak",
+                            "case_id":  "case_003",
+                            "finding":  "weak_whole_frame_motion_signal",
+                            "brightness_max":  2,
+                            "brightness_p95":  1,
+                            "frame_diff_max":  6.5433,
+                            "frame_diff_p95":  5.2255,
+                            "residual_max":  0.04717,
+                            "residual_p95":  0.031436,
+                            "interpretation":  "The visible droplet occupies too little of the full image for the current global temporal features to discriminate it.",
+                            "recommendation":  "Do not use the current global features as a water-leak classifier. Continue as separate Arm B2 localized-motion research."
+                        }
+                    ],
+    "next_research":  [
+                          "Arm B1 — electrical flicker using sustained brightness-change behavior.",
+                          "Arm B2 — water dripping using localized small-region temporal motion rather than whole-frame statistics."
+                      ]
+}

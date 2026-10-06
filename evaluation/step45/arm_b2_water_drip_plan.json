@@ -1,0 +1,87 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b2-plan/1.0",
+    "step":  45,
+    "arm":  "B2",
+    "name":  "localized_transient_motion",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether small localized transient motion can surface dripping-water evidence that is diluted in whole-frame temporal statistics.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "model_calls":  0,
+                        "cases":  "all 14 Step 44 cases",
+                        "source_frames":  "evaluation/step45/arm_b_temporal_frames",
+                        "labels_used_during_feature_extraction":  false,
+                        "preprocessing":  {
+                                              "analysis_width_pixels":  640,
+                                              "preserve_aspect_ratio":  true,
+                                              "grayscale":  true,
+                                              "gaussian_blur_kernel":  5
+                                          },
+                        "global_motion_compensation":  {
+                                                           "method":  "phase_correlation_translation",
+                                                           "purpose":  "Estimate whole-frame translation between consecutive frames before measuring localized residual motion.",
+                                                           "maximum_absolute_translation_pixels":  80,
+                                                           "fallback_if_invalid":  "use zero translation and record stabilization failure",
+                                                           "implementation_details":  {
+                                                                                          "phase_input":  "Gaussian-blurred grayscale float32 frames",
+                                                                                          "window":  "OpenCV Hanning window",
+                                                                                          "reference_frame":  "previous sampled frame",
+                                                                                          "moving_frame":  "current sampled frame",
+                                                                                          "estimated_shift":  "cv2.phaseCorrelate(previous, current)",
+                                                                                          "alignment":  "warp current frame by negative estimated dx/dy into previous-frame coordinates",
+                                                                                          "interpolation":  "cv2.INTER_LINEAR",
+                                                                                          "border_mode":  "cv2.BORDER_CONSTANT",
+                                                                                          "border_value":  0,
+                                                                                          "valid_overlap":  "Warp an all-ones mask with the same negative translation using nearest-neighbor interpolation; compute residual statistics only where the warped mask remains valid.",
+                                                                                          "invalid_shift_conditions":  [
+                                                                                                                           "dx is not finite",
+                                                                                                                           "dy is not finite",
+                                                                                                                           "absolute dx exceeds 80 pixels",
+                                                                                                                           "absolute dy exceeds 80 pixels"
+                                                                                                                       ],
+                                                                                          "invalid_shift_action":  "Use dx=0 and dy=0 and record stabilization_success=false.",
+                                                                                          "phase_response":  "Record OpenCV phase-correlation response for diagnostics only; do not threshold on response."
+                                                                                      }
+                                                       },
+                        "localized_measurement":  {
+                                                      "grid_rows":  10,
+                                                      "grid_columns":  10,
+                                                      "residual_threshold_gray_levels":  20,
+                                                      "per_pair_features":  [
+                                                                                "global residual fraction after translation compensation",
+                                                                                "maximum grid-cell residual fraction",
+                                                                                "second-highest grid-cell residual fraction",
+                                                                                "ratio of maximum grid-cell residual fraction to global residual fraction"
+                                                                            ],
+                                                      "implementation_details":  {
+                                                                                     "difference":  "absolute grayscale difference between previous frame and translation-aligned current frame",
+                                                                                     "changed_pixel":  "absolute difference strictly greater than 20",
+                                                                                     "global_fraction_denominator":  "valid overlap pixels only",
+                                                                                     "grid_coordinates":  "10x10 grid in previous-frame coordinate space",
+                                                                                     "grid_fraction_denominator":  "valid overlap pixels within each grid cell",
+                                                                                     "empty_grid_cell":  "omit from max/second-max calculation",
+                                                                                     "max_grid_fraction":  "largest valid grid-cell changed-pixel fraction",
+                                                                                     "second_max_grid_fraction":  "second-largest valid grid-cell changed-pixel fraction, or 0 if fewer than two valid cells",
+                                                                                     "localization_ratio":  "max grid-cell residual fraction divided by global residual fraction; 0 when global residual fraction is 0"
+                                                                                 }
+                                                  },
+                        "output_policy":  "Record measurements only. Do not classify any case positive or negative in this stage.",
+                        "research_target":  "small localized transient motion such as falling or dripping liquid",
+                        "non_targets":  [
+                                            "whole-frame camera translation",
+                                            "large scene changes",
+                                            "ordinary moving shadows",
+                                            "global exposure changes",
+                                            "large moving objects"
+                                        ],
+                        "promotion_rule":  "Research evidence only. Arm B2 is not automatically adopted into Detector v4."
+                    },
+    "evaluation":  {
+                       "primary_target":  "case_003",
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_every_case":  true,
+                       "key_question":  "Does localized motion after global translation compensation distinguish the water-drip case from ordinary motion in the other cases?"
+                   }
+}

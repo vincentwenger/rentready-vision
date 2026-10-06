@@ -1,0 +1,49 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-a-plan/1.0",
+    "step":  45,
+    "arm":  "A",
+    "name":  "whole_scene_severe_damage_specialist",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether a fixed whole-scene specialist can recover major obvious physical damage missed by Detector v3 without excessive false positives.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "detector_v3_rerun":  false,
+                        "cases":  "all 14 Step 44 cases",
+                        "input_frames":  "reuse existing OpenCV-selected keyframes from the completed Step 44 run",
+                        "labels_available_to_model":  false,
+                        "original_holdout_names_available_to_model":  false,
+                        "expected_conditions_available_to_model":  false,
+                        "selection_policy":  "Run the identical specialist policy on every one of the 14 cases; do not target only known false negatives.",
+                        "model":  "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                        "temperature":  0,
+                        "max_tokens":  1200,
+                        "target_scope":  [
+                                             "major missing or collapsed ceiling/roof material",
+                                             "exposed structural framing caused by visible damage",
+                                             "large-scale broken or deteriorated wall/ceiling surfaces",
+                                             "major debris or destroyed interior material",
+                                             "severe soot/char-like or burn-related visible deterioration",
+                                             "other clearly severe physical property damage"
+                                         ],
+                        "reject_scope":  [
+                                             "ordinary wear",
+                                             "minor cosmetic marks",
+                                             "normal unfinished architectural surfaces",
+                                             "clutter without visible property damage",
+                                             "lighting or shadow alone",
+                                             "cause inference when only damage is visually supported"
+                                         ],
+                        "promotion_rule":  "Research evidence only. Arm A is not automatically adopted into Detector v4 regardless of result."
+                    },
+    "evaluation":  {
+                       "primary_targets":  [
+                                               "case_012",
+                                               "case_013"
+                                           ],
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_tp_fp_fn_tn":  true,
+                       "report_every_case":  true
+                   }
+}

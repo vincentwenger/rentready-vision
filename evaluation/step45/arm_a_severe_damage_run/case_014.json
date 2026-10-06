@@ -1,0 +1,99 @@
+{
+  "case_id": "case_014",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 6.0,
+      "frame_number": 360,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 8.0,
+      "frame_number": 480,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 11.0,
+      "frame_number": 660,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [
+    {
+      "image_id": "frame_01",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+      "confidence": 0.98
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+      "confidence": 0.97
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_debris",
+      "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_surface_damage",
+      "description": "Walls show severe deterioration with large areas of damaged and discolored surfaces, particularly visible on the walls surrounding the openings.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+      "confidence": 0.98
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+      "confidence": 0.97
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "major_debris",
+      "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "missing_ceiling_or_roof",
+      "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+      "confidence": 0.98
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "exposed_structure",
+      "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+      "confidence": 0.97
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "major_debris",
+      "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+      "confidence": 0.95
+    }
+  ],
+  "predicted_positive": true,
+  "usage": {
+    "inputTokens": 5829,
+    "outputTokens": 703,
+    "totalTokens": 6532,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "9b9919b1-366c-43e6-85b3-a9b76894c081"
+}

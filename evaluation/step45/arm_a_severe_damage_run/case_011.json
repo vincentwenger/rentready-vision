@@ -1,0 +1,50 @@
+{
+  "case_id": "case_011",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 0.0,
+      "frame_number": 0,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 1.001,
+      "frame_number": 24,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 3.003,
+      "frame_number": 72,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_04",
+      "timestamp_seconds": 5.005,
+      "frame_number": 120,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_05",
+      "timestamp_seconds": 9.009,
+      "frame_number": 216,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [],
+  "predicted_positive": false,
+  "usage": {
+    "inputTokens": 8991,
+    "outputTokens": 33,
+    "totalTokens": 9024,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "ee44f3b9-8488-4d40-8d2b-89af770c14d4"
+}

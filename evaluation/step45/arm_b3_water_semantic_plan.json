@@ -1,0 +1,127 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b3-plan/1.0",
+    "step":  45,
+    "arm":  "B3",
+    "name":  "water_specific_semantic_temporal_specialist",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether a semantic temporal specialist can recognize active dripping or leaking water from short localized-motion candidate sequences that deterministic motion features alone could not classify.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "cases":  "all 14 Step 44 cases",
+                        "labels_available_to_model":  false,
+                        "original_case_names_available_to_model":  false,
+                        "expected_conditions_available_to_model":  false,
+                        "source_frames":  "evaluation/step45/arm_b_temporal_frames",
+                        "source_motion_features":  "evaluation/step45/arm_b2_localized_motion_features",
+                        "candidate_selection":  {
+                                                    "method":  "rank successfully stabilized frame pairs by localization_score",
+                                                    "localization_score":  "max_grid_residual_fraction * localization_ratio",
+                                                    "maximum_candidates_per_case":  6,
+                                                    "minimum_temporal_separation_seconds":  2,
+                                                    "threshold":  "none",
+                                                    "rationale":  "Select relatively strong localized motion without introducing a hand-tuned positive/negative threshold.",
+                                                    "implementation_details":  {
+                                                                                   "candidate_time":  "current_frame.timestamp_seconds from the ranked B2 frame pair",
+                                                                                   "eligible_pairs":  "stabilization_success=true only",
+                                                                                   "ranking":  "descending localization_score",
+                                                                                   "tie_break_1":  "earlier candidate timestamp",
+                                                                                   "tie_break_2":  "lower pair_index",
+                                                                                   "temporal_separation":  "A candidate is accepted only when its timestamp is at least 2.0 seconds from every previously accepted candidate.",
+                                                                                   "stopping_rule":  "Stop after 6 accepted candidates or after all ranked pairs have been examined.",
+                                                                                   "no_candidate_threshold":  true
+                                                                               }
+                                                },
+                        "temporal_context":  {
+                                                 "seconds_before_candidate":  1,
+                                                 "seconds_after_candidate":  1,
+                                                 "source_sampling_rate_fps":  4,
+                                                 "maximum_frames_per_candidate":  9,
+                                                 "frame_selection":  "closest available frame to each 0.25-second position from candidate_time-1.0 through candidate_time+1.0",
+                                                 "presentation":  "one chronological contact sheet per candidate",
+                                                 "contact_sheet_columns":  3,
+                                                 "contact_sheet_rows":  3,
+                                                 "annotate_timestamp":  true,
+                                                 "implementation_details":  {
+                                                                                "requested_offsets_seconds":  [
+                                                                                                                  -1,
+                                                                                                                  -0.75,
+                                                                                                                  -0.5,
+                                                                                                                  -0.25,
+                                                                                                                  0,
+                                                                                                                  0.25,
+                                                                                                                  0.5,
+                                                                                                                  0.75,
+                                                                                                                  1
+                                                                                                              ],
+                                                                                "nearest_frame_selection":  "For each requested time, select the available sampled frame with minimum absolute timestamp distance.",
+                                                                                "nearest_frame_tie_break":  "Earlier timestamp.",
+                                                                                "duplicate_frame_policy":  "Allow the same source frame only if clipping near the video boundary makes it the closest frame to multiple requested positions.",
+                                                                                "contact_sheet_order":  "chronological left-to-right, top-to-bottom",
+                                                                                "cell_width_pixels":  384,
+                                                                                "preserve_frame_aspect_ratio":  true,
+                                                                                "padding":  "black letterbox padding only; no cropping",
+                                                                                "annotation":  "candidate-relative timestamp and absolute video timestamp",
+                                                                                "image_format":  "JPEG",
+                                                                                "jpeg_quality":  92
+                                                                            }
+                                             },
+                        "model":  {
+                                      "provider":  "Amazon Bedrock",
+                                      "model":  "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                                      "temperature":  0,
+                                      "max_tokens":  1200,
+                                      "calls_per_case":  1,
+                                      "expected_total_calls":  14
+                                  },
+                        "prompt_policy":  {
+                                              "specialist_scope":  "active water leak or dripping water only",
+                                              "positive_requires":  "visible evidence consistent with liquid water actively dripping, falling, streaming, leaking, or repeatedly emerging from a source across the temporal sequence",
+                                              "do_not_count":  [
+                                                                   "static stains",
+                                                                   "old water damage without active water",
+                                                                   "reflections",
+                                                                   "shadows",
+                                                                   "camera motion",
+                                                                   "compression artifacts",
+                                                                   "ordinary moving objects",
+                                                                   "uncertain tiny motion with no visible liquid interpretation"
+                                                               ],
+                                              "uncertainty_policy":  "If active water cannot be identified with reasonable visual confidence, return negative.",
+                                              "same_prompt_for_every_case":  true,
+                                              "exact_prompt":  "You are a visual specialist evaluating short temporal image sequences for ACTIVE WATER ONLY.\n\nYou will receive several candidate contact sheets from one anonymous property-inspection video.\n\nEach candidate is a 3x3 contact sheet.\nWithin each contact sheet, frames are chronological from left to right, top to bottom.\nThe timestamp text is diagnostic context only.\n\nYour task is ONLY to determine whether any candidate contains visible evidence consistent with liquid water actively:\n- dripping,\n- falling,\n- streaming,\n- leaking, or\n- repeatedly emerging from a source across the temporal sequence.\n\nDo NOT count any of the following as active water:\n- static stains,\n- old water damage without active water,\n- reflections,\n- shadows,\n- camera motion,\n- compression artifacts,\n- ordinary moving objects,\n- uncertain tiny motion with no visible liquid interpretation.\n\nRequire temporal visual evidence that is reasonably interpretable as liquid water.\n\nIf active water cannot be identified with reasonable visual confidence, return negative.\n\nReturn ONLY one JSON object with exactly these fields:\n\n{\n  \"active_water_detected\": false,\n  \"confidence\": 0.0,\n  \"candidate_index\": null,\n  \"evidence\": \"short visual-evidence description\"\n}\n\nRules:\n- active_water_detected must be true or false.\n- confidence must be from 0 to 1.\n- candidate_index must be the matching candidate number if positive, otherwise null.\n- evidence must be concise and based only on visible evidence.\n- Do not return Markdown.\n- Do not add any fields."
+                                          },
+                        "output_schema":  {
+                                              "active_water_detected":  "boolean",
+                                              "confidence":  "number from 0 to 1",
+                                              "candidate_index":  "integer or null",
+                                              "evidence":  "short description",
+                                              "reasoning_scope":  "visual evidence only"
+                                          },
+                        "classification_rule":  "Case is positive only when active_water_detected=true. No additional confidence threshold will be introduced after the run.",
+                        "promotion_rule":  "Research evidence only. A successful B3 result may become a Detector v4 candidate component but must later be evaluated on a brand-new untouched holdout.",
+                        "response_handling":  {
+                                                  "expected_format":  "single JSON object",
+                                                  "markdown_fence_handling":  "strip one surrounding JSON/Markdown code fence without another model call",
+                                                  "invalid_json_policy":  "abort run immediately; do not retry model call",
+                                                  "required_fields":  [
+                                                                          "active_water_detected",
+                                                                          "confidence",
+                                                                          "candidate_index",
+                                                                          "evidence"
+                                                                      ],
+                                                  "extra_fields_allowed":  false,
+                                                  "confidence_range":  "0 through 1 inclusive",
+                                                  "positive_candidate_requirement":  "candidate_index must identify one supplied candidate",
+                                                  "negative_candidate_requirement":  "candidate_index must be null",
+                                                  "retries":  0
+                                              }
+                    },
+    "evaluation":  {
+                       "primary_research_target":  "case_003",
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_every_case":  true,
+                       "seal_predictions_before_scoring":  true
+                   }
+}

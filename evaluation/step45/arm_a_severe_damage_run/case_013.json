@@ -1,0 +1,93 @@
+{
+  "case_id": "case_013",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 0.0,
+      "frame_number": 0,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 2.0,
+      "frame_number": 120,
+      "selection_reason": "best_available_fallback"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 12.0,
+      "frame_number": 720,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_debris",
+      "description": "Large amount of debris covering the floor including broken building materials, rubble, and destroyed flooring throughout the interior space.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "major_surface_damage",
+      "description": "Extensive deterioration and damage to wall surfaces with large areas of missing or destroyed wall material, particularly visible around doorways and throughout the room.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_01",
+      "condition_type": "severe_dark_or_burn_like_deterioration",
+      "description": "Severe dark deterioration visible on walls and surfaces throughout the space, with extensive discoloration and char-like appearance on multiple surfaces.",
+      "confidence": 0.85
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "major_debris",
+      "description": "Extensive debris covering floor area including broken building materials, rubble, and destroyed structural components.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "major_surface_damage",
+      "description": "Large-scale damage to wall surfaces with significant areas of missing or destroyed material visible throughout the interior.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_02",
+      "condition_type": "severe_dark_or_burn_like_deterioration",
+      "description": "Severe dark deterioration and char-like appearance on walls and surfaces throughout the space.",
+      "confidence": 0.85
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "major_debris",
+      "description": "Substantial debris field covering the floor including broken building materials, rubble, and destroyed flooring components.",
+      "confidence": 0.95
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "major_surface_damage",
+      "description": "Extensive damage to wall and ceiling surfaces with large areas of deteriorated or destroyed material visible throughout the room.",
+      "confidence": 0.9
+    },
+    {
+      "image_id": "frame_03",
+      "condition_type": "severe_dark_or_burn_like_deterioration",
+      "description": "Severe dark deterioration visible on walls and surfaces with extensive char-like discoloration throughout the interior space.",
+      "confidence": 0.85
+    }
+  ],
+  "predicted_positive": true,
+  "usage": {
+    "inputTokens": 5829,
+    "outputTokens": 677,
+    "totalTokens": 6506,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "7ba4f253-adad-4d1d-a1a0-90512035bda1"
+}

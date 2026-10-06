@@ -1,0 +1,31 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-b1-plan/1.0",
+    "step":  45,
+    "arm":  "B1",
+    "name":  "electrical_flicker_temporal_brightness",
+    "status":  "PRE_REGISTERED",
+    "purpose":  "Test whether repeated large whole-frame brightness changes relative to overall visual motion can identify temporal lighting flicker while rejecting ordinary camera-motion changes.",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "detector_v3_modified":  false,
+                        "model_calls":  0,
+                        "source_features":  "evaluation/step45/arm_b_temporal_features/summary.json",
+                        "cases":  "all 14 Step 44 cases",
+                        "feature_1":  "95th percentile of absolute consecutive-frame median-brightness change",
+                        "feature_2":  "brightness-change p95 divided by mean-absolute-gray-difference p95",
+                        "rule":  {
+                                     "minimum_brightness_p95":  20,
+                                     "minimum_brightness_to_frame_difference_ratio":  0.6,
+                                     "positive_if_all_conditions_met":  true
+                                 },
+                        "rationale":  "Require sustained large brightness changes and require brightness change to be a substantial fraction of total image change, reducing sensitivity to camera motion alone.",
+                        "promotion_rule":  "Research evidence only. This rule is not automatically promoted into Detector v4."
+                    },
+    "evaluation":  {
+                       "primary_target":  "case_005",
+                       "required_clean_control_scope":  "all 8 Step 44 clean cases",
+                       "report_every_case":  true,
+                       "report_tp_fp_fn_tn":  true
+                   }
+}

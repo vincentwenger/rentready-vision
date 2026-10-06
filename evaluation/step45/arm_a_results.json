@@ -1,0 +1,54 @@
+﻿{
+    "schema_version":  "rentready-step45-arm-a-result/1.0",
+    "step":  45,
+    "arm":  "A",
+    "name":  "whole_scene_severe_damage_specialist",
+    "status":  "RESEARCH_PASS",
+    "methodology":  {
+                        "development_only":  true,
+                        "step44_holdout_already_consumed":  true,
+                        "ground_truth_opened_during_inference":  false,
+                        "detector_v3_modified":  false,
+                        "arm_a_summary_sha256":  "0d0a0c01299db1b11ef0e639fc5d0d1c3e1c20fdccf8d79cbf10f1c9d576c53e",
+                        "promotion_to_v4":  "candidate_component_only",
+                        "future_unbiased_evaluation_requires_new_holdout":  true
+                    },
+    "arm_a_alone":  {
+                        "true_positive":  3,
+                        "true_negative":  8,
+                        "false_positive":  0,
+                        "false_negative":  3,
+                        "precision":  1,
+                        "recall":  0.5,
+                        "specificity":  1,
+                        "accuracy":  0.785714,
+                        "f1":  0.666667
+                    },
+    "v3_plus_arm_a":  {
+                          "true_positive":  3,
+                          "true_negative":  7,
+                          "false_positive":  1,
+                          "false_negative":  3,
+                          "precision":  0.75,
+                          "recall":  0.5,
+                          "specificity":  0.875,
+                          "accuracy":  0.714286,
+                          "f1":  0.6
+                      },
+    "recovered_cases":  [
+                            "case_012",
+                            "case_013"
+                        ],
+    "additionally_detected_existing_v3_tp":  [
+                                                 "case_014"
+                                             ],
+    "clean_false_positives":  [
+
+                              ],
+    "remaining_false_negatives":  [
+                                      "case_003",
+                                      "case_005",
+                                      "case_011"
+                                  ],
+    "conclusion":  "Arm A is retained as a Detector v4 candidate component for further development research. It is not yet promoted or claimed to generalize."
+}

@@ -1,0 +1,164 @@
+{
+  "schema_version": "rentready-step45-arm-c-blind-predictions/1.0",
+  "step": 45,
+  "arm": "C",
+  "status": "BLIND_PREDICTIONS_COMPLETE",
+  "development_only": true,
+  "step44_holdout_already_consumed": true,
+  "labels_used": false,
+  "original_holdout_names_used": false,
+  "ground_truth_opened": false,
+  "detector_v3_modified": false,
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "region": "us-west-2",
+  "temperature": 0.0,
+  "max_tokens": 1000,
+  "calls_per_case": 1,
+  "model_calls": 14,
+  "retries": 0,
+  "source_input_manifest_sha256": "515ce12abad2a34c8e97cdd34f1f4321a3d29a9172b9a8bd8fab17a6428fc223",
+  "total_input_tokens": 78935,
+  "total_output_tokens": 1202,
+  "cases": [
+    {
+      "case_id": "case_001",
+      "image_count": 5,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including outdoor lighting posts, ceiling lights, and architectural hardware appear properly installed and intact. No visible physical defects, damage, detachment, or misalignment observed in any installed components across all views.",
+      "input_tokens": 8345,
+      "output_tokens": 83,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_002",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "Multiple ceiling fans and wall-mounted light fixtures visible across all views appear properly mounted and operational with no visible physical damage, detachment, or deformation.",
+      "input_tokens": 1990,
+      "output_tokens": 70,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_003",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "Images show a green mesh screen or netting material with a horizontal support bar. The mesh appears intact and properly installed. Visible staining and discoloration on surfaces are cosmetic issues, not fixture defects. No broken, detached, loose, or misaligned hardware components are evident.",
+      "input_tokens": 5191,
+      "output_tokens": 100,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_004",
+      "image_count": 5,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including door hardware, wall-mounted light fixtures, stair railings, and ceiling fixtures appear properly installed and intact with no visible physical defects, damage, or misalignment.",
+      "input_tokens": 8345,
+      "output_tokens": 79,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_005",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including recessed ceiling lights, chandelier, electrical outlets, and cabinet hardware appear properly installed and intact with no visible physical defects, damage, or displacement.",
+      "input_tokens": 5191,
+      "output_tokens": 74,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_006",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including ceiling light, recessed lighting, electrical outlets, appliance hardware, and cabinet hardware appear properly installed and intact with no visible physical defects, damage, or misalignment.",
+      "input_tokens": 5191,
+      "output_tokens": 79,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_007",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including wall-mounted TV, lighting fixtures, plumbing fixtures, and hardware appear properly installed and intact with no visible physical defects, damage, or misalignment.",
+      "input_tokens": 5191,
+      "output_tokens": 77,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_008",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including framed pictures, lamp, and TV appear properly mounted and in normal condition. No visible physical defects, damage, or misalignment detected in any installed components.",
+      "input_tokens": 5191,
+      "output_tokens": 77,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_009",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including the table lamp, electrical fixtures, and window hardware appear properly installed and intact with no visible physical defects, damage, or misalignment.",
+      "input_tokens": 5191,
+      "output_tokens": 72,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_010",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "All visible fixtures including wall-mounted TV, ceiling air vent, thermostat, floor lamp, and wall-mounted media console appear properly installed and intact with no visible physical defects, damage, or misalignment.",
+      "input_tokens": 5191,
+      "output_tokens": 85,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_011",
+      "image_count": 5,
+      "fixture_defect_detected": false,
+      "confidence": 0.65,
+      "evidence": "Images show a handheld showerhead with visible mineral deposits and staining on the face and hose connection, but no clear physical defect such as broken parts, detachment, or structural damage. The fixture appears intact and normally mounted despite cosmetic soiling.",
+      "input_tokens": 8345,
+      "output_tokens": 94,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_012",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "Images show an abandoned, severely deteriorated structure with extensive structural damage including collapsed roof, damaged walls, and debris. While the overall condition is poor, no specific installed fixtures or hardware components (faucets, electrical fixtures, mounted hardware) are clearly visible or identifiable in sufficient detail to assess for defects. The damage observed is primarily structural and surface-level deterioration rather than identifiable fixture defects.",
+      "input_tokens": 5191,
+      "output_tokens": 122,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_013",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.85,
+      "evidence": "Abandoned deteriorated interior with general structural decay, but no clearly identifiable installed fixtures or hardware components visible to assess for specific defects. No faucets, electrical fixtures, or mounted hardware are discernible in the views provided.",
+      "input_tokens": 5191,
+      "output_tokens": 87,
+      "stop_reason": "end_turn"
+    },
+    {
+      "case_id": "case_014",
+      "image_count": 3,
+      "fixture_defect_detected": false,
+      "confidence": 0.75,
+      "evidence": "Images show a severely deteriorated abandoned structure with collapsed ceiling, missing roof sections, and general structural damage. While there is extensive overall damage, no specific installed fixtures or hardware components (faucets, electrical fixtures, mounted hardware) are clearly visible or identifiable in sufficient detail to assess their physical condition as defective.",
+      "input_tokens": 5191,
+      "output_tokens": 103,
+      "stop_reason": "end_turn"
+    }
+  ]
+}

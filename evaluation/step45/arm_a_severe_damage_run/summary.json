@@ -1,0 +1,919 @@
+{
+  "schema_version": "rentready-step45-arm-a-run/1.0",
+  "step": 45,
+  "arm": "A",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "development_only": true,
+  "step44_holdout_already_consumed": true,
+  "detector_v3_modified": false,
+  "ground_truth_opened_during_inference": false,
+  "cases": [
+    {
+      "case_id": "case_001",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 8.004,
+          "frame_number": 240,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 9.005,
+          "frame_number": 270,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_04",
+          "timestamp_seconds": 11.006,
+          "frame_number": 330,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_05",
+          "timestamp_seconds": 14.007,
+          "frame_number": 420,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_06",
+          "timestamp_seconds": 16.008,
+          "frame_number": 480,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_07",
+          "timestamp_seconds": 20.011,
+          "frame_number": 600,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_08",
+          "timestamp_seconds": 22.012,
+          "frame_number": 660,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_09",
+          "timestamp_seconds": 23.012,
+          "frame_number": 690,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_10",
+          "timestamp_seconds": 24.013,
+          "frame_number": 720,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_11",
+          "timestamp_seconds": 27.014,
+          "frame_number": 810,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_12",
+          "timestamp_seconds": 28.015,
+          "frame_number": 840,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_13",
+          "timestamp_seconds": 34.018,
+          "frame_number": 1020,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_14",
+          "timestamp_seconds": 37.02,
+          "frame_number": 1110,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_15",
+          "timestamp_seconds": 42.022,
+          "frame_number": 1260,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_16",
+          "timestamp_seconds": 43.023,
+          "frame_number": 1290,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_17",
+          "timestamp_seconds": 46.024,
+          "frame_number": 1380,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_18",
+          "timestamp_seconds": 49.026,
+          "frame_number": 1470,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_19",
+          "timestamp_seconds": 51.027,
+          "frame_number": 1530,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_20",
+          "timestamp_seconds": 53.028,
+          "frame_number": 1590,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 32706,
+        "outputTokens": 33,
+        "totalTokens": 32739,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "d0c89820-0693-4d8d-ae2f-4c0915cfae99"
+    },
+    {
+      "case_id": "case_002",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 5.0,
+          "frame_number": 75,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 24.0,
+          "frame_number": 360,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 38.0,
+          "frame_number": 570,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 2628,
+        "outputTokens": 33,
+        "totalTokens": 2661,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "f533950a-95e1-426f-a69e-03f14c1d000c"
+    },
+    {
+      "case_id": "case_003",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 21.0,
+          "frame_number": 525,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 32.0,
+          "frame_number": 800,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 43.0,
+          "frame_number": 1075,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "75af3c97-02af-4252-b227-8c79c36fa77d"
+    },
+    {
+      "case_id": "case_004",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 2.0,
+          "frame_number": 50,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 3.0,
+          "frame_number": 75,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_04",
+          "timestamp_seconds": 4.0,
+          "frame_number": 100,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_05",
+          "timestamp_seconds": 7.0,
+          "frame_number": 175,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_06",
+          "timestamp_seconds": 11.0,
+          "frame_number": 275,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_07",
+          "timestamp_seconds": 15.0,
+          "frame_number": 375,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_08",
+          "timestamp_seconds": 19.0,
+          "frame_number": 475,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_09",
+          "timestamp_seconds": 22.0,
+          "frame_number": 550,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_10",
+          "timestamp_seconds": 24.0,
+          "frame_number": 600,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_11",
+          "timestamp_seconds": 26.0,
+          "frame_number": 650,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_12",
+          "timestamp_seconds": 28.0,
+          "frame_number": 700,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_13",
+          "timestamp_seconds": 29.0,
+          "frame_number": 725,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_14",
+          "timestamp_seconds": 31.0,
+          "frame_number": 775,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_15",
+          "timestamp_seconds": 33.0,
+          "frame_number": 825,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_16",
+          "timestamp_seconds": 34.0,
+          "frame_number": 850,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_17",
+          "timestamp_seconds": 40.0,
+          "frame_number": 1000,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 27963,
+        "outputTokens": 33,
+        "totalTokens": 27996,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "69b50a5e-4899-431d-96a9-9855c4009604"
+    },
+    {
+      "case_id": "case_005",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 1.001,
+          "frame_number": 30,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 4.004,
+          "frame_number": 120,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 6.006,
+          "frame_number": 180,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "bc42b5a5-ce1f-43eb-b63c-88fbfea9ccc8"
+    },
+    {
+      "case_id": "case_006",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 4.004,
+          "frame_number": 96,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 9.009,
+          "frame_number": 216,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 11.011,
+          "frame_number": 264,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "e3ccdabb-1186-44cc-b34a-f12a6ee604ac"
+    },
+    {
+      "case_id": "case_007",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 6.0,
+          "frame_number": 144,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 8.0,
+          "frame_number": 192,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "74f43f7f-4f99-4886-a05b-9b7ebd76a86b"
+    },
+    {
+      "case_id": "case_008",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 6.006,
+          "frame_number": 144,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 12.012,
+          "frame_number": 288,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "9454810d-2de7-4bf8-ad0a-2c58d5150001"
+    },
+    {
+      "case_id": "case_009",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 3.003,
+          "frame_number": 72,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 10.01,
+          "frame_number": 240,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "c492156b-f57e-4eca-8174-3491d9c7afd2"
+    },
+    {
+      "case_id": "case_010",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 1.0,
+          "frame_number": 30,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 4.0,
+          "frame_number": 120,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 8.0,
+          "frame_number": 240,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 33,
+        "totalTokens": 5862,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "804258cb-ba40-401e-a644-89fd2bad3a11"
+    },
+    {
+      "case_id": "case_011",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 1.001,
+          "frame_number": 24,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 3.003,
+          "frame_number": 72,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_04",
+          "timestamp_seconds": 5.005,
+          "frame_number": 120,
+          "selection_reason": "adaptive_scene_representative"
+        },
+        {
+          "image_id": "frame_05",
+          "timestamp_seconds": 9.009,
+          "frame_number": 216,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [],
+      "predicted_positive": false,
+      "usage": {
+        "inputTokens": 8991,
+        "outputTokens": 33,
+        "totalTokens": 9024,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "ee44f3b9-8488-4d40-8d2b-89af770c14d4"
+    },
+    {
+      "case_id": "case_012",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 2.0,
+          "frame_number": 60,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 12.0,
+          "frame_number": 360,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [
+        {
+          "image_id": "frame_01",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_debris",
+          "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_surface_damage",
+          "description": "Walls show extensive deterioration with large areas of damaged, stained, and deteriorated surface material. Multiple wall sections exhibit severe degradation.",
+          "confidence": 0.85
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "major_debris",
+          "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large sections of ceiling and roof material are missing throughout the structure, with multiple openings visible in the overhead area allowing direct view of sky and exposed structural framing.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are fully exposed due to missing ceiling and roof covering materials across the entire overhead area.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "major_debris",
+          "description": "Extensive debris consisting of broken wood framing, boards, and building materials scattered across the floor throughout the interior space.",
+          "confidence": 0.9
+        }
+      ],
+      "predicted_positive": true,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 708,
+        "totalTokens": 6537,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "016dcc39-6dfe-4760-bdd1-de4bd7c73103"
+    },
+    {
+      "case_id": "case_013",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 0.0,
+          "frame_number": 0,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 2.0,
+          "frame_number": 120,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 12.0,
+          "frame_number": 720,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_debris",
+          "description": "Large amount of debris covering the floor including broken building materials, rubble, and destroyed flooring throughout the interior space.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_surface_damage",
+          "description": "Extensive deterioration and damage to wall surfaces with large areas of missing or destroyed wall material, particularly visible around doorways and throughout the room.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "severe_dark_or_burn_like_deterioration",
+          "description": "Severe dark deterioration visible on walls and surfaces throughout the space, with extensive discoloration and char-like appearance on multiple surfaces.",
+          "confidence": 0.85
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "major_debris",
+          "description": "Extensive debris covering floor area including broken building materials, rubble, and destroyed structural components.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "major_surface_damage",
+          "description": "Large-scale damage to wall surfaces with significant areas of missing or destroyed material visible throughout the interior.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "severe_dark_or_burn_like_deterioration",
+          "description": "Severe dark deterioration and char-like appearance on walls and surfaces throughout the space.",
+          "confidence": 0.85
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "major_debris",
+          "description": "Substantial debris field covering the floor including broken building materials, rubble, and destroyed flooring components.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "major_surface_damage",
+          "description": "Extensive damage to wall and ceiling surfaces with large areas of deteriorated or destroyed material visible throughout the room.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "severe_dark_or_burn_like_deterioration",
+          "description": "Severe dark deterioration visible on walls and surfaces with extensive char-like discoloration throughout the interior space.",
+          "confidence": 0.85
+        }
+      ],
+      "predicted_positive": true,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 677,
+        "totalTokens": 6506,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "7ba4f253-adad-4d1d-a1a0-90512035bda1"
+    },
+    {
+      "case_id": "case_014",
+      "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "labels_available_to_model": false,
+      "original_holdout_names_available_to_model": false,
+      "expected_conditions_available_to_model": false,
+      "selected_keyframes": [
+        {
+          "image_id": "frame_01",
+          "timestamp_seconds": 6.0,
+          "frame_number": 360,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_02",
+          "timestamp_seconds": 8.0,
+          "frame_number": 480,
+          "selection_reason": "best_available_fallback"
+        },
+        {
+          "image_id": "frame_03",
+          "timestamp_seconds": 11.0,
+          "frame_number": 660,
+          "selection_reason": "adaptive_scene_representative"
+        }
+      ],
+      "findings": [
+        {
+          "image_id": "frame_01",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+          "confidence": 0.98
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+          "confidence": 0.97
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_debris",
+          "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_01",
+          "condition_type": "major_surface_damage",
+          "description": "Walls show severe deterioration with large areas of damaged and discolored surfaces, particularly visible on the walls surrounding the openings.",
+          "confidence": 0.9
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+          "confidence": 0.98
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+          "confidence": 0.97
+        },
+        {
+          "image_id": "frame_02",
+          "condition_type": "major_debris",
+          "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+          "confidence": 0.95
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "missing_ceiling_or_roof",
+          "description": "Large section of ceiling and roof material is missing in the upper center area, with exposed structural framing and sky visible through the opening.",
+          "confidence": 0.98
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "exposed_structure",
+          "description": "Structural roof framing members are clearly exposed and visible through the large opening in the ceiling where roofing material has been destroyed or removed.",
+          "confidence": 0.97
+        },
+        {
+          "image_id": "frame_03",
+          "condition_type": "major_debris",
+          "description": "Extensive debris covering the floor including broken building materials, wood pieces, and destroyed structural components scattered throughout the room.",
+          "confidence": 0.95
+        }
+      ],
+      "predicted_positive": true,
+      "usage": {
+        "inputTokens": 5829,
+        "outputTokens": 703,
+        "totalTokens": 6532,
+        "cacheReadInputTokens": 0,
+        "cacheWriteInputTokens": 0
+      },
+      "request_id": "9b9919b1-366c-43e6-85b3-a9b76894c081"
+    }
+  ]
+}

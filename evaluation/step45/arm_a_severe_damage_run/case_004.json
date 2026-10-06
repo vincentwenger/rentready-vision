@@ -1,0 +1,122 @@
+{
+  "case_id": "case_004",
+  "profile": "step45_whole_scene_severe_damage_specialist_v1/1.0",
+  "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "labels_available_to_model": false,
+  "original_holdout_names_available_to_model": false,
+  "expected_conditions_available_to_model": false,
+  "selected_keyframes": [
+    {
+      "image_id": "frame_01",
+      "timestamp_seconds": 0.0,
+      "frame_number": 0,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_02",
+      "timestamp_seconds": 2.0,
+      "frame_number": 50,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_03",
+      "timestamp_seconds": 3.0,
+      "frame_number": 75,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_04",
+      "timestamp_seconds": 4.0,
+      "frame_number": 100,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_05",
+      "timestamp_seconds": 7.0,
+      "frame_number": 175,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_06",
+      "timestamp_seconds": 11.0,
+      "frame_number": 275,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_07",
+      "timestamp_seconds": 15.0,
+      "frame_number": 375,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_08",
+      "timestamp_seconds": 19.0,
+      "frame_number": 475,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_09",
+      "timestamp_seconds": 22.0,
+      "frame_number": 550,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_10",
+      "timestamp_seconds": 24.0,
+      "frame_number": 600,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_11",
+      "timestamp_seconds": 26.0,
+      "frame_number": 650,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_12",
+      "timestamp_seconds": 28.0,
+      "frame_number": 700,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_13",
+      "timestamp_seconds": 29.0,
+      "frame_number": 725,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_14",
+      "timestamp_seconds": 31.0,
+      "frame_number": 775,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_15",
+      "timestamp_seconds": 33.0,
+      "frame_number": 825,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_16",
+      "timestamp_seconds": 34.0,
+      "frame_number": 850,
+      "selection_reason": "adaptive_scene_representative"
+    },
+    {
+      "image_id": "frame_17",
+      "timestamp_seconds": 40.0,
+      "frame_number": 1000,
+      "selection_reason": "adaptive_scene_representative"
+    }
+  ],
+  "findings": [],
+  "predicted_positive": false,
+  "usage": {
+    "inputTokens": 27963,
+    "outputTokens": 33,
+    "totalTokens": 27996,
+    "cacheReadInputTokens": 0,
+    "cacheWriteInputTokens": 0
+  },
+  "request_id": "69b50a5e-4899-431d-96a9-9855c4009604"
+}

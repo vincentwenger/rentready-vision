@@ -1,0 +1,130 @@
+{
+  "schema_version": "rentready-step45-arm-b2-localized-motion-features/1.0",
+  "step": 45,
+  "arm": "B2",
+  "status": "FEATURE_EXTRACTION_COMPLETE",
+  "labels_used": false,
+  "model_calls": 0,
+  "case_classification": false,
+  "detector_v3_modified": false,
+  "analysis_width_pixels": 640,
+  "gaussian_blur_kernel": 5,
+  "maximum_absolute_translation_pixels": 80.0,
+  "grid_rows": 10,
+  "grid_columns": 10,
+  "residual_threshold_gray_levels": 20,
+  "cases": [
+    {
+      "case_id": "case_001",
+      "frame_count": 215,
+      "pair_count": 214,
+      "stabilization_success_count": 174,
+      "stabilization_failure_count": 40,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_001.json"
+    },
+    {
+      "case_id": "case_002",
+      "frame_count": 197,
+      "pair_count": 196,
+      "stabilization_success_count": 196,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_002.json"
+    },
+    {
+      "case_id": "case_003",
+      "frame_count": 180,
+      "pair_count": 179,
+      "stabilization_success_count": 179,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_003.json"
+    },
+    {
+      "case_id": "case_004",
+      "frame_count": 163,
+      "pair_count": 162,
+      "stabilization_success_count": 157,
+      "stabilization_failure_count": 5,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_004.json"
+    },
+    {
+      "case_id": "case_005",
+      "frame_count": 54,
+      "pair_count": 53,
+      "stabilization_success_count": 53,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_005.json"
+    },
+    {
+      "case_id": "case_006",
+      "frame_count": 52,
+      "pair_count": 51,
+      "stabilization_success_count": 51,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_006.json"
+    },
+    {
+      "case_id": "case_007",
+      "frame_count": 42,
+      "pair_count": 41,
+      "stabilization_success_count": 41,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_007.json"
+    },
+    {
+      "case_id": "case_008",
+      "frame_count": 53,
+      "pair_count": 52,
+      "stabilization_success_count": 52,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_008.json"
+    },
+    {
+      "case_id": "case_009",
+      "frame_count": 41,
+      "pair_count": 40,
+      "stabilization_success_count": 40,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_009.json"
+    },
+    {
+      "case_id": "case_010",
+      "frame_count": 36,
+      "pair_count": 35,
+      "stabilization_success_count": 35,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_010.json"
+    },
+    {
+      "case_id": "case_011",
+      "frame_count": 45,
+      "pair_count": 44,
+      "stabilization_success_count": 44,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_011.json"
+    },
+    {
+      "case_id": "case_012",
+      "frame_count": 58,
+      "pair_count": 57,
+      "stabilization_success_count": 57,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_012.json"
+    },
+    {
+      "case_id": "case_013",
+      "frame_count": 51,
+      "pair_count": 50,
+      "stabilization_success_count": 50,
+      "stabilization_failure_count": 0,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_013.json"
+    },
+    {
+      "case_id": "case_014",
+      "frame_count": 51,
+      "pair_count": 50,
+      "stabilization_success_count": 49,
+      "stabilization_failure_count": 1,
+      "result_path": "evaluation/step45/arm_b2_localized_motion_features/case_014.json"
+    }
+  ]
+}

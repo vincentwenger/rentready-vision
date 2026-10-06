@@ -1,0 +1,53 @@
+﻿{
+    "schema_version":  "rentready-step45-v4-research-plan/1.0",
+    "step":  45,
+    "status":  "RESEARCH_PLAN",
+    "constraints":  {
+                        "detector_v3_remains_frozen":  true,
+                        "step44_holdout_is_consumed":  true,
+                        "step44_cases_may_be_used_for_diagnostics":  true,
+                        "future_unbiased_v4_evaluation_requires_new_holdout":  true
+                    },
+    "priorities":  [
+                       {
+                           "rank":  1,
+                           "name":  "whole_scene_severe_damage_recognition",
+                           "target_cases":  [
+                                                "case_012",
+                                                "case_013"
+                                            ],
+                           "problem":  "Large persistent visible damage produced zero candidate findings.",
+                           "goal":  "Detect major structural, ceiling, wall, surface, debris, and severe-deterioration conditions without requiring exact cause classification."
+                       },
+                       {
+                           "rank":  2,
+                           "name":  "temporal_transient_condition_analysis",
+                           "target_cases":  [
+                                                "case_003",
+                                                "case_005"
+                                            ],
+                           "problem":  "Independent sparse stills do not adequately represent dripping water or electrical flicker.",
+                           "goal":  "Analyze short same-region frame sequences for motion, dripping, and repeated brightness change."
+                       },
+                       {
+                           "rank":  3,
+                           "name":  "fixture_condition_specialist",
+                           "target_cases":  [
+                                                "case_011"
+                                            ],
+                           "problem":  "Persistent abnormal fixture evidence across five frames produced zero candidate findings.",
+                           "goal":  "Recognize deformation, obstruction, broken material, foreign material, and abnormal fixture geometry."
+                       },
+                       {
+                           "rank":  4,
+                           "name":  "cross_keyframe_persistence_research",
+                           "target_cases":  [
+                                                "case_001",
+                                                "case_014"
+                                            ],
+                           "problem":  "The false positive had one supporting keyframe while the true positive had repeated support.",
+                           "goal":  "Test persistence as a false-positive-control signal without suppressing genuine singleton defects.",
+                           "adopted_as_v4_rule":  false
+                       }
+                   ]
+}
