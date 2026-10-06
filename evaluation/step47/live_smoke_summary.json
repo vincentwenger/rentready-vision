@@ -1,0 +1,68 @@
+{
+  "step": 47,
+  "status": "COMPLETE",
+  "purpose": "live_detector_v4_deployment_and_end_to_end_smoke",
+  "detector_profile": "detector_v4_candidate/1.0",
+  "deployed_source_commit": "f1456e571f1196d69c2dcc58b11c9b2af95a47af",
+  "artifact_version": "f1456e571f1196d69c2dcc58b11c9b2af95a47af",
+  "artifact_sha256": "ff273f14b29fd42b6e5f1ee1292d1636648a46822c85b0c7cc6d9b20d7ed40dc",
+  "artifact_s3_uri": "s3://rentready-vision-dev-081087819788/deployments/cool-worker/f1456e571f1196d69c2dcc58b11c9b2af95a47af/rentready-vision-cool-worker-f1456e571f1196d69c2dcc58b11c9b2af95a47af.tar.gz",
+  "feature_gate": {
+    "name": "DETECTOR_V4_ENABLED",
+    "live_value": true
+  },
+  "worker": {
+    "instance_id": "i-0ecc68f9db17b668d",
+    "instance_type": "m8g.4xlarge",
+    "ami_id": "ami-08dacb72c289c8261",
+    "cool_version": "3.1",
+    "opencv_version": "5.1.0-dev",
+    "architecture": "aarch64",
+    "final_instance_state": "stopped"
+  },
+  "runtime_verification": {
+    "bootstrap_passed": true,
+    "post_start_passed": true,
+    "errors": []
+  },
+  "bedrock_smoke": {
+    "nova_2_lite": true,
+    "claude_sonnet_4_5": true,
+    "overall_passed": true
+  },
+  "production_smoke": {
+    "source_case": "case_012",
+    "source_case_already_consumed": true,
+    "inspection_id": "7da0d2fe-5ec5-4533-8357-cca5de1f6f13",
+    "job_id": "rv-6e041e849e4ceada1bf3655f107dc491",
+    "backend": "graviton4_cool_sqs",
+    "status": "COMPLETE",
+    "last_event": "PROCESSING_COMPLETE",
+    "error": null,
+    "processing_seconds": 31.081,
+    "frames_analyzed": 15,
+    "selected_keyframes": 3,
+    "peak_memory_mb": 317.309,
+    "report_s3_key": "rentready/inspections/7da0d2fe-5ec5-4533-8357-cca5de1f6f13/reports/report.json"
+  },
+  "v4_prediction": {
+    "predicted_positive": true,
+    "v3_compatible_base_positive": true,
+    "arm_a_severe_damage_positive": true,
+    "arm_b1_electrical_flicker_positive": false
+  },
+  "persisted_findings": [
+    {
+      "category": "wall_crack",
+      "timestamp_seconds": 0.0,
+      "confidence": 0.85
+    },
+    {
+      "category": "paint_damage",
+      "timestamp_seconds": 12.0,
+      "confidence": 0.9
+    }
+  ],
+  "benchmark_claim": "none",
+  "benchmark_limitation": "case_012 is consumed Step 44/45 evidence; a new untouched external holdout is required for unbiased Detector v4 accuracy"
+}

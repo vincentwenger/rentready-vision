@@ -814,3 +814,35 @@ Step 46 does not claim live EC2 enablement or unbiased Detector v4 accuracy.
 The consumed Step 44 holdout must not be reused for that purpose.
 
 See [`STEP46_FINAL.md`](STEP46_FINAL.md) for the complete integration record.
+
+## Step 47 Detector v4 live EC2/COOL deployment - COMPLETE / LIVE SMOKE PASS
+
+Step 47 deploys the Step 46 `detector_v4_candidate/1.0` release to the existing
+OpenCV COOL / Graviton4 worker.
+
+The deterministic worker artifact was built from commit
+`f1456e571f1196d69c2dcc58b11c9b2af95a47af`, published to versioned S3, verified
+by SHA-256, and installed through SSM without replacing the EC2 instance.
+
+Live verification passed for:
+
+- official COOL 3.1 / OpenCV 5.1.0-dev ARM64 runtime
+- exact deployed source commit and artifact SHA
+- `DETECTOR_V4_ENABLED=true`
+- Amazon Nova 2 Lite invocation
+- Claude Sonnet 4.5 invocation
+- real S3 -> SQS -> COOL worker processing
+- persisted `detector_v4_candidate/1.0` issue report
+- preserved issue evidence and durable completion
+
+A consumed `case_012` clip was used only as a production smoke test. The live
+run was positive in both the v3-compatible base and Arm A branches, so it must
+not be described as an Arm-A-only recovery.
+
+Step 47 does not claim unbiased Detector v4 accuracy. A new untouched external
+holdout is still required.
+
+The development `m8g.4xlarge` worker was stopped after the successful smoke test
+to avoid unnecessary compute cost.
+
+See [`STEP47_FINAL.md`](STEP47_FINAL.md) for the complete deployment record.

@@ -239,3 +239,32 @@ Detector v4 remains disabled by default and has not yet been enabled live on
 the EC2 COOL/Graviton4 worker.
 
 See [`../STEP46_FINAL.md`](../STEP46_FINAL.md).
+
+## Step 47 live Detector v4 deployment smoke
+
+Step 47 verifies the integrated `detector_v4_candidate/1.0` on the real
+development OpenCV COOL / Graviton4 worker.
+
+Live checks passed for:
+
+- deterministic versioned worker artifact deployment
+- artifact SHA and embedded-manifest verification
+- COOL / OpenCV / ARM64 runtime verification
+- Nova 2 Lite access
+- Claude Sonnet 4.5 access
+- real S3 / SQS processing
+- durable `COMPLETE` job state
+- persisted Detector v4 issue report
+- preserved issue evidence
+
+The production smoke used already-consumed `case_012`; it is not an unbiased
+benchmark. In this live run both the v3-compatible base and Arm A were positive.
+
+Machine-readable smoke evidence is retained in:
+
+`step47/live_smoke_summary.json`
+
+See [`../STEP47_FINAL.md`](../STEP47_FINAL.md).
+
+A future Detector v4 accuracy evaluation still requires a brand-new untouched
+external holdout.

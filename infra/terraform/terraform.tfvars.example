@@ -24,9 +24,10 @@ subnet_id = "subnet-REPLACE_ME"
 # no inbound rules and Terraform creates no SSH key.
 associate_public_ip_address = false
 
-# The Step-16 app configuration uses the US Nova 2 Lite inference profile. AWS
-# requires the profile ARN plus every destination foundation-model ARN returned
-# by GetInferenceProfile. Add only those exact ARNs; do not use Resource="*".
+# Step 47 Detector v4 uses the US Nova 2 Lite and Claude Sonnet 4.5 inference
+# profiles. For each profile, include the profile ARN plus every destination
+# foundation-model ARN returned by GetInferenceProfile. Add only those exact
+# ARNs; do not use Resource="*".
 bedrock_model_arns = []
 
 # Step 39: these rules are managed here only when manage_data_resources=true.
