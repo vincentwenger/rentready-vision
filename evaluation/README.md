@@ -210,3 +210,32 @@ Git evidence.
 
 See [`../STEP45_FINAL.md`](../STEP45_FINAL.md) for the complete Step 45 decision.
 A future Detector v4 requires a brand-new untouched external holdout.
+
+## Step 46 integrated Detector v4 candidate
+
+Step 46 integrates the retained Step 45 candidate:
+
+`frozen Detector v3 OR Arm A OR Arm B1`
+
+into the production-oriented processing path.
+
+This is an engineering/integration milestone, not a new unbiased accuracy
+benchmark. The Step 44 external-v3 holdout remains consumed.
+
+Verification includes:
+
+- frozen-v3 compatibility
+- deterministic holder regression
+- Arm A and Arm B1 production-port checks
+- Detector-v4 OR orchestration
+- truthful `detector_signals`
+- existing issue-report compatibility
+- feature-gated processing integration
+- durable report metadata
+- legacy-detector fallback protection
+- complete repository suite: `303 passed, 1 skipped`
+
+Detector v4 remains disabled by default and has not yet been enabled live on
+the EC2 COOL/Graviton4 worker.
+
+See [`../STEP46_FINAL.md`](../STEP46_FINAL.md).

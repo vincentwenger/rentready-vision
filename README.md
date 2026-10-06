@@ -791,3 +791,26 @@ Any eventual Detector v4 must be evaluated once on a brand-new untouched
 external holdout.
 
 See [`STEP45_FINAL.md`](STEP45_FINAL.md) for the complete research record.
+
+## Step 46 Integrated Detector v4 candidate - COMPLETE / NOT YET LIVE
+
+Step 46 productionizes the retained Step 45 research direction as
+`detector_v4_candidate/1.0`:
+
+- frozen Detector v3 compatible base
+- OR Arm A whole-scene severe-damage specialist
+- OR Arm B1 deterministic electrical-flicker specialist
+
+The candidate is integrated into the video-processing path while the original
+walkthrough and selected JPEGs are still local. Localized findings retain the
+existing issue-report contract; holder geometry, Arm A, and Arm B1 are preserved
+separately as `detector_signals` without fabricated bounding boxes.
+
+The integration is gated by `DETECTOR_V4_ENABLED`, which defaults to `false`.
+The historical frozen detector sources remain unchanged. The complete repository
+suite passes with `303 passed, 1 skipped`.
+
+Step 46 does not claim live EC2 enablement or unbiased Detector v4 accuracy.
+The consumed Step 44 holdout must not be reused for that purpose.
+
+See [`STEP46_FINAL.md`](STEP46_FINAL.md) for the complete integration record.

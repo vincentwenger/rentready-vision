@@ -382,15 +382,23 @@ def complete_processing_job(
     video: dict[str, Any],
     processing: dict[str, Any],
     telemetry: dict[str, Any],
+    issue_report_metadata: dict[str, Any] | None = None,
 ) -> bool:
     now = utc_now()
+    issue_report_metadata = dict(
+        issue_report_metadata
+        or {}
+    )
+
     try:
         table.update_item(
             Key={"PK": inspection_pk(inspection_id), "SK": processing_job_sk(job_id)},
             UpdateExpression=(
                 "SET #status = :complete, #manifest = :manifest, #completed = :now, "
                 "#updated = :now, #telemetry = :telemetry, #video = :video, "
-                "#processing_data = :processing_data REMOVE #lease"
+                "#processing_data = :processing_data, "
+                "#issue_report_metadata = :issue_report_metadata "
+                "REMOVE #lease"
             ),
             ConditionExpression="#status = :processing AND #claim = :claim",
             ExpressionAttributeNames={
@@ -401,6 +409,7 @@ def complete_processing_job(
                 "#telemetry": "telemetry",
                 "#video": "video",
                 "#processing_data": "processing",
+                "#issue_report_metadata": "issue_report_metadata",
                 "#lease": "lease_expires_at",
                 "#claim": "claim_token",
             },
@@ -413,6 +422,9 @@ def complete_processing_job(
                 ":telemetry": _ddb_safe(telemetry),
                 ":video": _ddb_safe(video),
                 ":processing_data": _ddb_safe(processing),
+                ":issue_report_metadata": _ddb_safe(
+                    issue_report_metadata
+                ),
             },
         )
     except ClientError as exc:
@@ -431,6 +443,7 @@ def complete_processing_job(
         processing_completed_at=now,
         processing_telemetry=telemetry,
         last_processing_event="PROCESSING_COMPLETE",
+        **issue_report_metadata,
     )
 
 
@@ -440,6 +453,12 @@ def reconcile_completed_job(inspection_id: str, job_id: str, job: dict[str, Any]
     manifest_s3_key = job.get("manifest_s3_key")
     if not manifest_s3_key:
         return False
+
+    issue_report_metadata = dict(
+        job.get("issue_report_metadata")
+        or {}
+    )
+
     return _update_active_inspection_state(
         inspection_id,
         job_id,
@@ -451,6 +470,7 @@ def reconcile_completed_job(inspection_id: str, job_id: str, job: dict[str, Any]
         processing_telemetry=job.get("telemetry"),
         processing_completed_at=job.get("completed_at") or utc_now(),
         last_processing_event="PROCESSING_COMPLETE",
+        **issue_report_metadata,
     )
 
 def fail_processing_attempt(

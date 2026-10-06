@@ -44,6 +44,12 @@ from .vision.severity_classifier import (
 )
 from .vision.issue_taxonomy import TAXONOMY_VERSION, taxonomy_payload
 from .vision.video_processor import process_video
+from .vision.detector_v4 import (
+    PROFILE as DETECTOR_V4_PROFILE,
+    build_ui_compatible_report,
+    detector_v4_enabled,
+    run_detector_v4_candidate,
+)
 from .vision.interval_inspector import inspect_interval
 from .vision.region_cropper import CROP_TRACE_VERSION, write_crop_region
 from .vision.region_enhancer import ENHANCE_TRACE_VERSION, write_enhanced_region
@@ -175,21 +181,210 @@ def execute_processing_job(
                 )
 
             prefix = storage_prefix
-            public_keyframes = []
+
+            # Assign the final frame S3 keys before Detector v4 runs.
+            # The local_path remains available inside this temporary
+            # directory for pixel refinement and visual consolidation.
             per_scene: dict[int, int] = {}
+
             for record in manifest["keyframes"]:
-                local_path = Path(record["local_path"])
-                name = local_path.name if prefix.startswith("inspections/") else keyframe_name(record, per_scene)
-                s3_key = f"{prefix}/frames/{name}"
+                local_path = Path(
+                    record["local_path"]
+                )
+
+                name = (
+                    local_path.name
+                    if prefix.startswith(
+                        "inspections/"
+                    )
+                    else keyframe_name(
+                        record,
+                        per_scene,
+                    )
+                )
+
+                record["s3_key"] = (
+                    f"{prefix}/frames/{name}"
+                )
+
+            manifest_key = (
+                f"{prefix}/manifest.json"
+                if prefix.startswith(
+                    "inspections/"
+                )
+                else
+                f"{prefix}/reports/manifest.json"
+            )
+
+            issue_report: dict[str, Any] | None = None
+            issue_report_metadata: dict[str, Any] = {}
+
+            if detector_v4_enabled():
+                v4_report = run_detector_v4_candidate(
+                    video_path=input_path,
+                    manifest=manifest,
+                    bedrock_client=bedrock_runtime,
+                )
+
+                issue_report = build_ui_compatible_report(
+                    v4_report=v4_report,
+                    manifest=manifest,
+                )
+
+                issue_report["inspection_id"] = (
+                    inspection_id
+                )
+
+                issue_report[
+                    "source_manifest_s3_key"
+                ] = manifest_key
+
+            # Upload the selected keyframes before preserving issue
+            # evidence because preserve_issue_evidence() performs
+            # S3-to-S3 copies from these final frame keys.
+            public_keyframes = []
+
+            for record in manifest["keyframes"]:
+                local_path = Path(
+                    record["local_path"]
+                )
+
+                s3_key = str(
+                    record["s3_key"]
+                )
+
                 s3.upload_file(
                     str(local_path),
                     settings.s3_bucket,
                     s3_key,
-                    ExtraArgs={"ContentType": "image/jpeg"},
+                    ExtraArgs={
+                        "ContentType":
+                            "image/jpeg"
+                    },
                 )
-                public_record = {key: value for key, value in record.items() if key != "local_path"}
-                public_record["s3_key"] = s3_key
-                public_keyframes.append(public_record)
+
+                public_record = {
+                    key: value
+                    for key, value
+                    in record.items()
+                    if key != "local_path"
+                }
+
+                public_keyframes.append(
+                    public_record
+                )
+
+            if issue_report is not None:
+                issue_report_key = (
+                    inspection_report_key(
+                        prefix
+                    )
+                )
+
+                preserve_issue_evidence(
+                    s3,
+                    settings.s3_bucket,
+                    prefix,
+                    issue_report,
+                )
+
+                issue_report[
+                    "report_s3_key"
+                ] = issue_report_key
+
+                issue_report[
+                    "storage_layout_version"
+                ] = "rentready-s3/1.0"
+
+                s3.put_object(
+                    Bucket=settings.s3_bucket,
+                    Key=issue_report_key,
+                    Body=json.dumps(
+                        issue_report,
+                        indent=2,
+                    ).encode(
+                        "utf-8"
+                    ),
+                    ContentType="application/json",
+                )
+
+                issue_report_metadata = {
+                    "issue_detection_status":
+                        "COMPLETE",
+                    "issue_detection_error":
+                        None,
+                    "issue_report_s3_key":
+                        issue_report_key,
+                    "issue_count":
+                        len(
+                            issue_report.get(
+                                "issues"
+                            )
+                            or []
+                        ),
+                    "raw_issue_count":
+                        len(
+                            issue_report.get(
+                                "raw_issues"
+                            )
+                            or []
+                        ),
+                    "candidate_finding_count":
+                        len(
+                            issue_report.get(
+                                "candidate_findings"
+                            )
+                            or []
+                        ),
+                    "raw_candidate_finding_count":
+                        len(
+                            issue_report.get(
+                                "raw_candidate_findings"
+                            )
+                            or []
+                        ),
+                    "issue_consolidation_version":
+                        CONSOLIDATION_VERSION,
+                    "severity_classification_version":
+                        SEVERITY_CLASSIFICATION_VERSION,
+                    "issue_detection_model_id":
+                        DETECTOR_V4_PROFILE,
+                    "issue_taxonomy_version":
+                        TAXONOMY_VERSION,
+                    "structured_finding_version":
+                        STRUCTURED_FINDING_VERSION,
+                    "issue_report_schema_version":
+                        REPORT_SCHEMA_VERSION,
+                    "issue_detection_completed_at":
+                        issue_report.get(
+                            "generated_at"
+                        ),
+                    "detector_v4_profile":
+                        DETECTOR_V4_PROFILE,
+                    "detector_v4_predicted_positive":
+                        bool(
+                            (
+                                (
+                                    issue_report.get(
+                                        "v4"
+                                    )
+                                    or {}
+                                ).get(
+                                    "prediction"
+                                )
+                                or {}
+                            ).get(
+                                "predicted_positive"
+                            )
+                        ),
+                    "detector_signal_count":
+                        len(
+                            issue_report.get(
+                                "detector_signals"
+                            )
+                            or []
+                        ),
+                }
 
             remote_manifest = {
                 "job": {
@@ -202,11 +397,14 @@ def execute_processing_job(
                 "keyframes": public_keyframes,
                 "frame_assessments": manifest["frame_assessments"],
             }
-            manifest_key = f"{prefix}/manifest.json" if prefix.startswith("inspections/") else f"{prefix}/reports/manifest.json"
+
             s3.put_object(
                 Bucket=settings.s3_bucket,
                 Key=manifest_key,
-                Body=json.dumps(remote_manifest, indent=2).encode("utf-8"),
+                Body=json.dumps(
+                    remote_manifest,
+                    indent=2,
+                ).encode("utf-8"),
                 ContentType="application/json",
             )
 
@@ -224,6 +422,8 @@ def execute_processing_job(
         "video": manifest["video"],
         "processing": manifest["processing"],
         "telemetry": telemetry_values,
+        "issue_report_metadata":
+            issue_report_metadata,
     }
 
 
@@ -1357,6 +1557,10 @@ def run_processing_job(inspection_id: str) -> None:
             video=result["video"],
             processing=result["processing"],
             processing_telemetry=result["telemetry"],
+            **dict(
+                result.get("issue_report_metadata")
+                or {}
+            ),
         )
     except Exception as exc:
         update_inspection(inspection_id, status="FAILED", error=f"{type(exc).__name__}: {exc}")
@@ -1398,12 +1602,56 @@ def detect_issues_for_inspection(
         )
 
     existing_key = inspection.get("issue_report_s3_key")
-    if existing_key and not force:
-        obj = s3.get_object(Bucket=settings.s3_bucket, Key=existing_key)
-        existing_report = json.loads(obj["Body"].read())
-        # Do not silently reuse the older Step-16 schema after Step 17 is deployed.
-        if existing_report.get("schema_version") == REPORT_SCHEMA_VERSION:
-            return existing_report
+    if existing_key:
+        obj = s3.get_object(
+            Bucket=settings.s3_bucket,
+            Key=existing_key,
+        )
+        existing_report = json.loads(
+            obj["Body"].read()
+        )
+
+        if (
+            existing_report.get("schema_version")
+            == REPORT_SCHEMA_VERSION
+        ):
+            # Detector v4 runs during video processing while the
+            # original walkthrough and selected JPEGs are still local.
+            # Once enabled, /issues/detect must reuse that persisted
+            # report rather than silently invoking the legacy detector,
+            # including when force=true is supplied.
+            if detector_v4_enabled():
+                persisted_profile = (
+                    (
+                        existing_report.get("v4")
+                        or {}
+                    ).get("profile")
+                    or (
+                        existing_report.get("detector")
+                        or {}
+                    ).get("v4_profile")
+                )
+
+                if (
+                    persisted_profile
+                    != DETECTOR_V4_PROFILE
+                ):
+                    raise RuntimeError(
+                        "Detector v4 is enabled but the persisted "
+                        "issue report is not the expected v4 profile."
+                    )
+
+                return existing_report
+
+            if not force:
+                return existing_report
+
+    if detector_v4_enabled():
+        raise RuntimeError(
+            "Detector v4 is enabled but no persisted v4 issue "
+            "report is available. Re-run video processing instead "
+            "of falling back to the legacy detector."
+        )
 
     telemetry_job_id = telemetry_job_id or f"ai-{inspection_id}"
     analysis_started = time.perf_counter()

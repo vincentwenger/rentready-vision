@@ -421,6 +421,9 @@ def _handle_message(
             video=result["video"],
             processing=result["processing"],
             telemetry=result["telemetry"],
+            issue_report_metadata=result.get(
+                "issue_report_metadata"
+            ),
         )
         if not committed:
             raise RuntimeError("Processing finished but the worker no longer owns the durable job lease")
