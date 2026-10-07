@@ -1,0 +1,2 @@
+# Test-only AWS emulation; never install into the COOL worker or Lambda.
+moto[dynamodb]>=5.1,<6

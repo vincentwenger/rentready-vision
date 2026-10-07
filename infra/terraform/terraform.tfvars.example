@@ -35,3 +35,8 @@ bedrock_model_arns = []
 s3_video_retention_days            = 30
 s3_noncurrent_video_retention_days = 30
 s3_abort_multipart_days            = 7
+# Step 49: first enable startup only, deploy guarded worker/API, then enable shutdown.
+worker_lifecycle_enabled     = false
+worker_idle_shutdown_enabled = false
+worker_idle_timeout_seconds  = 600
+api_runtime_role_name        = "rentready-vision-api-ec2"

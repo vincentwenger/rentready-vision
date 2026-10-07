@@ -10,6 +10,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from ..aws import s3, sqs
 from ..config import get_settings
+from ..worker_dispatch import send_processing_message, worker_status
 from ..security_config import get_security_settings
 from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
                        report_key, artifact_key)
@@ -280,7 +281,7 @@ def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> d
 
         mark_inspection_queued(inspection_id, message, backend="graviton4_cool_sqs")
         try:
-            response = sqs.send_message(
+            response = send_processing_message(
                 QueueUrl=settings.processing_queue_url,
                 MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
                 MessageAttributes={
@@ -348,6 +349,7 @@ def get_status(inspection_id: str) -> dict:
         "last_event": item.get("last_processing_event"),
         "error": item.get("error"),
         "updated_at": item["updated_at"],
+        "worker": worker_status() if item["status"] in {"QUEUED", "RETRY_PENDING"} else None,
     }
 
 
@@ -600,7 +602,7 @@ def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> Agenti
         last_agentic_event="AGENT_DECISION",
     )
     try:
-        response = sqs.send_message(
+        response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
             MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
             MessageAttributes={
@@ -730,7 +732,7 @@ def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> A
         last_agentic_event="AGENT_DECISION",
     )
     try:
-        response = sqs.send_message(
+        response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
             MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
             MessageAttributes={
@@ -877,7 +879,7 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
         last_agentic_event="AGENT_DECISION",
     )
     try:
-        response = sqs.send_message(
+        response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
             MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
             MessageAttributes={
@@ -1029,7 +1031,7 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
         last_agentic_event="AGENT_DECISION",
     )
     try:
-        response = sqs.send_message(
+        response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
             MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
             MessageAttributes={
@@ -1374,7 +1376,7 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
         last_agentic_event="DECISION_POLICY_STARTED",
     )
     try:
-        response = sqs.send_message(
+        response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
             MessageBody=json.dumps(message, sort_keys=True, separators=(",", ":")),
             MessageAttributes={

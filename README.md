@@ -861,3 +861,17 @@ Follow-up immutable artifacts:
 
 See [`STEP47_FINAL.md`](STEP47_FINAL.md) and
 [`evaluation/step47/README.md`](evaluation/step47/README.md).
+
+## Step 49 — On-Demand COOL Worker Auto-Start & Safe Idle Shutdown
+
+Step 49 adds automatic startup of the existing COOL worker when the API queues
+an inspection, startup messages in the website, and guarded shutdown after
+**10 minutes idle**. A Lambda controller reconciles every minute and recovers
+uploads that arrive during an EC2 stop transition. Durable jobs, all SQS queue
+counts, and an atomic worker busy/drain guard protect processing and retries.
+
+Status: **REPOSITORY IMPLEMENTATION / LIVE DEPLOYMENT PENDING**. The lifecycle
+settings are disabled by default until the guarded worker, API, and controller
+have been deployed. Frozen detector configuration and accuracy evidence are
+unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md) for
+deployment packages, commands, and live acceptance checks.

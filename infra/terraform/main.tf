@@ -202,6 +202,7 @@ resource "aws_iam_role_policy" "cool_worker" {
         Effect = "Allow"
         Action = [
           "dynamodb:DescribeTable",
+          "dynamodb:Scan",
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem"
@@ -333,6 +334,7 @@ resource "aws_instance" "cool_worker" {
     queue_visibility_timeout        = var.queue_visibility_timeout_seconds
     queue_max_receive_count         = var.queue_max_receive_count
     processing_lease_seconds        = var.queue_visibility_timeout_seconds + 300
+    worker_lifecycle_enabled        = var.worker_lifecycle_enabled
     worker_artifact_s3_bucket       = local.artifact_bucket_name
     worker_artifact_s3_key          = var.worker_artifact_s3_key
     worker_artifact_sha256          = var.worker_artifact_sha256

@@ -14,6 +14,20 @@ if [ -f /etc/environment ]; then
 fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ "${WORKER_LIFECYCLE_ENABLED:-false}" = "true" ]; then
+  metadata_token=$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
+    -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
+    http://169.254.169.254/latest/api/token)
+  worker_instance_id=$(curl -fsS --connect-timeout 2 --max-time 5 \
+    -H "X-aws-ec2-metadata-token: $metadata_token" \
+    http://169.254.169.254/latest/meta-data/instance-id)
+  if ! [[ "$worker_instance_id" =~ ^i-[a-f0-9]+$ ]]; then
+    echo "Could not resolve Step 49 worker identity through IMDSv2" >&2
+    exit 1
+  fi
+  sed -i '/^COOL_WORKER_INSTANCE_ID=/d' /etc/environment
+  printf 'COOL_WORKER_INSTANCE_ID=%s\n' "$worker_instance_id" >>/etc/environment
+fi
 COOL_PYTHON=/opt/cool/venvs/python_3.12/bin/python
 COOL_PIP=/opt/cool/venvs/python_3.12/bin/pip
 
@@ -50,6 +64,7 @@ Environment=PYTHONUNBUFFERED=1
 ExecStart=$COOL_PYTHON $PROJECT_DIR/scripts/cool_worker.py
 Restart=on-failure
 RestartSec=10
+TimeoutStopSec=3700
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict

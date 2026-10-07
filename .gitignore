@@ -28,3 +28,6 @@ evaluation/external_v1/**/*.mov
 
 # Step 34F generated OpenCV frames/manifests — keep run.json and detector_report.json
 evaluation/step34f/raw/*/opencv_1hz/
+
+infra/terraform/worker-lifecycle.zip
+infra/terraform/step49.auto.tfvars.json

@@ -18,6 +18,9 @@ sys.path.insert(0, str(ROOT))
 
 from app.aws import sqs  # noqa: E402
 from app.config import get_settings  # noqa: E402
+from app.aws import table  # noqa: E402
+from app.worker_lifecycle import WorkerLifecycle  # noqa: E402
+from app.worker_lifecycle_config import get_lifecycle_settings  # noqa: E402
 from app.db import (  # noqa: E402
     claim_processing_job,
     complete_agent_tool_job,
@@ -515,7 +518,20 @@ def main() -> int:
         settings.queue_max_receive_count,
     )
 
+    lifecycle = None
+    lifecycle_settings = get_lifecycle_settings()
+    if lifecycle_settings.worker_lifecycle_enabled:
+        if not lifecycle_settings.cool_worker_instance_id:
+            raise RuntimeError("COOL_WORKER_INSTANCE_ID is required for Step 49")
+        lifecycle = WorkerLifecycle(table, lifecycle_settings.cool_worker_instance_id)
+        lifecycle.activity()
+
     while not STOP.is_set():
+        if lifecycle:
+            lifecycle.heartbeat()
+            if lifecycle.read().get("draining"):
+                LOGGER.info("Step 49 worker draining; waiting for instance stop")
+                return 0
         response = sqs.receive_message(
             QueueUrl=settings.processing_queue_url,
             MaxNumberOfMessages=1,
@@ -525,6 +541,14 @@ def main() -> int:
             MessageAttributeNames=["All"],
         )
         for message in response.get("Messages", []):
+            if lifecycle and not lifecycle.begin_work():
+                # Shutdown won the atomic race. Release the delivery and never
+                # enter processing while StopInstances is in progress.
+                sqs.change_message_visibility(
+                    QueueUrl=settings.processing_queue_url,
+                    ReceiptHandle=message["ReceiptHandle"], VisibilityTimeout=0,
+                )
+                return 0
             try:
                 _handle_message(
                     queue_url=settings.processing_queue_url,
@@ -533,6 +557,9 @@ def main() -> int:
                 )
             except Exception:
                 LOGGER.exception("Processing delivery failed; SQS will retry/redrive it")
+            finally:
+                if lifecycle:
+                    lifecycle.end_work()
     return 0
 
 

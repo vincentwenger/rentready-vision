@@ -166,7 +166,7 @@
     <ul class="steps">
       <li class="step" id="step-upload"><span class="mark">○</span><span>Video uploaded</span></li>
       <li class="step" id="step-read"><span class="mark">○</span><span>Reading video</span></li>
-      <li class="step" id="step-extract"><span class="mark">○</span><span>Extracting useful frames</span></li>
+      <li class="step" id="step-extract"><span class="mark">○</span><span id="extract-label">Extracting useful frames</span></li>
       <li class="step" id="step-inspect"><span class="mark">○</span><span>Detecting visible property issues</span></li>
       <li class="step" id="step-agent"><span class="mark">○</span><span>Agent deciding whether to inspect again</span></li>
       <li class="step" id="step-enhance"><span class="mark">○</span><span>Creating a labeled enhanced inspection view</span></li>
@@ -956,6 +956,7 @@ runButton.onclick = async () => {
   document.getElementById("progress-card").hidden = false;
   document.getElementById("results").hidden = true;
   resetReportVideo();
+  document.getElementById("extract-label").textContent = "Extracting useful frames";
   ["upload", "read", "extract", "inspect", "agent", "enhance", "angle", "policy", "audit", "report"].forEach(name => setStep(name, null));
 
   try {
@@ -995,11 +996,13 @@ runButton.onclick = async () => {
         setStep("extract", "active");
         markedExtracting = true;
       }
+      document.getElementById("extract-label").textContent = status.worker?.message || "Extracting useful frames";
       if (status.status === "FAILED") throw new Error(status.error || "Video processing failed.");
       if (status.status === "COMPLETE") break;
       await sleep(1500);
     }
 
+    document.getElementById("extract-label").textContent = "Extracting useful frames";
     setStep("extract", "done");
     const frames = await api(`/inspections/${id}/frames`);
 
