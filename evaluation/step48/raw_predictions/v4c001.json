@@ -1,0 +1,11 @@
+﻿{
+    "id":  "v4c001",
+    "expected_label":  "clean",
+    "inspection_id":  "b10eeb2e-c953-489a-a131-160dce3e41d5",
+    "job_id":  "rv-a110baa5a8101892e3dadf58b3a44ad7",
+    "predicted_positive":  false,
+    "v3_compatible_base_positive":  false,
+    "arm_a_severe_damage_positive":  false,
+    "arm_b1_electrical_flicker_positive":  false,
+    "outcome":  "TN"
+}

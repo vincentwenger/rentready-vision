@@ -1,0 +1,11 @@
+﻿{
+    "id":  "v4p002",
+    "expected_label":  "defect",
+    "inspection_id":  "286541fb-13b5-4268-9ae7-f0a06fac8f94",
+    "job_id":  "rv-04c404dbe2c75f9571b5381ca9807885",
+    "predicted_positive":  true,
+    "v3_compatible_base_positive":  false,
+    "arm_a_severe_damage_positive":  true,
+    "arm_b1_electrical_flicker_positive":  false,
+    "outcome":  "TP"
+}

@@ -1,0 +1,11 @@
+﻿{
+    "id":  "v4p008",
+    "expected_label":  "defect",
+    "inspection_id":  "4b84ad87-901e-44e7-9535-f6cb5dcc22ba",
+    "job_id":  "rv-90fd5267b02a508057d240e371515243",
+    "predicted_positive":  false,
+    "v3_compatible_base_positive":  false,
+    "arm_a_severe_damage_positive":  false,
+    "arm_b1_electrical_flicker_positive":  false,
+    "outcome":  "FN"
+}
