@@ -1,0 +1,70 @@
+﻿{
+    "schema_version":  "1.0",
+    "step":  48,
+    "title":  "Brand-new untouched external Detector v4 holdout",
+    "status":  "PRE_EVALUATION_LOCKED",
+    "created_utc":  "2026-10-07T17:58:55.2015303Z",
+    "holdout":  {
+                    "path":  "evaluation/external_v4_holdout",
+                    "dataset_status":  "FROZEN",
+                    "immutable":  true,
+                    "manifest_sha256":  "EE5319F280D162059E91842317509810793AA100272AB1D8C57C93CCACEEBE88",
+                    "video_count":  18,
+                    "clean_count":  9,
+                    "positive_count":  9,
+                    "verified_video_hashes":  18,
+                    "verified_video_sizes":  18,
+                    "rentready_processing_performed_before_freeze":  false
+                },
+    "detector":  {
+                     "profile":  "detector_v4_candidate/1.0",
+                     "policy":  "frozen Detector v3 OR Arm A OR Arm B1",
+                     "deployed_source_commit":  "7607014dd09ef0caea49439964af8785c913d577",
+                     "worker_artifact_sha256":  "560ff2c5c61d66561202d0a77a37963cb2ae96bafaae03607cd3104b0b3a69d8",
+                     "feature_gate":  "DETECTOR_V4_ENABLED=true",
+                     "runtime":  "OpenCV COOL / AWS Graviton4"
+                 },
+    "repository":  {
+                       "pre_step48_head":  "51a2bcba5f05e0fd2f30369d1ee66e41923634ef",
+                       "deployed_v4_to_pre_step48_head_difference":  "Step 47 documentation/evidence only; no detector or processing code changes."
+                   },
+    "evaluation":  {
+                       "unit":  "video",
+                       "ground_truth_positive":  "expected_label == defect",
+                       "ground_truth_negative":  "expected_label == clean",
+                       "detector_positive":  "Detector v4 overall_positive == true",
+                       "detector_negative":  "Detector v4 overall_positive == false",
+                       "metrics":  [
+                                       "TP",
+                                       "TN",
+                                       "FP",
+                                       "FN",
+                                       "precision",
+                                       "recall",
+                                       "specificity",
+                                       "accuracy",
+                                       "f1"
+                                   ],
+                       "formulas":  {
+                                        "precision":  "TP / (TP + FP)",
+                                        "recall":  "TP / (TP + FN)",
+                                        "specificity":  "TN / (TN + FP)",
+                                        "accuracy":  "(TP + TN) / total",
+                                        "f1":  "2 * precision * recall / (precision + recall)"
+                                    }
+                   },
+    "one_shot_rules":  [
+                           "Run Detector v4 exactly once against each frozen holdout video.",
+                           "Do not modify the holdout after freeze.",
+                           "Do not change detector thresholds.",
+                           "Do not change prompts.",
+                           "Do not change models.",
+                           "Do not change frame-selection behavior.",
+                           "Do not change Detector v4 logic after viewing any holdout prediction.",
+                           "Do not remove difficult cases.",
+                           "Do not relabel cases based on detector output.",
+                           "Record every TP, TN, FP and FN.",
+                           "Preserve raw per-video predictions before calculating aggregate metrics.",
+                           "Any detector changes after this evaluation constitute Detector v5 development and require a new untouched holdout for unbiased validation."
+                       ]
+}
