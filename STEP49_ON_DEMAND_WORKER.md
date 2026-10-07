@@ -1,6 +1,6 @@
 # Step 49 — On-Demand COOL Worker Auto-Start & Safe Idle Shutdown
 
-Status: implementation prepared; live AWS rollout and end-to-end verification pending.
+Status: **COMPLETE / LIVE AWS FINAL PASS** (October 7, 2026).
 
 The backend records work in DynamoDB, queues it in SQS, and invokes a small Lambda
 controller to start the existing COOL worker. The browser shows startup and queue
@@ -150,8 +150,28 @@ leaves end-to-end status pending. To finish Step 49, record these live outcomes:
 5. Upload during an idle stop transition; verify the queued inspection restarts
    automatically and finishes without a manual EC2 start.
 
-Retain inspection IDs, lifecycle logs, processing-complete timestamps, and EC2
-state transitions. Do not mark Step 49 complete until those live checks pass.
+Live acceptance **PASSED** on October 7, 2026, using worker
+`i-0ecc68f9db17b668d` and deployed source commit
+`433395e63d61be0fe33970e3d082266c483c40fb`:
+
+- The infrastructure check passed with the 600-second timeout and shutdown enabled.
+- The first idle stop reached `stopped` at 21:20:12 UTC after 687 seconds idle.
+- A website upload started the stopped worker at 21:29:13 UTC; inspection
+  `2541c6a6-95bd-4b2d-90ce-1054ba73dd4a` completed at 21:31:25 UTC.
+- Two labeled uploads overlapped from 21:38:52 to 21:39:15 UTC and both
+  completed using the deployed Step 49 commit.
+- A new job arrived at 21:51:52 UTC after shutdown began at 21:51:43.
+  The controller recorded `RESTART_PENDING`, restarted the stopped instance
+  at 21:52:42, and completed inspection
+  `db8a3db9-0f3d-4dd3-8929-e0b6163d2ebd` at 21:54:27.
+- After that job, the worker stopped again at 22:07:35 UTC after 654 seconds
+  idle, with no active work and all three SQS counts at zero.
+
+The read-only evidence is in `evaluation/step49/`: `live_infrastructure.json`,
+`idle_shutdown_first.json`, `auto_start_first.json`, `concurrent_uploads.json`,
+`stop_transition_upload.json`, and `idle_shutdown_final.json`. The Terraform
+worker resource ignores provider-reported public-IP setting drift and prevents
+accidental replacement of this existing instance.
 Disable new idle shutdown decisions by setting `worker_idle_shutdown_enabled`
 to false and applying Terraform. A drain already committed still finishes its
 stop and restart sequence. Startup and queued jobs continue working.

@@ -1,0 +1,28 @@
+{
+  "step": 49,
+  "both_jobs_complete": true,
+  "jobs_overlapped": true,
+  "both_match_deployed_commit": true,
+  "inspections": {
+    "Step49 concurrent A": {
+      "inspection_id": "ffd74c50-8e01-43ef-ac68-f90c477438bc",
+      "inspection_status": "COMPLETE",
+      "job_id": "rv-9b26d33aa2227991d691f5271122cec8",
+      "job_status": "COMPLETE",
+      "git_commit": "433395e63d61be0fe33970e3d082266c483c40fb",
+      "job_created_at": "2026-10-07T21:38:48.921388+00:00",
+      "job_completed_at": "2026-10-07T21:39:15.366697+00:00",
+      "last_error": null
+    },
+    "Step49 concurrent B": {
+      "inspection_id": "ee58576c-4b4a-4226-81e0-7f0e3108c5b2",
+      "inspection_status": "COMPLETE",
+      "job_id": "rv-18c9b7b8e63820f75bbcdf621ebb60b1",
+      "job_status": "COMPLETE",
+      "git_commit": "433395e63d61be0fe33970e3d082266c483c40fb",
+      "job_created_at": "2026-10-07T21:38:51.999976+00:00",
+      "job_completed_at": "2026-10-07T21:40:37.915514+00:00",
+      "last_error": null
+    }
+  }
+}

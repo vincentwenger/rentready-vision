@@ -312,6 +312,12 @@ resource "aws_security_group" "cool_worker" {
 }
 
 resource "aws_instance" "cool_worker" {
+  lifecycle {
+    # Step 49: preserve the worker across stopped/running public-IP state changes.
+    ignore_changes  = [associate_public_ip_address]
+    prevent_destroy = true
+  }
+
   ami                         = var.cool_ami_id
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id

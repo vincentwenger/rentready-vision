@@ -870,8 +870,9 @@ an inspection, startup messages in the website, and guarded shutdown after
 uploads that arrive during an EC2 stop transition. Durable jobs, all SQS queue
 counts, and an atomic worker busy/drain guard protect processing and retries.
 
-Status: **REPOSITORY IMPLEMENTATION / LIVE DEPLOYMENT PENDING**. The lifecycle
-settings are disabled by default until the guarded worker, API, and controller
-have been deployed. Frozen detector configuration and accuracy evidence are
-unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md) for
-deployment packages, commands, and live acceptance checks.
+Status: **COMPLETE / LIVE AWS FINAL PASS** (October 7, 2026). The live
+checks verified cold startup, completed inspections, overlapping jobs, a safe
+upload during shutdown, and automatic stop after 600 seconds idle. The final
+worker state was `stopped`. Frozen detector configuration and accuracy evidence
+are unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md)
+and `evaluation/step49/` for deployment details and live evidence.

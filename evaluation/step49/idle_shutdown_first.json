@@ -1,0 +1,315 @@
+{
+  "step": 49,
+  "test": "first_automatic_idle_shutdown",
+  "samples": [
+    {
+      "time_utc": "2026-10-07T21:09:38.112130+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 53,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:10:08.251317+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 84,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:10:38.382130+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 114,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:11:08.547181+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 144,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:11:38.735701+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 174,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:12:08.858919+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 204,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:12:38.981989+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 234,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:13:09.119285+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 264,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:13:39.245510+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 295,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:14:09.862637+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 325,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:14:40.027279+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 355,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:15:10.140544+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 386,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:15:40.267277+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 416,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:16:10.389348+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 446,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:16:40.539354+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 476,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:17:10.669767+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 506,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:17:40.839307+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 536,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:18:10.958186+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 566,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:18:41.613454+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 596,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:19:11.728014+00:00",
+      "instance_state": "running",
+      "worker_phase": "IDLE",
+      "busy": false,
+      "draining": null,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 627,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:19:41.850304+00:00",
+      "instance_state": "running",
+      "worker_phase": "STOPPING",
+      "busy": false,
+      "draining": true,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 657,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    },
+    {
+      "time_utc": "2026-10-07T21:20:12.018655+00:00",
+      "instance_state": "stopped",
+      "worker_phase": "STOPPING",
+      "busy": false,
+      "draining": true,
+      "idle_since_epoch": 1791407324,
+      "idle_elapsed_seconds": 687,
+      "queue_counts": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0,
+        "ApproximateNumberOfMessagesDelayed": 0
+      }
+    }
+  ],
+  "automatic_idle_shutdown_passed": true
+}

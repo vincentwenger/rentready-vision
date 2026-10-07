@@ -1,0 +1,18 @@
+{
+  "step": 49,
+  "final_idle_shutdown_passed": true,
+  "last_test_job_completed_at": "2026-10-07T21:54:27.893317+00:00",
+  "observation": {
+    "time_utc": "2026-10-07T22:07:35.694217+00:00",
+    "instance_state": "stopped",
+    "worker_phase": "STOPPING",
+    "idle_elapsed_seconds": 654,
+    "busy": false,
+    "draining": true,
+    "queue_counts": {
+      "ApproximateNumberOfMessages": 0,
+      "ApproximateNumberOfMessagesNotVisible": 0,
+      "ApproximateNumberOfMessagesDelayed": 0
+    }
+  }
+}

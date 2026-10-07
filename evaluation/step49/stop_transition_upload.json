@@ -1,0 +1,113 @@
+{
+  "step": 49,
+  "inspection_id": "db8a3db9-0f3d-4dd3-8929-e0b6163d2ebd",
+  "inspection_status": "COMPLETE",
+  "job_id": "rv-a35260bf64cee1d4cae31330be2f9361",
+  "job_status": "COMPLETE",
+  "job_created_at": "2026-10-07T21:51:52.252945+00:00",
+  "job_completed_at": "2026-10-07T21:54:27.893317+00:00",
+  "git_commit": "433395e63d61be0fe33970e3d082266c483c40fb",
+  "last_error": null,
+  "stop_started_before_job": true,
+  "automatic_restart_after_job": true,
+  "lifecycle_events": [
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "IDLE",
+      "instance_state": "running",
+      "demand": false,
+      "time_utc": "2026-10-07T21:48:42.145000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "IDLE",
+      "instance_state": "running",
+      "demand": false,
+      "time_utc": "2026-10-07T21:49:42.025000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "IDLE",
+      "instance_state": "running",
+      "demand": false,
+      "time_utc": "2026-10-07T21:50:42.223000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "STOPPING",
+      "instance_state": "running",
+      "demand": false,
+      "time_utc": "2026-10-07T21:51:43.344000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "RESTART_PENDING",
+      "instance_state": "stopping",
+      "demand": true,
+      "time_utc": "2026-10-07T21:51:53.343000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "STARTING",
+      "instance_state": "stopped",
+      "demand": true,
+      "time_utc": "2026-10-07T21:52:42.883000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "BUSY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:53:42.042000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "BUSY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:54:29.882000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "BUSY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:54:41.961000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "READY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:54:50.181000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "READY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:54:52.541000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "BUSY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:54:54.461000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "READY",
+      "instance_state": "running",
+      "demand": true,
+      "time_utc": "2026-10-07T21:55:41.821000+00:00"
+    },
+    {
+      "event": "WORKER_RECONCILED",
+      "phase": "IDLE",
+      "instance_state": "running",
+      "demand": false,
+      "time_utc": "2026-10-07T21:56:42.099000+00:00"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "step": 49,
+  "infrastructure_passed": true,
+  "checks": {
+    "instance_restartable": true,
+    "function_ready": true,
+    "exact_instance": true,
+    "exact_table": true,
+    "exact_queue": true,
+    "ten_minute_idle_timeout": true,
+    "shutdown_enabled": true,
+    "serialized_controller": true,
+    "minute_schedule": true,
+    "scheduled_target": true,
+    "guarded_worker_seen": true
+  },
+  "instance_state": "running",
+  "worker_phase": "READY",
+  "end_to_end_status": "PENDING_OPERATOR_UPLOAD_AND_IDLE_SHUTDOWN_TEST"
+}
