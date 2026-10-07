@@ -1,0 +1,66 @@
+{
+  "schema_version": "rentready-step47-live-retry-fix/1.0",
+  "source_commit": "7607014dd09ef0caea49439964af8785c913d577",
+  "detector_profile": "detector_v4_candidate/1.0",
+  "api": {
+    "artifact_sha256": "2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0",
+    "artifact_s3_uri": "s3://rentready-vision-dev-081087819788/deployments/api/step47/api-2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0.zip",
+    "release_directory": "/opt/rentready/releases/2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0",
+    "public_health": {
+      "rentreadyvision.com": 200,
+      "www.rentreadyvision.com": 200
+    }
+  },
+  "worker": {
+    "artifact_version": "7607014dd09ef0caea49439964af8785c913d577",
+    "artifact_sha256": "560ff2c5c61d66561202d0a77a37963cb2ae96bafaae03607cd3104b0b3a69d8",
+    "artifact_s3_uri": "s3://rentready-vision-dev-081087819788/deployments/cool-worker/7607014dd09ef0caea49439964af8785c913d577/rentready-vision-cool-worker-7607014dd09ef0caea49439964af8785c913d577.tar.gz",
+    "release_directory": "/opt/rentready-vision/releases/7607014dd09ef0caea49439964af8785c913d577",
+    "runtime": "COOL",
+    "cool_version": "3.1",
+    "opencv_version": "5.1.0-dev",
+    "architecture": "aarch64",
+    "instance_type": "m8g.4xlarge",
+    "prestart_runtime_verification_passed": true,
+    "poststart_runtime_verification_passed": true,
+    "final_ec2_state": "stopped"
+  },
+  "stale_job_cleanup": {
+    "job_id": "rv-891ac10d9a409567c913e7c5c3c0668d",
+    "source_commit": "f1456e571f1196d69c2dcc58b11c9b2af95a47af",
+    "operation": "inspect_other_angle",
+    "observed_receive_count": 4,
+    "exact_message_deleted": true
+  },
+  "live_regression": {
+    "inspection_id": "1733b73b-d229-4098-954d-0638fc7e9aaf",
+    "job_id": "rv-5bd7616c6d94c61fae83e40036ce1d21",
+    "operation": "inspect_other_angle",
+    "status": "COMPLETE",
+    "attempt_count": 1,
+    "git_commit": "7607014dd09ef0caea49439964af8785c913d577",
+    "unavailable_reason": "insufficient_reference_features",
+    "has_other_view_candidates": false,
+    "selected_frame_count": 0,
+    "multi_view_confirmed": false,
+    "confidence_before": 0.7,
+    "confidence_after": 0.7,
+    "action": "REQUEST_HUMAN_APPROVAL",
+    "bedrock_reassessment_called": false,
+    "completion_event": "AGENT_ACTION_DECIDED",
+    "trace_s3_key": "rentready/inspections/1733b73b-d229-4098-954d-0638fc7e9aaf/reports/agentic/rv-5bd7616c6d94c61fae83e40036ce1d21/step21-other-angle-trace.json"
+  },
+  "queues_after_verification": {
+    "processing_visible": 0,
+    "processing_not_visible": 0,
+    "processing_delayed": 0,
+    "dlq_visible": 0,
+    "dlq_not_visible": 0,
+    "dlq_delayed": 0
+  },
+  "test_summary": {
+    "full_suite_passed": 304,
+    "full_suite_skipped": 1
+  },
+  "accuracy_claim": "No new unbiased Detector v4 accuracy claim."
+}

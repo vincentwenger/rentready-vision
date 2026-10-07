@@ -2,7 +2,7 @@
 
 ## Status
 
-**COMPLETE / LIVE EC2 DEPLOYMENT PASS / END-TO-END SMOKE PASS / WORKER STOPPED**
+**COMPLETE / LIVE EC2 DEPLOYMENT PASS / END-TO-END SMOKE PASS / RETRY-FIX LIVE PASS / WORKER STOPPED**
 
 Step 47 deploys the Step 46 integrated Detector v4 candidate to the existing
 development OpenCV COOL / AWS Graviton4 worker and verifies the real production
@@ -281,3 +281,207 @@ Detector v4 is now proven to:
 - complete the durable processing lifecycle successfully
 
 The next accuracy milestone must use a new untouched Detector v4 holdout.
+
+## Step 47 follow-up - live API/worker alignment and other-angle retry fix
+
+A production-path follow-up was completed after the original Step 47 deployment.
+
+The public API and COOL worker are now aligned to the same source revision:
+
+`7607014dd09ef0caea49439964af8785c913d577`
+
+This revision preserves the frozen Step 34D detector source and changes only the
+service-level handling of the specific Step-21 condition:
+
+`Candidate region has insufficient visual features for reliable other-angle matching`
+
+That condition is now treated as a normal unavailable-evidence outcome instead
+of a worker exception that enters the SQS retry/redrive path.
+
+### Follow-up repository verification
+
+Before deployment:
+
+- frozen Step 34D verification: `2 passed`
+- Step 21 other-angle tests: `9 passed`
+- affected other-angle / COOL worker regression set: `11 passed`
+- complete repository suite: `304 passed, 1 skipped`
+- source-secret scan: PASS, `563` files checked, zero findings
+
+The unrelated Windows portability failure found during the full suite was fixed
+by explicitly reading `web/index.html` as UTF-8 in the Step 40 CSP test.
+
+### Public API release
+
+Source commit:
+
+`7607014dd09ef0caea49439964af8785c913d577`
+
+Immutable API package:
+
+`api-2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0.zip`
+
+API SHA-256:
+
+`2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0`
+
+API S3 URI:
+
+`s3://rentready-vision-dev-081087819788/deployments/api/step47/api-2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0.zip`
+
+Installed release:
+
+`/opt/rentready/releases/2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0`
+
+The API instance role was granted `s3:GetObject` only for this exact immutable
+object while the previous exact API packages were retained for rollback.
+
+The package was independently downloaded from S3 and its SHA-256 matched the
+local content-addressed package before deployment.
+
+Pre-switch import verification passed with:
+
+- `GIT_COMMIT=7607014dd09ef0caea49439964af8785c913d577`
+- `DETECTOR_V4_ENABLED=true`
+- `detector_v4_candidate/1.0`
+- Step-21 service import PASS
+
+The first switch attempt automatically rolled back because the local health
+probe used `Host: 127.0.0.1:8000`, which is intentionally rejected by the
+application host-header policy. The application itself had started normally.
+
+The corrected host-aware probe used:
+
+`Host: www.rentreadyvision.com`
+
+and returned HTTP 200.
+
+Final public verification:
+
+- `https://www.rentreadyvision.com/health` - HTTP 200
+- `https://rentreadyvision.com/health` - HTTP 200
+- response: `{"ok":true,"service":"rentready-vision-api"}`
+
+### COOL worker follow-up release
+
+Immutable worker artifact version:
+
+`7607014dd09ef0caea49439964af8785c913d577`
+
+Worker SHA-256:
+
+`560ff2c5c61d66561202d0a77a37963cb2ae96bafaae03607cd3104b0b3a69d8`
+
+Worker S3 URI:
+
+`s3://rentready-vision-dev-081087819788/deployments/cool-worker/7607014dd09ef0caea49439964af8785c913d577/rentready-vision-cool-worker-7607014dd09ef0caea49439964af8785c913d577.tar.gz`
+
+Installed release:
+
+`/opt/rentready-vision/releases/7607014dd09ef0caea49439964af8785c913d577`
+
+Active symlink while installed:
+
+`/opt/rentready-vision/current`
+
+The worker IAM role retained access to the previous `f1456e...` artifact for
+rollback and added access only to the exact new `7607014...` artifact. No
+deployment wildcard was introduced.
+
+The new artifact was verified both locally and on the actual worker:
+
+- SHA-256 match - PASS
+- AES256 S3 encryption - PASS
+- embedded source commit - PASS
+- embedded artifact version - PASS
+- no `.pyc` / `__pycache__` content - PASS
+- COOL runtime verification before service start - PASS
+- COOL runtime verification after service start - PASS
+
+Live runtime remained:
+
+- COOL `3.1`
+- OpenCV `5.1.0-dev`
+- Python `3.12.3`
+- architecture `aarch64`
+- instance `m8g.4xlarge`
+- `DETECTOR_V4_ENABLED=true`
+
+### Stale pre-fix retry cleanup
+
+Before the new worker was allowed to consume jobs, the processing queue
+contained the known stale pre-fix Step-21 message:
+
+- job: `rv-891ac10d9a409567c913e7c5c3c0668d`
+- inspection: `1733b73b-d229-4098-954d-0638fc7e9aaf`
+- operation: `inspect_other_angle`
+- source revision: `f1456e571f1196d69c2dcc58b11c9b2af95a47af`
+- receive count observed: `4`
+
+Its exact receipt handle and identity were verified before deletion.
+
+After SQS counters settled:
+
+- processing queue: `0` visible / `0` in-flight / `0` delayed
+- DLQ: `0` visible / `0` in-flight / `0` delayed
+
+### Live regression of the original failure case
+
+The original inspection was intentionally reused to reproduce the exact
+low-feature other-angle condition:
+
+Inspection:
+
+`1733b73b-d229-4098-954d-0638fc7e9aaf`
+
+New deterministic job under the fixed source revision:
+
+`rv-5bd7616c6d94c61fae83e40036ce1d21`
+
+The live persisted Step-21 trace reports:
+
+- `unavailable_reason=insufficient_reference_features`
+- `has_other_view_candidates=false`
+- `selected_frame_count=0`
+- `multi_view_confirmed=false`
+- confidence `0.7 -> 0.7`
+- action `REQUEST_HUMAN_APPROVAL`
+- Bedrock reassessment request ID: absent
+- completion event: `AGENT_ACTION_DECIDED`
+- runtime: COOL / `m8g.4xlarge` / `aarch64`
+- OpenCV: `5.1.0-dev`
+- Git commit: `7607014dd09ef0caea49439964af8785c913d577`
+- deployment artifact version: `7607014dd09ef0caea49439964af8785c913d577`
+
+Persisted trace:
+
+`rentready/inspections/1733b73b-d229-4098-954d-0638fc7e9aaf/reports/agentic/rv-5bd7616c6d94c61fae83e40036ce1d21/step21-other-angle-trace.json`
+
+The durable DynamoDB processing-job record confirms:
+
+- status: `COMPLETE`
+- attempt count: `1`
+- operation: `inspect_other_angle`
+- Git commit: `7607014dd09ef0caea49439964af8785c913d577`
+- `last_error`: absent
+- result trace persisted successfully
+
+This is direct live evidence that the exact condition which previously entered
+the retry loop now completes normally on the first processing attempt.
+
+### Final follow-up state
+
+After verification:
+
+- public API remains live on `7607014dd09ef0caea49439964af8785c913d577`
+- worker release remains installed at `7607014dd09ef0caea49439964af8785c913d577`
+- processing queue is empty
+- DLQ is empty
+- development `m8g.4xlarge` worker EC2 instance is `stopped`
+
+Stopping the worker preserves the verified deployment while avoiding ongoing
+Graviton4 compute charges.
+
+This follow-up remains deployment/resilience evidence. It does not change the
+Step 47 accuracy limitation: unbiased Detector v4 accuracy still requires a new
+untouched external holdout.

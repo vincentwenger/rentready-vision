@@ -815,7 +815,7 @@ The consumed Step 44 holdout must not be reused for that purpose.
 
 See [`STEP46_FINAL.md`](STEP46_FINAL.md) for the complete integration record.
 
-## Step 47 Detector v4 live EC2/COOL deployment - COMPLETE / LIVE SMOKE PASS
+## Step 47 Detector v4 live EC2/COOL deployment - COMPLETE / LIVE SMOKE + RETRY-FIX PASS
 
 Step 47 deploys the Step 46 `detector_v4_candidate/1.0` release to the existing
 OpenCV COOL / Graviton4 worker.
@@ -845,4 +845,19 @@ holdout is still required.
 The development `m8g.4xlarge` worker was stopped after the successful smoke test
 to avoid unnecessary compute cost.
 
-See [`STEP47_FINAL.md`](STEP47_FINAL.md) for the complete deployment record.
+A Step 47 live follow-up subsequently aligned both the public API and worker to
+source commit `7607014dd09ef0caea49439964af8785c913d577` and deployed a service-level fix for the Step-21
+low-feature other-angle retry loop. The live reproduction completed on its
+first processing attempt with
+`unavailable_reason=insufficient_reference_features`,
+`action=REQUEST_HUMAN_APPROVAL`, no Bedrock reassessment, and no SQS/DLQ
+residue. Public HTTPS health returned HTTP 200 on both production hostnames.
+The worker was stopped again after verification to minimize AWS cost.
+
+Follow-up immutable artifacts:
+
+- API SHA-256: `2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0`
+- worker SHA-256: `560ff2c5c61d66561202d0a77a37963cb2ae96bafaae03607cd3104b0b3a69d8`
+
+See [`STEP47_FINAL.md`](STEP47_FINAL.md) and
+[`evaluation/step47/README.md`](evaluation/step47/README.md).
