@@ -166,7 +166,7 @@ def test_service_low_feature_other_angle_completes_without_retry_or_bedrock(
 
     class FakeS3:
         def head_object(self, **_kwargs):
-            return {"ETag": '"video-etag"'}
+            return {"ETag": '"video-etag"', "ContentLength": len(source_bytes)}
 
         def download_file(self, _bucket, _key, filename):
             Path(filename).write_bytes(source_bytes)
@@ -324,7 +324,7 @@ def test_service_persists_selected_views_and_multi_view_decision(monkeypatch, tm
 
     class FakeS3:
         def head_object(self, **_kwargs):
-            return {"ETag": '"video-etag"'}
+            return {"ETag": '"video-etag"', "ContentLength": len(source_bytes)}
 
         def download_file(self, _bucket, _key, filename):
             Path(filename).write_bytes(source_bytes)

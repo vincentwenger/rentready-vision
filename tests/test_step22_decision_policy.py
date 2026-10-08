@@ -154,7 +154,7 @@ def test_policy_service_runs_interval_then_crop_when_temporal_evidence_is_insuff
 
     class FakeS3:
         def head_object(self, *, Key, **_kwargs):
-            return {"ETag": '"frame-etag"' if Key.endswith("frame.jpg") else '"video-etag"'}
+            return {"ETag": '"frame-etag"' if Key.endswith("frame.jpg") else '"video-etag"', "ContentLength": len(b"frame" if Key.endswith("frame.jpg") else b"video")}
 
         def download_file(self, _bucket, key, filename):
             Path(filename).write_bytes(b"frame" if key.endswith("frame.jpg") else b"video")

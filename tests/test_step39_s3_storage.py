@@ -215,7 +215,7 @@ def test_new_processing_writes_scene_frames_and_manifest_in_reports(monkeypatch,
         files.append({"local_path": str(path), "index": index, "scene_index": index // 2})
     uploads, puts = [], []
     class S3:
-        def head_object(self, **kwargs): return {"ETag": '"abc"'}
+        def head_object(self, **kwargs): return {"ETag": '"abc"', "ContentLength": len(b"video")}
         def download_file(self, *args): Path(args[2]).write_bytes(b"video")
         def upload_file(self, *args, **kwargs): uploads.append(args[2])
         def put_object(self, **kwargs): puts.append(kwargs)

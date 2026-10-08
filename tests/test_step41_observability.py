@@ -134,7 +134,7 @@ def test_video_processing_emits_scene_extraction_event(monkeypatch, tmp_path):
 
     class S3:
         def head_object(self, **kwargs):
-            return {"ETag": '"abc"'}
+            return {"ETag": '"abc"', "ContentLength": len(b"video")}
 
         def download_file(self, _bucket, _key, filename):
             Path(filename).write_bytes(b"video")

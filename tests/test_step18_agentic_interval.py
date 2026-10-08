@@ -171,7 +171,7 @@ def test_service_trace_persists_runtime_confidence_delta_and_action(monkeypatch,
 
     class FakeS3:
         def head_object(self, **_kwargs):
-            return {"ETag": '"etag"'}
+            return {"ETag": '"etag"', "ContentLength": len(b"video-placeholder")}
 
         def download_file(self, _bucket, _key, filename):
             Path(filename).write_bytes(b"video-placeholder")
