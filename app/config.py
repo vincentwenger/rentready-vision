@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     decision_policy_investigate_threshold: float = 0.50
     decision_policy_crop_padding: float = 0.15
     presigned_url_ttl_seconds: int = 900
-    max_upload_bytes: int = 1024 * 1024 * 1024
+    max_upload_bytes: int = 4 * 1024 * 1024 * 1024
     cors_origins: str = "http://localhost:8000,http://localhost:5173"
     processing_sample_every_seconds: float = 1.0
     processing_scene_threshold: float = 0.75
