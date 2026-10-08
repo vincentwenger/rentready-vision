@@ -876,3 +876,8 @@ upload during shutdown, and automatic stop after 600 seconds idle. The final
 worker state was `stopped`. Frozen detector configuration and accuracy evidence
 are unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md)
 and `evaluation/step49/` for deployment details and live evidence.
+
+
+## Step 50 — Real processing progress (repository pass / live rollout pending)
+
+The worker and UI now expose measured byte, sample, analyzed-frame, and upload counts, explicit Detector v4 stages, and elapsed waits for work with unknown totals. The overall page bar counts completed workflow steps. Percentages never advance with a timer. Progress writes are scoped to the current durable job lease and reset on retries. See [STEP50_REAL_PROGRESS.md](STEP50_REAL_PROGRESS.md) for verification and live acceptance.

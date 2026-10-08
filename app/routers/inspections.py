@@ -15,6 +15,7 @@ from ..security_config import get_security_settings
 from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
                        report_key, artifact_key)
 from ..db import (
+    get_processing_job,
     create_inspection,
     get_inspection,
     mark_enqueue_failed,
@@ -338,8 +339,12 @@ def get_inspection_route(inspection_id: str) -> InspectionResponse:
 @router.get("/{inspection_id}/status")
 def get_status(inspection_id: str) -> dict:
     item = _require_inspection(inspection_id)
+    job = get_processing_job(inspection_id, item["active_job_id"]) if item.get("active_job_id") else None
     return {
         "inspection_id": inspection_id,
+        "progress": item.get("processing_progress") if item.get("processing_backend") == "local_fallback" else (job or {}).get("progress"),
+        "worker_contact_at": (job or {}).get("updated_at"),
+        "processing_started_at": item.get("processing_started_at"),
         "status": item["status"],
         "processing": item.get("processing"),
         "job_id": item.get("active_job_id"),
@@ -1527,7 +1532,11 @@ def get_agent_action_log(inspection_id: str) -> dict:
 @router.get("/{inspection_id}/agent")
 def get_agentic_vision_status(inspection_id: str) -> dict:
     item = _require_inspection(inspection_id)
+    job = get_processing_job(inspection_id, item["active_agent_job_id"]) if item.get("active_agent_job_id") else None
     result = {
+        "progress": (job or {}).get("progress"),
+        "worker_contact_at": (job or {}).get("updated_at"),
+        "worker": worker_status() if item.get("agentic_status") in {"QUEUED", "RETRY_PENDING"} else None,
         "inspection_id": inspection_id,
         "status": item.get("agentic_status") or "NOT_RUN",
         "job_id": item.get("active_agent_job_id"),

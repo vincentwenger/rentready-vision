@@ -255,7 +255,7 @@ def claim_processing_job(
             UpdateExpression=(
                 "SET #status = :processing, #claim = :claim, #lease = :lease, "
                 "#worker = :worker, #receive = :receive, #updated = :now, "
-                "#attempts = if_not_exists(#attempts, :zero) + :one"
+                "#attempts = if_not_exists(#attempts, :zero) + :one REMOVE #progress"
             ),
             ConditionExpression=(
                 "#job_id = :job_id AND ("
@@ -271,6 +271,7 @@ def claim_processing_job(
                 "#receive": "sqs_receive_count",
                 "#updated": "updated_at",
                 "#attempts": "attempt_count",
+                "#progress": "progress",
                 "#job_id": "job_id",
             },
             ExpressionAttributeValues={
@@ -583,3 +584,23 @@ def complete_agent_tool_job(
         last_agentic_event=result.get("completion_event") or "AGENT_ACTION_DECIDED",
     )
     return True
+
+
+def update_processing_progress(inspection_id: str, job_id: str, *, claim_token: str,
+                               progress: dict[str, Any]) -> bool:
+    """Only the current live attempt may publish progress for this durable job."""
+    try:
+        table.update_item(
+            Key={"PK": inspection_pk(inspection_id), "SK": processing_job_sk(job_id)},
+            UpdateExpression="SET #progress = :progress",
+            ConditionExpression="#status = :processing AND #claim = :claim AND #lease >= :now",
+            ExpressionAttributeNames={"#progress": "progress", "#status": "status",
+                                      "#claim": "claim_token", "#lease": "lease_expires_at"},
+            ExpressionAttributeValues={":progress": _ddb_safe(progress), ":processing": "PROCESSING",
+                                       ":claim": claim_token, ":now": utc_now()},
+        )
+        return True
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
+            return False
+        raise

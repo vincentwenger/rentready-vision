@@ -9,6 +9,7 @@ import math
 import cv2
 import numpy as np
 
+from ..progress import ProgressCallback, emit_progress
 from ..runtime_evidence import collect_runtime_evidence
 
 
@@ -1039,6 +1040,7 @@ def process_video(
     max_output_keyframes: int = 120,
     min_output_keyframes: int = 3,
     fallback_spacing_seconds: float = 2.0,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict:
     input_path = Path(input_path)
     output_dir = Path(output_dir)
@@ -1088,6 +1090,8 @@ def process_video(
     candidates: list[dict] = []
 
     frame_index = 0
+    planned_samples = math.ceil(total_frames / sample_stride) if total_frames > 0 else None
+    emit_progress(progress_callback, "extract", "Extracting useful frames", 0, planned_samples, "samples")
 
     while True:
         ok, frame = cap.read()
@@ -1259,6 +1263,8 @@ def process_video(
             "scene_change": comparison,
         }
 
+        emit_progress(progress_callback, "extract", "Extracting useful frames",
+                      sampled, planned_samples, "samples")
         if reasons:
             rejected_quality += 1
             frame_assessments.append(assessment)
@@ -1270,6 +1276,8 @@ def process_video(
         frame_index += 1
 
     cap.release()
+    emit_progress(progress_callback, "extract", "Frame sampling complete", sampled, sampled, "samples", finished=True)
+    emit_progress(progress_callback, "select", "Selecting representative frames")
 
     if sampled:
         final_end = duration if duration > 0 else float(frame_assessments[-1]["timestamp_seconds"])
@@ -1787,4 +1795,6 @@ def process_video(
     with open(output_dir / "manifest.local.json", "w", encoding="utf-8") as file:
         json.dump(manifest, file, indent=2)
 
+    emit_progress(progress_callback, "select", "Representative frames selected",
+                  len(manifest["keyframes"]), len(manifest["keyframes"]), "frames", finished=True)
     return manifest

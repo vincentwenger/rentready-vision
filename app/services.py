@@ -4,10 +4,12 @@ import hashlib
 import json
 import time
 import tempfile
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .progress import ProgressCallback, ProgressReporter, emit_progress, processing_stages
 from .aws import bedrock_runtime, s3
 from .config import get_settings
 from .storage import (artifact_key, inspection_prefix, prefix_for_record,
@@ -106,6 +108,7 @@ def execute_processing_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run one exact, immutable video-processing payload and persist its S3 evidence.
 
@@ -115,6 +118,7 @@ def execute_processing_job(
     """
     storage_prefix = inspection_prefix(inspection_id, source_key)
     parameters = normalize_processing_parameters(supplied_parameters, settings)
+    emit_progress(progress_callback, "download", "Preparing to read the uploaded video")
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
     if expected_source_etag and observed_etag != expected_source_etag:
@@ -149,7 +153,21 @@ def execute_processing_job(
             output_dir = tmp_path / "output"
             output_dir.mkdir()
 
-            s3.download_file(settings.s3_bucket, source_key, str(input_path))
+            download_total = int(source_head.get("ContentLength") or 0)
+            download_bytes = 0
+            download_lock = threading.Lock()
+            emit_progress(progress_callback, "download", "Downloading the uploaded video", 0,
+                          download_total or None, "bytes")
+            def downloaded(amount: int) -> None:
+                nonlocal download_bytes
+                with download_lock:
+                    download_bytes += amount
+                    emit_progress(progress_callback, "download", "Downloading the uploaded video",
+                                  download_bytes, download_total or None, "bytes")
+            s3.download_file(settings.s3_bucket, source_key, str(input_path),
+                             **({"Callback": downloaded} if progress_callback else {}))
+            emit_progress(progress_callback, "download", "Uploaded video ready", download_total,
+                          download_total or None, "bytes", finished=True)
             if telemetry:
                 telemetry.event(
                     "OPENCV_STARTED",
@@ -159,7 +177,8 @@ def execute_processing_job(
                     runtime=runtime.get("runtime"),
                 )
 
-            manifest = process_video(input_path, output_dir, **parameters)
+            manifest = process_video(input_path, output_dir, **parameters,
+                                     **({"progress_callback": progress_callback} if progress_callback else {}))
             if telemetry:
                 telemetry.event(
                     "SCENE_EXTRACTION_COMPLETE",
@@ -225,6 +244,7 @@ def execute_processing_job(
                     video_path=input_path,
                     manifest=manifest,
                     bedrock_client=bedrock_runtime,
+                    **({"progress_callback": progress_callback} if progress_callback else {}),
                 )
 
                 issue_report = build_ui_compatible_report(
@@ -243,6 +263,8 @@ def execute_processing_job(
             # Upload the selected keyframes before preserving issue
             # evidence because preserve_issue_evidence() performs
             # S3-to-S3 copies from these final frame keys.
+            emit_progress(progress_callback, "upload", "Saving selected frames", 0,
+                          len(manifest["keyframes"]), "frames")
             public_keyframes = []
 
             for record in manifest["keyframes"]:
@@ -274,7 +296,12 @@ def execute_processing_job(
                 public_keyframes.append(
                     public_record
                 )
+                emit_progress(progress_callback, "upload", "Saving selected frames",
+                              len(public_keyframes), len(manifest["keyframes"]), "frames")
 
+            emit_progress(progress_callback, "upload", "Selected frames saved",
+                          len(public_keyframes), len(public_keyframes), "frames", finished=True)
+            emit_progress(progress_callback, "save", "Saving issue evidence and report")
             if issue_report is not None:
                 issue_report_key = (
                     inspection_report_key(
@@ -409,6 +436,7 @@ def execute_processing_job(
                 ContentType="application/json",
             )
 
+    emit_progress(progress_callback, "save", "Video evidence and report saved", finished=True)
     processing_seconds = max(time.perf_counter() - started, 1e-9)
     total_frames = int(manifest["video"].get("total_frames") or 0)
     frames_analyzed = int(manifest.get("processing", {}).get("sampled_frames") or total_frames)
@@ -1598,6 +1626,9 @@ def run_processing_job(inspection_id: str) -> None:
         error=None,
         processing_backend="local_fallback",
     )
+    progress = ProgressReporter(
+        lambda value: update_inspection(inspection_id, processing_progress=value),
+        job_id=f"local-{inspection_id}", stages=processing_stages(detector_v4_enabled()))
     try:
         result = execute_processing_job(
             inspection_id=inspection_id,
@@ -1607,6 +1638,7 @@ def run_processing_job(inspection_id: str) -> None:
             require_cool=False,
             expected_source_etag=inspection.get("s3_etag"),
             telemetry=None,
+            progress_callback=progress,
         )
         update_inspection(
             inspection_id,

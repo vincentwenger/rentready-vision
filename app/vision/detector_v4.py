@@ -20,6 +20,7 @@ from __future__ import annotations
 from collections import deque
 from pathlib import Path
 from typing import Any
+from ..progress import ProgressCallback, emit_progress
 import math
 import os
 import time
@@ -3220,6 +3221,7 @@ def run_v3_raw_base(
     video_path: str | Path,
     manifest: dict[str, Any],
     bedrock_client: Any,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run the frozen-v3 raw multi-keyframe component.
 
@@ -3249,7 +3251,10 @@ def run_v3_raw_base(
         dict[str, Any]
     ] = []
 
+    emit_progress(progress_callback, "detect", "Analyzing selected property frames", 0, len(frames), "frames")
     for frame in frames:
+        emit_progress(progress_callback, "detect", "Waiting for AI analysis of the next frame",
+                      len(keyframe_reports), len(frames), "frames")
         (
             report,
             metrics,
@@ -3266,7 +3271,11 @@ def run_v3_raw_base(
         keyframe_metrics.append(
             metrics
         )
+        emit_progress(progress_callback, "detect", "Property frame analyzed",
+                      len(keyframe_reports), len(frames), "frames")
 
+    emit_progress(progress_callback, "detect", "Selected property frames analyzed",
+                  len(frames), len(frames), "frames", finished=True)
     raw_issues = [
         issue
         for report in keyframe_reports
@@ -4545,6 +4554,7 @@ def run_v3_compatible_base(
     video_path: str | Path,
     manifest: dict[str, Any],
     bedrock_client: Any,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run the complete frozen Detector-v3-compatible base."""
 
@@ -4557,6 +4567,7 @@ def run_v3_compatible_base(
         video_path=video,
         manifest=manifest,
         bedrock_client=bedrock_client,
+        **({"progress_callback": progress_callback} if progress_callback else {}),
     )
 
     raw_positive = bool(
@@ -4565,6 +4576,7 @@ def run_v3_compatible_base(
         ]
     )
 
+    emit_progress(progress_callback, "checks", "Checking additional wall evidence; AI responses may take several minutes")
     wall = run_v3_wall_attention(
         video_path=video,
         manifest=manifest,
@@ -4572,6 +4584,7 @@ def run_v3_compatible_base(
         raw_positive=raw_positive,
     )
 
+    emit_progress(progress_callback, "checks", "Checking fixture geometry")
     holder = run_v3_holder_geometry(
         manifest
     )
@@ -4815,6 +4828,7 @@ def run_detector_v4_candidate(
     video_path: str | Path,
     manifest: dict[str, Any],
     bedrock_client: Any,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run the complete Step 46 Detector-v4 candidate."""
 
@@ -4827,13 +4841,16 @@ def run_detector_v4_candidate(
         video_path=video,
         manifest=manifest,
         bedrock_client=bedrock_client,
+        **({"progress_callback": progress_callback} if progress_callback else {}),
     )
 
+    emit_progress(progress_callback, "checks", "Waiting for severe-damage AI check")
     arm_a = run_arm_a(
         bedrock_client=bedrock_client,
         manifest=manifest,
     )
 
+    emit_progress(progress_callback, "checks", "Analyzing video for electrical flicker")
     arm_b1 = run_arm_b1(
         video
     )
@@ -4980,6 +4997,7 @@ def run_detector_v4_candidate(
         report
     )
 
+    emit_progress(progress_callback, "checks", "Additional evidence checks complete", finished=True)
     return report
 
 def build_detector_signals(

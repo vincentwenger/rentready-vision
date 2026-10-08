@@ -30,6 +30,7 @@ from app.db import (  # noqa: E402
     get_processing_job,
     reconcile_completed_job,
     update_inspection,
+    update_processing_progress,
 )
 from app.processing_jobs import (  # noqa: E402
     OPERATION_CROP_REGION,
@@ -48,6 +49,8 @@ from app.services import (  # noqa: E402
     execute_interval_inspection_job,
     execute_processing_job,
 )
+from app.progress import ProgressReporter, emit_progress, processing_stages
+from app.vision.detector_v4 import detector_v4_enabled
 from app.telemetry import CloudWatchTelemetry, count_bedrock_requests  # noqa: E402
 
 logging.basicConfig(
@@ -123,6 +126,13 @@ def _handle_agent_tool_message(
             LOGGER.error("Leaving terminally failed agent tool for SQS redrive: %s", job_id)
             return
         raise RuntimeError(f"Could not claim agent tool job {job_id}; durable status={status}")
+
+    agent_progress = ProgressReporter(
+        lambda value: update_processing_progress(inspection_id, job_id,
+            claim_token=claim_token, progress=value),
+        job_id=job_id, stages=["agent"],
+        attempt=int((existing or {}).get("attempt_count") or receive_count))
+    emit_progress(agent_progress, "agent", "Inspecting additional evidence; waiting for video or AI work")
 
     update_inspection(
         inspection_id,
@@ -407,6 +417,11 @@ def _handle_message(
     heartbeat.start()
 
     try:
+        progress = ProgressReporter(
+            lambda value: update_processing_progress(inspection_id, job_id,
+                claim_token=claim_token, progress=value),
+            job_id=job_id, stages=processing_stages(detector_v4_enabled()),
+            attempt=int((existing or {}).get("attempt_count") or receive_count))
         result = execute_processing_job(
             inspection_id=inspection_id,
             source_key=str(body["s3_input_key"]),
@@ -415,6 +430,7 @@ def _handle_message(
             require_cool=True,
             expected_source_etag=body.get("source_etag"),
             telemetry=telemetry,
+            progress_callback=progress,
         )
         committed = complete_processing_job(
             inspection_id,
