@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .progress import ProgressCallback, ProgressReporter, emit_progress, processing_stages
+from .storage_safety import check_processing_disk_space
 from .aws import bedrock_runtime, s3
 from .config import get_settings
 from .storage import (artifact_key, inspection_prefix, prefix_for_record,
@@ -154,6 +155,10 @@ def execute_processing_job(
             output_dir.mkdir()
 
             download_total = int(source_head.get("ContentLength") or 0)
+            check_processing_disk_space(
+                download_total,
+                working_directory=tmp_path,
+            )
             download_bytes = 0
             download_lock = threading.Lock()
             emit_progress(progress_callback, "download", "Downloading the uploaded video", 0,
@@ -503,6 +508,10 @@ def execute_interval_inspection_job(
             input_path = tmp_path / f"walkthrough{suffix}"
             frame_dir = tmp_path / "interval"
             frame_dir.mkdir()
+            check_processing_disk_space(
+                int(source_head.get('ContentLength') or 0),
+                working_directory=tmp_path,
+            )
             s3.download_file(settings.s3_bucket, source_key, str(input_path))
 
             interval = inspect_interval(
@@ -708,6 +717,10 @@ def execute_decision_policy_job(
                 input_path = tmp_path / f"walkthrough{suffix}"
                 interval_dir = tmp_path / "interval"
                 interval_dir.mkdir()
+                check_processing_disk_space(
+                    int(source_head.get('ContentLength') or 0),
+                    working_directory=tmp_path,
+                )
                 s3.download_file(settings.s3_bucket, source_key, str(input_path))
                 interval = inspect_interval(
                     input_path,
@@ -1381,6 +1394,10 @@ def execute_other_angle_job(
             suffix = Path(source_key).suffix or ".mp4"
             input_path = tmp_path / f"walkthrough{suffix}"
             evidence_dir = tmp_path / "other_angle"
+            check_processing_disk_space(
+                int(source_head.get('ContentLength') or 0),
+                working_directory=tmp_path,
+            )
             s3.download_file(settings.s3_bucket, source_key, str(input_path))
             try:
                 search = inspect_other_angle(

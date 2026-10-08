@@ -21,6 +21,7 @@ from app.config import get_settings  # noqa: E402
 from app.aws import table  # noqa: E402
 from app.worker_lifecycle import WorkerLifecycle  # noqa: E402
 from app.worker_lifecycle_config import get_lifecycle_settings  # noqa: E402
+from app.storage_safety import find_cleanup_eligible_directories
 from app.db import (  # noqa: E402
     claim_processing_job,
     complete_agent_tool_job,
@@ -50,6 +51,7 @@ from app.services import (  # noqa: E402
     execute_processing_job,
 )
 from app.progress import ProgressReporter, emit_progress, processing_stages
+from app.storage_safety import is_terminal_processing_error
 from app.vision.detector_v4 import detector_v4_enabled
 from app.telemetry import CloudWatchTelemetry, count_bedrock_requests  # noqa: E402
 
@@ -255,7 +257,9 @@ def _handle_agent_tool_message(
         sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
-        terminal = receive_count >= settings.queue_max_receive_count
+        terminal = is_terminal_processing_error(
+            exc, receive_count, settings.queue_max_receive_count
+        )
         fail_processing_attempt(
             inspection_id, job_id, claim_token=claim_token, error=error,
             terminal=terminal, receive_count=receive_count,
@@ -470,7 +474,9 @@ def _handle_message(
             LOGGER.exception("Could not acknowledge completed job %s", job_id)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
-        terminal = receive_count >= settings.queue_max_receive_count
+        terminal = is_terminal_processing_error(
+            exc, receive_count, settings.queue_max_receive_count
+        )
         fail_processing_attempt(
             inspection_id,
             job_id,
@@ -508,6 +514,32 @@ def _handle_message(
         heartbeat.join(timeout=2)
 
 
+def _preview_storage_cleanup(lifecycle) -> None:
+    """Preview stale temporary directories without deleting anything."""
+    try:
+        state = lifecycle.read()
+        if (
+            state.get("busy") is False
+            and not state.get("draining")
+            and not lifecycle.has_durable_work()
+        ):
+            candidates = find_cleanup_eligible_directories(
+                active_inspection_ids=set(),
+                worker_idle=True,
+                inventory_complete=True,
+            )
+            LOGGER.info(
+                "Storage cleanup dry run: %d eligible directories; no files deleted",
+                len(candidates),
+            )
+        else:
+            LOGGER.info("Storage cleanup preview skipped: worker or jobs active")
+    except Exception:
+        LOGGER.warning(
+            "Storage cleanup preview skipped: safety check unavailable",
+            exc_info=True,
+        )
+
 def main() -> int:
     settings = get_settings()
     if not settings.processing_queue_url:
@@ -541,6 +573,8 @@ def main() -> int:
             raise RuntimeError("COOL_WORKER_INSTANCE_ID is required for Step 49")
         lifecycle = WorkerLifecycle(table, lifecycle_settings.cool_worker_instance_id)
         lifecycle.activity()
+
+        _preview_storage_cleanup(lifecycle)
 
     while not STOP.is_set():
         if lifecycle:
