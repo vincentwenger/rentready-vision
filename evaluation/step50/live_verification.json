@@ -1,0 +1,231 @@
+{
+  "schema_version": "rentready-step50-live-verification/1.0",
+  "step": 50,
+  "status": "COMPLETE / LIVE PROGRESS PASS",
+  "verification_date_local": "2026-10-07",
+  "timezone": "America/Los_Angeles",
+  "basis": "User-run AWS CLI deployment receipts, user-supplied hosted browser screenshots, and user-copied report runtime text reviewed in this session.",
+  "site": "https://rentreadyvision.com",
+  "region": "us-west-2",
+  "source_commit": "c591c7a73c91a2d97809ef55b25fbfb0d6507b07",
+  "inspection_id": "7255b442-96d0-4f2e-b0e7-844d5f611b81",
+  "repository_checks": {
+    "targeted_tests_passed": 87,
+    "warnings": 1,
+    "warning": "Existing FastAPI Starlette TestClient/httpx deprecation",
+    "retry_and_lease_fencing": "repository tests passed"
+  },
+  "deployments": {
+    "worker": {
+      "instance_id": "i-0ecc68f9db17b668d",
+      "ssm_command_id": "48aabc22-e901-4e8f-a583-f35c4a18a863",
+      "status": "Success",
+      "exit_code": 0,
+      "success_marker": "STEP50_WORKER_DEPLOYED",
+      "success_marker_present": true,
+      "artifact_version": "step50-c591c7a73c91",
+      "artifact_sha256": "7516a98eebbd07913bc62ea2e794d75e49144559a94a1e19c4645436a827604d"
+    },
+    "api": {
+      "instance_id": "i-0b86234abb75509b7",
+      "ssm_command_id": "cf6fddc9-ca5b-4f39-bca9-d5bccdb9a7aa",
+      "status": "Success",
+      "exit_code": 0,
+      "success_marker": "STEP50_API_DEPLOYED",
+      "success_marker_present": true,
+      "artifact_sha256": "ce3f672419dea6ae6fa03bea8a230f9a89e14c08a9109d13e876be4bcb1eae0e"
+    }
+  },
+  "report": {
+    "input_s3_key": "rentready/inspections/7255b442-96d0-4f2e-b0e7-844d5f611b81/original/walkthrough.mp4",
+    "duration_seconds_displayed": 198.7,
+    "source_frames": 5939,
+    "sampled_frames": 198,
+    "retained_frames": 20,
+    "scenes": 16,
+    "reported_issues": 0,
+    "readiness": 100,
+    "targeted_agent_reinspection": "not required: no candidate in uncertainty band"
+  },
+  "runtime": {
+    "git_commit": "c591c7a73c91a2d97809ef55b25fbfb0d6507b07",
+    "opencv_version": "5.1.0-dev",
+    "distribution": null,
+    "cv2_module": "/opt/cool/python_3.12/site-packages/cv2/__init__.py",
+    "cv2_module_sha256": "69192904dead3ada37c8b305ee850ac7474924730881a9d5e0b2390944eb5aae",
+    "cv2_binary": "/opt/cool/python_3.12/site-packages/cv2/python-3.12/cv2.cpython-312-aarch64-linux-gnu.so",
+    "cv2_binary_sha256": "8e0cb494f0c5dbfe5c0fc92d3b242d2fad5732de4a81fc3d45a9a537e7711556",
+    "build_information_sha256": "12740978f31483f2352d9e8b367f4f6053c3bfb58618e2ff42d53443da2a8ec4",
+    "python": "CPython 3.12.3",
+    "architecture": "aarch64",
+    "operating_system": "Linux-6.17.0-1019-aws-aarch64-with-glibc2.39"
+  },
+  "acceptance": {
+    "measured_sample_counts": true,
+    "measured_detector_counts": true,
+    "specialist_indeterminate_wait": true,
+    "elapsed_wait_messages": true,
+    "overall_completed_step_bar": true,
+    "report_ready_100_percent": true,
+    "final_report_rendered": true,
+    "report_source_commit_matches_deployment": true
+  },
+  "scope_limits": [
+    "Forced live retry not performed; retry/claim protection covered by repository tests.",
+    "No uncertain candidate required agent-tool processing in this run.",
+    "Cold-start upload not exercised in this run.",
+    "Transient download/upload count displays not captured.",
+    "Post-rollout automatic idle stop not yet rechecked.",
+    "This verification assesses processing progress, not detector accuracy."
+  ],
+  "screenshots": [
+    {
+      "path": "evaluation/step50/screenshots/01-reading-video.png",
+      "source_filename": "image(20261008-001402).png",
+      "sha256": "b11c7ee38de3a130a905bbeb13b476fd177b8c00e70d31541fe00df3e5cc6530",
+      "observed": {
+        "overall_percent": 10,
+        "message": "Preparing to read the uploaded video",
+        "stage_percent": null
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/02-extraction-counts.png",
+      "source_filename": "image(20261008-001409).png",
+      "sha256": "6ce873b91741b96c3fea26f31e00fa72b3c94a8e42b66c1831c5e529fe8a924d",
+      "observed": {
+        "overall_percent": 20,
+        "completed": 89,
+        "total": 198,
+        "unit": "samples",
+        "stage_percent": 44
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/03-detection-0.png",
+      "source_filename": "image(20261008-001417).png",
+      "sha256": "49ba570bb4f7b92248a74dd1906070ed9d3f4b006c3926f19a262dc049859053",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 0,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 0
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/04-detection-3.png",
+      "source_filename": "image(20261008-001424).png",
+      "sha256": "f71953bceabe1789fb2527fa8986acd3eb8394857a0516db882d4ba7e0aa7f5a",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 3,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 15
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/05-detection-5.png",
+      "source_filename": "image(20261008-001430).png",
+      "sha256": "a141501c457e0a14057f7cec8489e5b9a2713a2c4a621ce40b63299c71e4f7dc",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 5,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 25
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/06-detection-8.png",
+      "source_filename": "image(20261008-001440).png",
+      "sha256": "9e45693a39d1a656544d18af7ab96c4e4e06424839c63d7959bbd7c8c940b075",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 8,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 40
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/07-detection-11.png",
+      "source_filename": "image(20261008-001447).png",
+      "sha256": "176f4ca462fbafee4a3d9a7ab177e7dad3da664e57b74315ba539c942c4e6730",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 11,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 55
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/08-detection-13.png",
+      "source_filename": "image(20261008-001454).png",
+      "sha256": "80db0c929b3cc6a6a34c3a192b935cd3a14ba79cb142dabf65f4dfa597535cc8",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 13,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 65
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/09-detection-15.png",
+      "source_filename": "image(20261008-001501).png",
+      "sha256": "c788ea1885ad063904c57550d0efde4152a678748a14c37c4bc3c6e1da9b9b6b",
+      "observed": {
+        "overall_percent": 30,
+        "completed": 15,
+        "total": 20,
+        "unit": "frames",
+        "stage_percent": 75
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/10-specialist-wait.png",
+      "source_filename": "image(20261008-001521).png",
+      "sha256": "605faf0d68812f7bd170287b0d5c07b1f72376333a0c6e9136ace38e122c8690",
+      "observed": {
+        "overall_percent": 30,
+        "message": "Analyzing video for electrical flicker",
+        "stage_percent": null,
+        "stage_elapsed_seconds": 9,
+        "last_work_update_age_seconds": 2
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/11-building-report.png",
+      "source_filename": "image(20261008-001539).png",
+      "sha256": "e11d2b02a9d2e07a48a17fadcbeadfccd8c06adb2048f0f5ebfa5591821c8697",
+      "observed": {
+        "overall_percent": 90,
+        "message": "Building the report and rental preparation checklist",
+        "stage_percent": null
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/12-report-ready.png",
+      "source_filename": "image(20261008-001547).png",
+      "sha256": "547e426833ed2d8d53a3bb5f3e055273112967eb6544109ac539258abaa2d09c",
+      "observed": {
+        "overall_percent": 100,
+        "message": "Report ready",
+        "completed_workflow_steps": 10
+      }
+    },
+    {
+      "path": "evaluation/step50/screenshots/13-final-report.png",
+      "source_filename": "image(20261008-001649).png",
+      "sha256": "ff36ff2746ecfa0d47fc958443edfad39417abda55cf4ad3ef0d69d60c09ca59",
+      "observed": {
+        "readiness": 100,
+        "reported_issues": 0,
+        "checklist_rendered": true
+      }
+    }
+  ]
+}

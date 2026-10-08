@@ -1,6 +1,6 @@
 # Step 50 — Real processing progress
 
-Status: implementation and repository checks passed; live API/COOL rollout pending.
+Status: COMPLETE / LIVE PROGRESS PASS. Repository checks and the hosted normal processing path passed.
 Base: final Step 49 GitHub commit `12cc689a4399a204267dd82e55354ea46b27e5c1`.
 
 The worker reports download bytes, assessed video samples, completed Detector v4 keyframe analyses, and saved frame counts. Detector specialists and agent tools report their actual current operation with an indeterminate indicator when no defensible total exists. Every wait shows elapsed time, last work update, and the latest durable worker contact where available. The old UI no longer labels Detector v4 work as frame extraction.
@@ -31,3 +31,43 @@ Then commit with Step 50 in the message, and deploy checksum-pinned API and COOL
 ## Live acceptance
 
 Upload a development/demo walkthrough through the hosted page; no holdout rerun is needed. Observe startup/queue messages, download counts, increasing sampled-frame counts, representative-frame selection, Detector v4 keyframe counts and specialist messages, frame uploads, and agent follow-ups. Confirm unknown work is indeterminate, waits show elapsed time, and the final report is generated. Refresh status responses during the run to verify the UI's counts match durable backend progress. Finish a retry test only with a controlled development job, confirming a new attempt resets counts and stale writers cannot publish. Record the source SHA and live evidence under `evaluation/step50/` before calling Step 50 LIVE COMPLETE.
+
+
+## Live verification — October 7, 2026 (Pacific time)
+
+Both checksum-pinned packages were built from source commit `c591c7a73c91a2d97809ef55b25fbfb0d6507b07`.
+The worker SSM command `48aabc22-e901-4e8f-a583-f35c4a18a863` returned
+`Success`, exit code `0`, and `STEP50_WORKER_DEPLOYED`. The API SSM command
+`cf6fddc9-ca5b-4f39-bca9-d5bccdb9a7aa` returned `Success`, exit code `0`, and
+`STEP50_API_DEPLOYED`. No Terraform or lifecycle Lambda update was needed.
+The controller wake action was used to start the stopped worker.
+
+Inspection `7255b442-96d0-4f2e-b0e7-844d5f611b81` completed through
+https://rentreadyvision.com. Captured browser evidence showed:
+
+- extraction at `89 / 198` samples and `44%`;
+- Detector v4 counts at `0`, `3`, `5`, `8`, `11`, `13`, and `15` of `20`
+  frames, with corresponding measured percentages;
+- an electrical-flicker operation message with an indeterminate stage bar;
+- stage elapsed time and last-work-update/contact ages during the waits;
+- overall workflow completion at `10%`, `20%`, `30%`, `90%`, and `100%`,
+  explicitly labeled as completed steps rather than elapsed-time estimates;
+- `Report ready` followed by a rendered final property report and checklist.
+
+The report confirmed a **198.7-second** input, **5,939** source frames,
+**198** sampled frames, **20** retained frames, and **16** scenes. Its runtime
+reported the deployed source commit, CPython **3.12.3**, **aarch64**, OpenCV
+**5.1.0-dev**, and a cv2 module under `/opt/cool/python_3.12/site-packages/`.
+The report contained no candidate requiring targeted agent reinvestigation;
+its zero reported issues is an observed output, not a ground-truth accuracy claim.
+
+The targeted repository suite passed **87 tests**, with one existing FastAPI
+test-client deprecation warning. Retry reset and stale-claim/lease protection
+were verified in repository tests. A forced live retry, agent-tool processing
+with a candidate, and a cold-start upload were not exercised in this run.
+Transient download and upload count displays were not captured in screenshots.
+Automatic idle stop was preserved by the rollout; its post-rollout stop was not
+yet rechecked when this record was prepared.
+
+Evidence: [`evaluation/step50/live_verification.json`](evaluation/step50/live_verification.json)
+and [`evaluation/step50/screenshots/`](evaluation/step50/screenshots/).

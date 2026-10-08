@@ -878,6 +878,19 @@ are unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md)
 and `evaluation/step49/` for deployment details and live evidence.
 
 
-## Step 50 — Real processing progress (repository pass / live rollout pending)
+## Step 50 — Real processing progress — COMPLETE / LIVE PROGRESS PASS
 
 The worker and UI now expose measured byte, sample, analyzed-frame, and upload counts, explicit Detector v4 stages, and elapsed waits for work with unknown totals. The overall page bar counts completed workflow steps. Percentages never advance with a timer. Progress writes are scoped to the current durable job lease and reset on retries. See [STEP50_REAL_PROGRESS.md](STEP50_REAL_PROGRESS.md) for verification and live acceptance.
+
+
+The live rollout passed on **October 7, 2026 (Pacific time)** using source commit
+`c591c7a73c91a2d97809ef55b25fbfb0d6507b07` for the API and COOL worker. Inspection
+`7255b442-96d0-4f2e-b0e7-844d5f611b81` showed measured extraction counts,
+increasing Detector v4 frame counts, an indeterminate electrical-flicker check,
+and completed workflow progress through **100% — Report ready**. Its report
+confirmed **198 sampled frames, 20 retained frames, 16 scenes**, and the deployed
+commit on the official `/opt/cool/python_3.12/` OpenCV runtime. The targeted
+repository suite passed **87 tests**. See [`evaluation/step50/`](evaluation/step50/)
+for the deployment receipts and captured browser evidence. Retry/lease fencing
+is covered by repository tests; a forced live retry was not performed. This
+progress check does not establish detector accuracy.
