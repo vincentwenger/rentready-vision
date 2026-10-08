@@ -17,12 +17,18 @@
     button { width: 100%; margin-top: 18px; padding: 13px 16px; border: 0; border-radius: 10px; color: white; background: #166534; font-size: 1rem; font-weight: 700; cursor: pointer; }
     button:disabled { cursor: wait; opacity: .6; }
     .steps { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
-    .step { display: flex; gap: 10px; align-items: center; color: #7b8495; }
+    .step { display: flex; gap: 10px; align-items: flex-start; color: #7b8495; }
     .step .mark { width: 22px; text-align: center; font-weight: 800; }
     .step.active { color: #1d4ed8; font-weight: 700; }
     .step.done { color: #166534; }
     .step.future { color: #9a6a13; }
     .step.warn { color: #9a3412; font-weight: 700; }
+    .step.no-view { color: #92400e; }
+    .step.retry { color: #1d4ed8; }
+    .step.skipped { color: #475569; }
+    .step-detail { display: block; margin: 3px 0 2px; font-size: .83rem; font-weight: 400; line-height: 1.45; color: #475569; }
+    .step.warn .step-detail { color: #9a3412; }
+    .step.no-view .step-detail { color: #92400e; }
     #error { display: none; margin-top: 16px; padding: 12px; white-space: pre-wrap; color: #991b1b; background: #fef2f2; border-radius: 10px; }
     #summary { color: #475569; }
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin: 18px 0; }
@@ -315,16 +321,27 @@ async function api(path, options = {}) {
   return response.json();
 }
 
-function setStep(name, state) {
+// Step 51: a finished technical operation is not necessarily a confirmed finding.
+function setStep(name, state, detail = "") {
   const element = document.getElementById(`step-${name}`);
-  element.classList.remove("active", "done", "warn");
+  const label = element.querySelector("span:nth-child(2)");
+  label.querySelector(".step-detail")?.remove();
+  element.classList.remove("active", "done", "warn", "no-view", "retry", "skipped");
   if (state) element.classList.add(state);
   if (state !== "active") element.querySelectorAll(".stage-percent").forEach(el => el.remove());
-  element.querySelector(".mark").textContent = state === "done" ? "✓" : state === "active" ? "→" : state === "warn" ? "!" : "○";
+  const markers = {done: "✓", active: "→", warn: "!", "no-view": "?", retry: "↻", skipped: "–"};
+  element.querySelector(".mark").textContent = markers[state] ?? "○";
+  const labels = {done: "Completed", warn: "Failed", "no-view": "No reliable confirmation",
+    retry: "Retrying automatically", skipped: "Not needed"};
+  if (detail && labels[state]) {
+    const note = document.createElement("small");
+    note.className = "step-detail";
+    note.textContent = `${labels[state]} — ${detail}`;
+    label.append(note);
+  }
   refreshWorkflowProgress();
   if (state === "active") {
-    showStage({message: element.querySelector("span:nth-child(2)").textContent,
-      stage_started_at: new Date().toISOString()});
+    showStage({message: label.textContent, stage_started_at: new Date().toISOString()});
   }
 }
 
@@ -332,7 +349,8 @@ function setStep(name, state) {
 let currentStage = null;
 let progressClock = null;
 function refreshWorkflowProgress() {
-  const done = document.querySelectorAll("#progress-card .step.done").length;
+  // A completed search with no reliable angle and an intentionally skipped check are resolved stages.
+  const done = document.querySelectorAll("#progress-card .step.done, #progress-card .step.no-view, #progress-card .step.skipped").length;
   const total = document.querySelectorAll("#progress-card .step").length;
   document.getElementById("overall-progress").max = total;
   document.getElementById("overall-progress").value = done;
@@ -375,6 +393,14 @@ function showStage(progress) {
 }
 function showBackendProgress(status, agent = false) {
   const progress = status.status === "PROCESSING" ? status.progress : null;
+  if (status.status === "RETRY_PENDING") {
+    const active = document.querySelector("#progress-card .step.active");
+    if (active) setStep(active.id.slice(5), "retry",
+      "A worker retry is queued. No action needed yet; the next attempt starts with fresh progress.");
+  } else if (status.status === "PROCESSING" && agent) {
+    const retrying = document.querySelector("#progress-card .step.retry");
+    if (retrying) setStep(retrying.id.slice(5), "active");
+  }
   if (!agent && progress) {
     const extracting = ["extract", "select"].includes(progress.stage);
     const inspecting = ["detect", "checks", "upload", "save"].includes(progress.stage);
@@ -384,9 +410,10 @@ function showBackendProgress(status, agent = false) {
   }
   const prior = currentStage;
   showStage(progress ? {...progress, worker_contact_at: status.worker_contact_at} : {
-    message: status.worker?.message || (status.status === "RETRY_PENDING"
-      ? "A processing attempt will retry; waiting for the worker"
-      : status.status === "QUEUED" ? "Waiting for the worker to take this job"
+    message: status.status === "RETRY_PENDING"
+      ? "Automatic retry scheduled; the previous attempt did not complete. No action needed yet."
+      : status.worker?.message || (status.status === "QUEUED"
+      ? "Waiting for the worker to take this job"
       : agent ? "Inspecting additional evidence; waiting for the next update"
       : "Worker is processing; waiting for measured progress"),
     stage_started_at: prior?.stage_started_at || new Date().toISOString(),
@@ -1069,7 +1096,7 @@ runButton.onclick = async () => {
       method: "POST",
       body: JSON.stringify({filename: file.name, content_type: contentType})
     });
-    setStep("upload", "done");
+    setStep("upload", "done", "Walkthrough uploaded successfully.");
     setStep("read", "active");
 
     await api(`/inspections/${id}/process`, {method: "POST"});
@@ -1082,8 +1109,8 @@ runButton.onclick = async () => {
     }
 
     document.getElementById("extract-label").textContent = "Extracting useful frames";
-    setStep("read", "done");
-    setStep("extract", "done");
+    setStep("read", "done", "Walkthrough was decoded.");
+    setStep("extract", "done", "Useful frames were selected for inspection.");
     const frames = await api(`/inspections/${id}/frames`);
 
     setStep("inspect", "active");
@@ -1091,10 +1118,10 @@ runButton.onclick = async () => {
     let issueWarning = null;
     try {
       issueResponse = await api(`/inspections/${id}/issues/detect`, {method: "POST"});
-      setStep("inspect", "done");
+      setStep("inspect", "done", "Initial issue detection finished; this does not guarantee every defect was found.");
     } catch (issueError) {
       issueWarning = issueError instanceof Error ? issueError.message : String(issueError);
-      setStep("inspect", "warn");
+      setStep("inspect", "warn", "Detection could not complete. Review the error in the report and try a new analysis if needed.");
     }
 
     let agentResponse = null;
@@ -1117,13 +1144,19 @@ runButton.onclick = async () => {
             await sleep(1200);
           }
         }
-        setStep("agent", "done");
+        if (agentResponse?.status === "NO_ACTION") {
+          setStep("agent", "skipped", "No uncertain detection required a targeted reinspection.");
+        } else if (agentResponse?.trace?.interval_result?.returned_frame_count === 0) {
+          setStep("agent", "no-view", "The targeted check returned no usable nearby frames; keep the finding unresolved.");
+        } else {
+          setStep("agent", "done", "Targeted reinspection finished. Its confidence decision is shown below.");
+        }
       } catch (agentError) {
         agentWarning = agentError instanceof Error ? agentError.message : String(agentError);
-        setStep("agent", "warn");
+        setStep("agent", "warn", "Targeted reinspection failed; the initial evidence remains available.");
       }
     } else {
-      setStep("agent", "warn");
+      setStep("agent", "skipped", "Issue detection failed, so a candidate could not be selected.");
       agentWarning = "Step 18 could not run because Step 17 did not complete.";
     }
 
@@ -1155,14 +1188,18 @@ runButton.onclick = async () => {
         if (enhancementResponse && enhancementResponse.status !== "NO_ACTION") {
           enhancementViews = await api(`/inspections/${id}/agent/views`);
         }
-        setStep("enhance", "done");
+        if (enhancementResponse?.status === "NO_ACTION") {
+          setStep("enhance", "skipped", "No uncertain finding needed an enhanced view.");
+        } else {
+          setStep("enhance", "done", "Comparison images are ready; the original evidence was preserved.");
+        }
       } catch (enhancementError) {
         enhancementWarning = enhancementError instanceof Error ? enhancementError.message : String(enhancementError);
-        setStep("enhance", "warn");
+        setStep("enhance", "warn", "The enhanced comparison failed; original evidence is unchanged.");
       }
     } else {
       enhancementWarning = "Step 20 could not run because Step 17 did not complete.";
-      setStep("enhance", "warn");
+      setStep("enhance", "skipped", "Issue detection failed; there was no candidate to enhance.");
     }
 
     let otherAngleResponse = null;
@@ -1195,14 +1232,29 @@ runButton.onclick = async () => {
         if (otherAngleResponse && otherAngleResponse.status !== "NO_ACTION") {
           otherAngleViews = await api(`/inspections/${id}/agent/other-angle/views`);
         }
-        setStep("angle", "done");
+        if (otherAngleResponse?.status === "NO_ACTION") {
+          setStep("angle", "skipped", "No uncertain finding required an alternate viewpoint.");
+        } else {
+          const alternatives = (otherAngleViews?.views ?? []).filter(view => view.relation !== "REFERENCE");
+          if (!alternatives.length) {
+            setStep("angle", "no-view",
+              "No dependable alternative camera view was found. Record another angle or request an in-person review.");
+          } else if (!otherAngleViews?.multi_view_confirmed) {
+            setStep("angle", "no-view",
+              `${alternatives.length} alternative view(s) were assessed but did not confirm the finding. Human review is recommended.`);
+          } else {
+            setStep("angle", "done",
+              `${alternatives.length} alternative view(s) supported the visible finding. Review the evidence below.`);
+          }
+        }
       } catch (otherAngleError) {
         otherAngleWarning = otherAngleError instanceof Error ? otherAngleError.message : String(otherAngleError);
-        setStep("angle", "warn");
+        setStep("angle", "warn",
+          "Nearby-view search failed technically. The existing finding is not verified; try a new analysis or request review.");
       }
     } else {
       otherAngleWarning = "Step 21 could not run because Step 17 did not complete.";
-      setStep("angle", "warn");
+      setStep("angle", "skipped", "Issue detection failed; no candidate was available for the search.");
     }
 
     let policyResponse = null;
@@ -1227,17 +1279,33 @@ runButton.onclick = async () => {
             await sleep(1200);
           }
         }
-        setStep("policy", "done");
-        setStep("audit", "done");
+        if (policyResponse?.status === "NO_ACTION") {
+          setStep("policy", "skipped", "No uncertain candidate required a confidence decision.");
+          setStep("audit", "skipped", "No follow-up actions needed recording.");
+        } else {
+          const result = policyResponse?.trace ?? {};
+          const action = result.action ?? policyResponse?.action;
+          if (action === "REQUEST_HUMAN_APPROVAL") {
+            setStep("policy", "no-view", "Available evidence did not settle the finding. Human review is required.");
+          } else {
+            setStep("policy", "done", "The decision policy finished; see the final action below.");
+          }
+          const actions = result.action_log?.actions ?? [];
+          if (actions.length) {
+            setStep("audit", "done", `${actions.length} follow-up action(s) recorded.`);
+          } else {
+            setStep("audit", "warn", "No action log was returned for this decision; verify the recorded trace.");
+          }
+        }
       } catch (policyError) {
         policyWarning = policyError instanceof Error ? policyError.message : String(policyError);
-        setStep("policy", "warn");
-        setStep("audit", "warn");
+        setStep("policy", "warn", "Decision policy failed; do not treat a candidate as verified.");
+        setStep("audit", "warn", "A complete decision audit trail is unavailable.");
       }
     } else {
       policyWarning = "Step 22 could not run because Step 17 did not complete.";
-      setStep("policy", "warn");
-      setStep("audit", "warn");
+      setStep("policy", "skipped", "Issue detection failed; decision policy could not run.");
+      setStep("audit", "skipped", "No decision was made to record.");
     }
 
     setStep("report", "active");
@@ -1248,11 +1316,17 @@ runButton.onclick = async () => {
     await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);
     renderDecisionPolicy(policyResponse, policyWarning);
     renderAgentInvestigation(policyResponse, policyWarning);
-    setStep("report", "done");
-    document.getElementById("stage-message").textContent = document.querySelector("#progress-card .step.warn") ? "Report ready with follow-up warnings" : "Report ready";
+    setStep("report", "done", "The available report and rental checklist are ready.");
+    const failed = document.querySelector("#progress-card .step.warn");
+    const uncertain = document.querySelector("#progress-card .step.no-view");
+    document.getElementById("stage-message").textContent = failed
+      ? "Report ready with incomplete checks. Review the failed stages before relying on the result."
+      : uncertain ? "Report ready; some findings still need another view or human review." : "Report ready";
     document.getElementById("stage-progress").value = 100;
     document.getElementById("stage-counts").textContent = "";
   } catch (error) {
+    const active = document.querySelector("#progress-card .step.active, #progress-card .step.retry");
+    if (active) setStep(active.id.slice(5), "warn", "This stage could not finish. Check the error below; a new analysis may be needed.");
     errorEl.textContent = error instanceof Error ? error.message : String(error);
     errorEl.style.display = "block";
     document.getElementById("stage-message").textContent = "Processing could not continue in this page. See the error below.";
