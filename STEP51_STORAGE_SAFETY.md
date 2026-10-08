@@ -1,6 +1,6 @@
 # Step 51 Follow-up - Storage Safety
 
-Status: LOCAL IMPLEMENTATION COMPLETE / AWS DEPLOYMENT PENDING
+Status: DEPLOYED / LIVE STORAGE PREFLIGHT VERIFIED / FULL 4 GiB VIDEO TEST PENDING
 
 ## Objective
 
@@ -86,13 +86,119 @@ The three failures were reproduced on the original baseline
 commit 7b5229d and concern frozen Detector v2 verification.
 No frozen detector files or evaluation evidence were modified.
 
+## AWS Deployment and Live Verification (2026-10-08)
+
+### GitHub release
+
+- Pull request: #2 (merged into main).
+- Deployment source commit: fa3557d11cc0fd041cefbdca6ed59cbaacdc3b11.
+- API and COOL worker packages built from the same commit.
+- Both package SHA-256 checks passed before S3 upload.
+- Deployment artifacts uploaded to S3 in us-west-2.
+
+### API deployment
+
+- Instance: i-0b86234abb75509b7.
+- Deployment through AWS Systems Manager succeeded.
+- API release commit: fa3557d11cc0fd041cefbdca6ed59cbaacdc3b11.
+- API artifact SHA-256:
+  e05b3035a0ad53669cbfcafd5bb9efbc96e4c4702a7e53c1b571fd3cf8dbbf05.
+- Service status: active.
+- Health endpoint returned {"ok":true,"service":"rentready-vision-api"}.
+- MAX_UPLOAD_BYTES=4294967296 (4 GiB) confirmed.
+
+### COOL worker deployment
+
+- Instance: i-0ecc68f9db17b668d.
+- AWS Marketplace OpenCV COOL 3.1 on EC2 Graviton4.
+- Worker artifact: step49-fa3557d11cc0.
+- Worker artifact SHA-256:
+  2b3d16b8efc72fa6b75c2a51a22bf68e3e6233f0f95f45b1a1dced07b73b1d6d.
+- IAM permissions updated for the exact new deployment artifacts.
+- EC2 startup user data updated with the new artifact version
+  and checksum while the instance was stopped.
+- The original startup configuration was backed up.
+- Worker deployed through AWS Systems Manager.
+- Deployment status: Success, response code 0.
+- Deployment checksum and completion marker verified.
+- Worker service reported active with the correct source commit.
+
+### Live disk-space verification
+
+The disk-space preflight was executed on the real COOL worker
+using a simulated 4 GiB input size, without downloading or
+processing an actual large video.
+
+- Available disk space: 90,257,526,784 bytes (approximately 84 GiB).
+- Required disk space: 34,359,738,368 bytes (32 GiB).
+- Input size: 4,294,967,296 bytes (4 GiB).
+- Result: PASS.
+
+This verifies the live disk-space preflight, not successful
+end-to-end processing of a 4 GiB video.
+
+### Worker restart incident and recovery
+
+During deployment preparation, the COOL worker repeatedly
+restarted after being stopped.
+
+CloudTrail identified automatic StartInstances calls from
+the rentready-vision-dev-worker-lifecycle Lambda.
+
+Investigation found an abandoned DynamoDB processing job:
+
+- Inspection: 47928148-fa97-45ab-9f85-865fbbe8e6c3.
+- Job: rv-b3da1915562732686d928d612f918f1e.
+- Operation: analyze_video.
+- Attempt count: 3.
+- Recorded error: Bedrock Converse ValidationException,
+  "Input is too long for requested model."
+
+The processing queue was purged following operator cancellation.
+The abandoned job and inspection were marked FAILED using
+a conditional DynamoDB transaction.
+
+The original error and inspection history were preserved.
+No uploaded videos or reports were deleted.
+
+Subsequent verification found zero outstanding processing
+records and zero queued, in-flight, or delayed SQS messages.
+
+The lifecycle Lambda was temporarily disabled and then
+restored with reserved concurrency of 1.
+
+The worker was observed to remain stopped after restoration.
+
+### Final infrastructure state
+
+- API deployed and verified.
+- Worker deployed and verified.
+- Worker explicitly stopped after verification.
+- Lifecycle Lambda re-enabled.
+- Automatic idle shutdown remains configured.
+- No full Terraform apply was performed.
+- Targeted IAM policy updates completed in place.
+- Worker EC2 startup configuration updated directly.
+- Existing S3 lifecycle and inspection data preserved.
+- Automatic temporary-file deletion remains disabled.
+
+The final EC2 state was confirmed stopped after deployment.
+Automatic idle shutdown was not independently demonstrated
+by waiting for the idle timeout during this deployment.
+
 ## Remaining Work
 
-- Run Linux-specific tests, including symbolic-link protection.
-- Verify storage preflight on the actual COOL worker.
-- Validate disk headroom during a large-video inspection.
-- Review temporary-file cleanup race conditions before deletion.
-- Build and deploy matching API and worker releases.
-- Verify the deployed source commit and automatic idle shutdown.
+- Fix Bedrock Converse input-length handling before retrying
+  the failed video inspection.
+- Perform a full large-video inspection when appropriate.
+- Run Linux-specific storage-safety tests, including symlinks.
+- Validate temporary-storage usage under sustained workloads.
+- Resolve Terraform state/configuration differences caused
+  by the direct EC2 user-data update before a future apply.
+- Recheck automatic idle shutdown during a future live run.
+- Review cleanup race conditions and PrivateTmp isolation
+  before enabling any automatic file deletion.
 
-Do not claim LIVE COMPLETE until deployment and live verification pass.
+Step 51 implementation, API deployment, COOL worker deployment,
+and live disk-space preflight verification are complete.
+Full large-video end-to-end validation remains outstanding.
