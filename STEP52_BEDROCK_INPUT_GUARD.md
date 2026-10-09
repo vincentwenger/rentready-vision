@@ -1,6 +1,6 @@
 # Step 52 - Amazon Bedrock Input-Length Protection
 
-Status: LOCAL IMPLEMENTATION AND TESTS COMPLETE / AWS DEPLOYMENT PENDING
+Status: AWS DEPLOYMENT VERIFIED / FULL VIDEO VALIDATION PENDING
 
 ## Objective
 
@@ -134,18 +134,74 @@ were not modified.
 - Batching increases the number of Arm A model calls and
   may increase model cost and processing latency.
 
+## AWS Deployment and Live Verification (2026-10-09)
+
+### GitHub release
+
+- Pull request #3 merged into main.
+- Source commit: c05e6c8c2948435d567ac738891e1e269faa2b2e.
+- API and COOL worker artifacts built from the same commit.
+- Both artifacts verified using SHA-256 before S3 upload.
+
+### API deployment
+
+- EC2 instance: i-0b86234abb75509b7.
+- AWS Systems Manager deployment completed successfully.
+- Deployment command: 93786acf-7fcc-4515-8c2b-12658310fc55.
+- API artifact SHA-256:
+  0f5bae818b7bf333be3d3fdb3001c47c58c201f72a130de5c796a25e213e66f0.
+- Service: active.
+- Health endpoint: healthy.
+- GIT_COMMIT: c05e6c8c2948435d567ac738891e1e269faa2b2e.
+- MAX_UPLOAD_BYTES: 4294967296 (4 GiB).
+
+### COOL worker deployment
+
+- EC2 instance: i-0ecc68f9db17b668d.
+- Artifact version: step49-c05e6c8c2948.
+- Artifact SHA-256:
+  f5c7cdef126ce6ffd9af3b23ea894dc1147538f08574ee456e4f41389ba377cc.
+- AWS Systems Manager deployment completed successfully.
+- Deployment command: a3446efe-323a-481d-85ec-9146fe6a336a.
+- Deployment checksum and completion marker verified.
+- Worker service: active during verification.
+- Git commit: c05e6c8c2948435d567ac738891e1e269faa2b2e.
+
+### Live verification
+
+AWS Systems Manager confirmed:
+- The installed release matches the expected artifact version.
+- Arm A maximum batch size is eight images.
+- Production Detector v4 references the batching helper.
+- Bedrock diagnostics are present.
+- The known oversized-input ValidationException is terminal.
+- The live verification completed with response code 0.
+
+Verification marker: STEP52_LIVE_VERIFICATION_PASSED.
+
+No real Bedrock inference was performed during this verification.
+
+### AWS safety and cost controls
+
+- Artifact-specific API and worker IAM policies updated in place.
+- EC2 startup user data updated while the worker was stopped.
+- Previous startup configuration backed up.
+- No full Terraform apply performed.
+- Automatic worker lifecycle configuration preserved.
+- COOL worker explicitly stopped after verification.
+- Final observed EC2 state: stopped.
+- Automatic idle shutdown was not independently exercised.
+
 ## Remaining Work
 
-- Review and commit changes to the development branch.
-- Merge the changes into main after verification.
-- Build checksum-pinned API and worker artifacts.
-- Deploy matching releases through AWS Systems Manager.
-- Verify the live worker and automatic idle shutdown.
-- Perform a controlled end-to-end inspection.
-- Confirm that the original input-length failure is resolved.
-- Evaluate Bedrock request counts, token usage, and cost.
-- Consider additional token/image-budget safeguards for
-  individual requests.
+- Run a controlled end-to-end video inspection.
+- Confirm the original Bedrock input-length failure is resolved.
+- Measure model request count, latency, and processing cost.
+- Consider per-request image/token-budget safeguards.
+- Reconcile direct EC2 user-data changes with Terraform state.
+- Verify automatic idle shutdown during a future live run.
 
-Do not claim LIVE COMPLETE until deployment and
-end-to-end validation have passed.
+Step 52 implementation, API deployment, COOL worker deployment,
+and live code verification are complete.
+
+Full end-to-end video validation remains pending.
