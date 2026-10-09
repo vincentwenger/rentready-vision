@@ -271,6 +271,7 @@ def _handle_agent_tool_message(
         telemetry.event(
             "AGENT_TOOL_FAILED", inspection_id=inspection_id, job_id=job_id,
             error=error, receive_count=receive_count, terminal=terminal,
+            bedrock_context=getattr(exc, "rentready_bedrock_context", None),
         )
         delay = 0 if terminal else _retry_delay(
             receive_count, settings.queue_retry_base_seconds, settings.queue_visibility_timeout_seconds
@@ -492,6 +493,7 @@ def _handle_message(
             error=error,
             receive_count=receive_count,
             terminal=terminal,
+            bedrock_context=getattr(exc, "rentready_bedrock_context", None),
         )
         # Do not delete failures. SQS owns retry/redrive. Shorten visibility with
         # bounded exponential backoff so transient failures retry predictably.

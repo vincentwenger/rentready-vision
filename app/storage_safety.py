@@ -61,14 +61,32 @@ def check_processing_disk_space(
     return result
 
 
+def is_bedrock_input_too_long(error: Exception) -> bool:
+    """Recognize the known non-retryable Bedrock Converse input-limit error."""
+    from botocore.exceptions import ClientError
+
+    if not isinstance(error, ClientError):
+        return False
+
+    details = error.response.get("Error", {})
+
+    return (
+        error.operation_name in {"Converse", "ConverseStream"}
+        and details.get("Code") == "ValidationException"
+        and "input is too long for requested model"
+        in str(details.get("Message", "")).lower()
+    )
+
+
 def is_terminal_processing_error(
     error: Exception,
     receive_count: int,
     max_receive_count: int,
 ) -> bool:
-    """Classify resource exhaustion and exhausted retries as terminal."""
+    """Classify non-retryable failures and exhausted retries as terminal."""
     return (
         isinstance(error, InsufficientDiskSpace)
+        or is_bedrock_input_too_long(error)
         or receive_count >= max_receive_count
     )
 
