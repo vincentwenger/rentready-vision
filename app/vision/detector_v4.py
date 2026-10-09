@@ -46,6 +46,8 @@ from app.vision.issue_detector import (
     utc_now,
 )
 from app.vision.issue_taxonomy import ALL_CATEGORIES
+from app.vision.arm_a_batching import run_arm_a_batched
+from app.vision.bedrock_diagnostics import DiagnosticConverseClient
 
 
 PROFILE = "detector_v4_candidate/1.0"
@@ -4840,14 +4842,19 @@ def run_detector_v4_candidate(
     v3 = run_v3_compatible_base(
         video_path=video,
         manifest=manifest,
-        bedrock_client=bedrock_client,
+        bedrock_client=DiagnosticConverseClient(
+            bedrock_client, component='v3_compatible_base'
+        ),
         **({"progress_callback": progress_callback} if progress_callback else {}),
     )
 
     emit_progress(progress_callback, "checks", "Waiting for severe-damage AI check")
-    arm_a = run_arm_a(
-        bedrock_client=bedrock_client,
+    arm_a = run_arm_a_batched(
+        bedrock_client=DiagnosticConverseClient(
+            bedrock_client, component='arm_a_severe_damage'
+        ),
         manifest=manifest,
+        run_batch=run_arm_a,
     )
 
     emit_progress(progress_callback, "checks", "Analyzing video for electrical flicker")
@@ -4961,7 +4968,7 @@ def run_detector_v4_candidate(
                     )
                     or 0
                 )
-                + 1,
+                + int(arm_a.get("model_requests") or 1),
             "input_tokens":
                 int(
                     v3_metrics.get(
