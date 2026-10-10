@@ -1299,11 +1299,28 @@ async function renderResults(id, response) {
     scenesElement.append(row);
   });
 
-  const cards = await Promise.all(response.keyframes.map(async frame => {
-    const image = await api(`/inspections/${id}/frames/${frame.index}/url`);
+  // Fetch all retained-frame URLs in one API call.
+  // The backend loads the S3 manifest only once for this batch.
+  const frameUrlsResponse = await api(`/inspections/${id}/frames/urls`);
+
+  if (!Array.isArray(frameUrlsResponse.frames)) {
+    throw new Error("Invalid batch frame URL response.");
+  }
+
+  const frameUrls = new Map(
+    frameUrlsResponse.frames.map(frame => [Number(frame.index), frame.url])
+  );
+
+  const cards = response.keyframes.map(frame => {
+    const frameUrl = frameUrls.get(Number(frame.index));
+
+    if (typeof frameUrl !== "string" || !frameUrl) {
+      throw new Error(`Missing frame URL for retained frame ${frame.index}.`);
+    }
+
     const figure = document.createElement("figure");
     const img = document.createElement("img");
-    img.src = image.url;
+    img.src = frameUrl;
     img.alt = `Extracted frame at ${frame.timestamp_seconds} seconds`;
     img.loading = "lazy";
     const caption = document.createElement("figcaption");
@@ -1324,7 +1341,7 @@ async function renderResults(id, response) {
     caption.textContent = `${selection}\n${frame.timestamp_seconds}s · scene ${frame.scene_index + 1} · quality ${frame.evidence_quality_score}/100${adaptiveScore}\nLaplacian ${frame.sharpness.toFixed(1)}${tiledSharpness} · brightness ${frame.brightness.toFixed(1)} · ${motion}`;
     figure.append(img, caption);
     return figure;
-  }));
+  });
   cards.forEach(card => frameGrid.append(card));
   document.getElementById("results").hidden = false;
 }

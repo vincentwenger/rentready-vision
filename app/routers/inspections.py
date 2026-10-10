@@ -717,6 +717,42 @@ def update_checklist_item(
     )
 
 
+@router.get("/{inspection_id}/frames/urls")
+def get_frame_urls(inspection_id: str) -> dict:
+    """Generate all retained-frame URLs with one manifest read."""
+    _require_inspection(inspection_id)
+
+    try:
+        manifest = load_manifest(inspection_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=409, detail=str(exc)
+        ) from exc
+
+    ttl = settings.presigned_url_ttl_seconds
+
+    frames = [
+        {
+            "index": frame["index"],
+            "url": s3.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": settings.s3_bucket,
+                    "Key": frame["s3_key"],
+                },
+                ExpiresIn=ttl,
+            ),
+            "expires_in_seconds": ttl,
+        }
+        for frame in manifest["keyframes"]
+    ]
+
+    return {
+        "inspection_id": inspection_id,
+        "frames": frames,
+    }
+
+
 @router.get("/{inspection_id}/frames/{frame_index}/url")
 def get_frame_url(inspection_id: str, frame_index: int) -> dict:
     manifest = load_manifest(inspection_id)

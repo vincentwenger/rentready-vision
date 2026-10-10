@@ -916,3 +916,16 @@ after this live test was not separately confirmed.
 See [Step 53 ? Cancel Inspection](STEP53_CANCEL_INSPECTION.md)
 for implementation details, deployment verification, test evidence,
 and remaining UX improvements.
+
+## Step 52 follow-up ? Report batch optimization ? LIVE VERIFIED
+
+The final report now retrieves retained-frame URLs through one batch
+API request rather than making up to 120 parallel requests that each
+reload the S3 manifest.
+
+The optimization passed 726 local tests and was deployed and
+independently verified on the production API. The original HTTP 503
+cause remains unconfirmed.
+
+See [Step 52 Report Batch Optimization](STEP52_REPORT_BATCH_OPTIMIZATION.md)
+for implementation, testing, and deployment details.
