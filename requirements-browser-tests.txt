@@ -1,0 +1,10 @@
+# Step 56: optional browser regression test dependencies.
+# Install separately from runtime/COOL worker requirements.
+# Known-good with Python 3.12.10 on Windows during Step 56.11A.
+# Install from repository root:
+#   python -m pip install -r requirements-browser-tests.txt
+#   python -m playwright install chromium
+-r requirements.txt
+playwright==1.62.0
+pyee==13.0.1
+greenlet==3.5.6
