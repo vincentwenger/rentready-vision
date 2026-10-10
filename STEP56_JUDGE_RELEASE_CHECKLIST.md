@@ -22,7 +22,7 @@ git diff --check
 ## Step 56 verification record — October 10, 2026
 
 - **Commit under test:** `e00cae4` on the Step 56 documentation branch.
-- **Clean local test environment:** Windows; Python 3.12.10; installed from `requirements.txt` (which references `requirements.lock.txt`). Browser tests use `requirements-browser-tests.txt` with Playwright 1.62.0; matching Chromium installed separately.
+- **Clean local test environment:** Windows; Python 3.12.10; installed from `requirements.txt` (which references `requirements.lock.txt`). Browser tests use `requirements-browser-tests.txt` with Playwright 1.62.0; matching Chromium installed separately. Moto 5.2.3 is pinned in `requirements-step49-tests.txt` (Step 56 commit `2a84e19`), and pytest 8.4.2 is specified in the application lock.
 - **Focused tests:** 20 passed in 10.82 seconds (`test_video_processor.py`, `test_step52_report_browser.py`, `test_step54_report_rectangles.py`).
 - **Full regression command:** `python -B -m pytest -q -p no:cacheprovider --ignore=tests/test_step34d_freeze.py --ignore=tests/test_step35_measurement.py` with dummy AWS credentials and EC2 metadata discovery disabled.
 - **Full results:** **727 passed, 1 skipped, 1 non-failing Starlette/httpx deprecation warning** in 39.46 seconds. Exactly the two historical detector-evaluation modules above were excluded.
@@ -30,7 +30,7 @@ git diff --check
 - **Preliminary secret/history checks:** source scanner checked 937 local text files with no known secret-pattern findings. A separate patch-added-line history scan checked 182,326 lines, with no AWS-key/private-key/signed-URL/email matches; three possible address-path matches were investigated and found to use one fictional test property label. This is a limited pattern review, **not** complete history/binary safety certification.
 - **Screenshot contact sheet:** 13 tracked Step 50 images received a preliminary low-resolution visual review; full-resolution review remains outstanding.
 
-**Still pending:** exact test-only Moto pin, full screenshot and JSON audit, a complete historical secret review, local sample-video reproducibility, COOL/worker dependency reproducibility and judge-access validation. No public-release approval is implied.
+**Still pending:** full screenshot and JSON audit, a complete historical secret review, local sample-video reproducibility, COOL/worker dependency reproducibility and judge-access validation. No public-release approval is implied.
 
 ## Reproducibility acceptance
 
