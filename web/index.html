@@ -923,6 +923,7 @@ async function renderReportIssue(inspectionId, issue) {
         bbox.y >= 0 &&
         bbox.width > 0 &&
         bbox.height > 0 &&
+        bbox.width * bbox.height < 0.80 &&
         bbox.x + bbox.width <= 1.000001 &&
         bbox.y + bbox.height <= 1.000001
       ) {
@@ -970,6 +971,14 @@ async function renderReportIssue(inspectionId, issue) {
       }
 
       card.append(imageWrap);
+
+      if (imageWrap.querySelector(".report-evidence-bbox")) {
+        const note = document.createElement("p");
+        note.className = "report-rectangle-note";
+        note.textContent = "Red rectangle: AI-estimated area. Verify visually.";
+        note.style.cssText = "margin:8px 18px;color:#64748b;font-size:.8rem";
+        card.append(note);
+      }
     } catch (_) {
       const unavailable = document.createElement("div");
       unavailable.className = "evidence-unavailable";

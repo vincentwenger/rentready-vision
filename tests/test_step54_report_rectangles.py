@@ -130,6 +130,13 @@ def test_report_rectangles_in_chromium():
                 "#step54-test-card img"
             ).evaluate("(img) => img.getBoundingClientRect().width")
 
+            assert page.locator(
+                "#step54-test-card .report-rectangle-note"
+            ).inner_text() == (
+                "Red rectangle: AI-estimated area. Verify visually."
+            )
+
+            print("Rectangle explanation label: PASS")
             print("Desktop rectangle: PASS")
 
             page.set_viewport_size({
@@ -145,6 +152,41 @@ def test_report_rectangles_in_chromium():
 
             assert mobile_width < desktop_width
             print("Responsive rectangle: PASS")
+
+
+            # Full-frame boxes do not identify a specific location.
+            broad_bbox = dict(ISSUE)
+            broad_bbox["bbox"] = {
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 1.0,
+            }
+
+            page.evaluate(
+                """async issue => {
+                    const card = await renderReportIssue(
+                        "step54-test", issue
+                    );
+                    card.id = "step54-broad-bbox";
+                    document.body.appendChild(card);
+                }""",
+                broad_bbox,
+            )
+
+            assert page.locator(
+                "#step54-broad-bbox img"
+            ).count() == 1
+
+            assert page.locator(
+                "#step54-broad-bbox .report-evidence-bbox"
+            ).count() == 0
+
+            assert page.locator(
+                "#step54-broad-bbox .report-rectangle-note"
+            ).count() == 0
+
+            print("Full-frame rectangle suppressed: PASS")
 
             no_bbox = dict(ISSUE)
             no_bbox["bbox"] = None
@@ -162,6 +204,10 @@ def test_report_rectangles_in_chromium():
 
             assert page.locator(
                 "#step54-no-bbox .report-evidence-bbox"
+            ).count() == 0
+
+            assert page.locator(
+                "#step54-no-bbox .report-rectangle-note"
             ).count() == 0
 
             print("Missing bounding box: PASS")
