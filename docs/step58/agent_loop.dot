@@ -1,0 +1,28 @@
+digraph RentReadyAgent {
+  graph [label="RentReady Vision | Bounded perception → decision → action", labelloc=t,
+         fontname="DejaVu Sans", fontsize=22, fontcolor="#152A47", bgcolor="white",
+         ranksep=0.64, nodesep=0.37, pad="0.25", splines=true];
+  node [shape=box, style="rounded,filled", penwidth=1.35, fontname="DejaVu Sans", fontsize=11,
+        margin="0.22,0.14", color="#94B5D5", fillcolor="#EDF5FD", fontcolor="#152A47"];
+  edge [color="#7797B5", arrowsize=0.76, penwidth=1.4, fontname="DejaVu Sans", fontsize=10, fontcolor="#415B76"];
+  input [label="PERCEIVE\nOpenCV keyframes + timestamped\nmodel candidate / ROI / confidence", fillcolor="#D9EAF7"];
+  classify [shape=diamond, label="DECIDE\nConfidence\n& policy", fillcolor="#FFF1DD", color="#DBB67D"];
+  accept [label="Accept candidate\n(confidence > 0.85)", fillcolor="#DBEFE7", color="#82B6A2"];
+  reject [label="Reject candidate\n(confidence < 0.50;\npolicy safeguards apply)", fillcolor="#F4EAF6", color="#C7ABD8"];
+  interval [label="ACT\ninspect_interval():\nadditional timestamped frames", fillcolor="#DDEEE8", color="#83B49F"];
+  crop [label="ACT IF STILL AMBIGUOUS\ncrop_region() / enhance_region()\n& inspect_other_angle() when applicable", fillcolor="#DDEEE8", color="#83B49F"];
+  verify [label="RE-PERCEIVE + RE-EVALUATE\nAssess new evidence and confidence\nStop after terminal decision", fillcolor="#E5E9FB",color="#A1A8D5"];
+  review [label="Request human review\nif unresolved / safety-sensitive", fillcolor="#FFF1DD",color="#DBB67D"];
+  audit [label="AUDIT TRACE\nObserve → tool actions → decision\nConfidence & evidence links logged", fillcolor="#D9EAF7"];
+  input -> classify;
+  classify -> accept [label="> 0.85"];
+  classify -> reject [label="< 0.50"];
+  classify -> interval [label="0.50–0.85"];
+  interval -> verify;
+  verify -> crop [label="still uncertain"];
+  crop -> verify [label="new evidence"];
+  verify -> accept [label="accepted"];
+  verify -> reject [label="rejected"];
+  verify -> review [label="exhausted / uncertain"];
+  {accept;reject;review;} -> audit;
+}

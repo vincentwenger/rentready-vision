@@ -1,0 +1,147 @@
+{
+  "schema_version": "rentready-step58-evidence-validation/1.0",
+  "step": 58,
+  "verification_scope": "read-only cross-check of previously stored evidence, NOT fresh evaluation",
+  "checked_utc": "2026-10-10T19:29:44.405220+00:00",
+  "passed": true,
+  "checks_passed": 22,
+  "checks_total": 22,
+  "checks": [
+    {
+      "name": "all_required_artifacts_present",
+      "passed": true,
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "name": "step13_warmup_and_measured_counts",
+      "passed": true,
+      "details": {
+        "warmup_stock": 1,
+        "warmup_cool": 1,
+        "measured_stock": 5,
+        "measured_cool": 5
+      }
+    },
+    {
+      "name": "step13_all_measured_successful",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step13_historical_mean_seconds",
+      "passed": true,
+      "details": {
+        "stock": 161.7192404,
+        "cool": 150.6955772
+      }
+    },
+    {
+      "name": "step13_historical_frame_throughput",
+      "passed": true,
+      "details": {
+        "stock": 6.5113145999999995,
+        "cool": 6.9881732
+      }
+    },
+    {
+      "name": "step13_output_equivalence",
+      "passed": true,
+      "details": {
+        "comparisons": 10
+      }
+    },
+    {
+      "name": "step13_74_frames_54_scenes",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step13_raw_runs_retained",
+      "passed": true,
+      "details": {
+        "run_json_count": 12
+      }
+    },
+    {
+      "name": "step34_old_mozart_test_scope",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step34d_v2_development_scope",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step36_challenge_two_candidates",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step36_measured_accuracy_before_after",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step36_false_positive_not_hidden",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step36_actual_tool_traces_present",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step37_five_failure_cases",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step48_heldout_raw_confusion",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step48_accuracy_precision_recall",
+      "passed": true,
+      "details": {
+        "accuracy": 0.9444444444444444,
+        "precision": 1.0,
+        "recall": 0.8888888888888888
+      }
+    },
+    {
+      "name": "step48_faucet_false_negative_preserved",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step48_18_raw_predictions_present",
+      "passed": true,
+      "details": {
+        "count": 18
+      }
+    },
+    {
+      "name": "step23_real_live_trace_verified",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step23_actual_agent_sequence",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "step23_true_frame_confidence_transition",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "aws_calls": 0,
+  "inference_calls": 0,
+  "holdout_reruns": 0
+}

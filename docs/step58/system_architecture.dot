@@ -1,0 +1,30 @@
+digraph RentReadySystem {
+  graph [label="RentReady Vision | System architecture", labelloc=t,
+         fontname="DejaVu Sans", fontsize=24, fontcolor="#152A47", bgcolor="white",
+         rankdir=LR, ranksep=0.70, nodesep=0.44, pad="0.27", splines=spline];
+  node [shape=box, style="rounded,filled", penwidth=1.3, fontname="DejaVu Sans", fontsize=12,
+        margin="0.20,0.18", color="#94B5D5", fillcolor="#EDF5FD", fontcolor="#152A47"];
+  edge [color="#6B92B6", arrowsize=0.77, penwidth=1.55, fontname="DejaVu Sans", fontsize=10.5, fontcolor="#415B76"];
+  browser [label="01  REVIEWER\nBrowser / HTTPS\nUpload • status • report", fillcolor="#DAECFA"];
+  api [label="02  HOSTED API\nCaddy / FastAPI (ARM64)\nAuthentication • jobs", fillcolor="#DAECFA"];
+  queue [label="03  PROCESSING QUEUE\nAmazon SQS + DLQ\nDurable job delivery", fillcolor="#FFF0DD", color="#DAAF77"];
+  worker [label="04  COOL WORKER\nEC2 Graviton4 / m8g.4xlarge\nCOOL 3.1 • Arm64", fillcolor="#DCEFE9", color="#83B49F"];
+  perception [label="05  PERCEPTION + ANALYSIS\nOpenCV 5: quality, scenes, dedupe, keyframes\nDetector v4 + bounded agent verification", fillcolor="#DCEFE9", color="#83B49F"];
+  report [label="06  REVIEWABLE OUTPUT\nEvidence-linked findings\nTimestamps • priorities • checklist", fillcolor="#DAECFA"];
+  browser -> api -> queue -> worker -> perception -> report [weight=10];
+  report -> browser [label="retrieve via API", constraint=false, style=dashed, color="#A0B7CA"];
+  storage [label="Private Amazon S3\nVideo, frames, crops, report JSON", fillcolor="#F5EAF9",color="#C6A5D7"];
+  database [label="Amazon DynamoDB\nInspection & job state", fillcolor="#F5EAF9",color="#C6A5D7"];
+  controller [label="Lambda + EventBridge\nOn-demand start • safe idle stop", fillcolor="#FFF0DD",color="#DAAF77"];
+  model [label="Amazon Bedrock\nNova 2 Lite + conditional Sonnet 4.5", fillcolor="#F5EAF9",color="#C6A5D7"];
+  api -> storage [style=dashed, constraint=false, label="presigned upload"];
+  api -> database [style=dashed, constraint=false];
+  api -> controller [style=dashed, constraint=false];
+  controller -> worker [style=dashed, constraint=false];
+  perception -> storage [style=dashed, constraint=false, label="persist evidence"];
+  perception -> model [style=dashed, constraint=false];
+  perception -> database [style=dashed, constraint=false];
+  {rank=same; api; database; storage;}
+  {rank=same; worker; controller;}
+  {rank=same; perception; model;}
+}
