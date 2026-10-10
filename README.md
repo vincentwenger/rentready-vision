@@ -1,931 +1,136 @@
-# RentReady Vision — OpenCV evidence processing and COOL validation
+# RentReady Vision
 
-## Step 12 COOL validation — PASS
+**Walk through once. Know what to fix before you rent.**
 
-The real RentReady Step-8 `process_video()` workload has now executed under the
-Marketplace `/opt/cool` runtime on an AWS Graviton `m8g.4xlarge` instance. A
-controlled stock OpenCV 5.0.0 baseline was first reproduced twice on the same
-instance, using the same byte-identical EBS-resident walkthrough and the frozen
-Step-8 parameters. COOL then produced an **EQUIVALENT** result: 54 scenes, 74
-representative frames, exact scene-boundary and selected-frame identity matches,
-and a maximum selection-score delta of `0.0`.
+[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md)
 
-**COOL eligibility gate #1: PASS.** See [`STEP12_COOL_VALIDATION.md`](STEP12_COOL_VALIDATION.md)
-for the complete audit trail and `evaluation/step12_cool_validation.json` for the
-machine-readable summary.
+RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
 
-## Historical Step-8 evidence versus the controlled Graviton baseline
+**Current milestone: Step 54 (October 10, 2026)** — hosted application and report overlay improvements deployed; [implementation and limitations](STEP54_FINAL.md). Earlier engineering steps remain available in [Development history](DEVELOPMENT_HISTORY.md).
 
-The exact tracked Step-8 source from the supplied archive is frozen at Git commit
-`8321b6e1e5eb204ccd9c5eb645c7c96dbd77473c`. The original archive SHA-256 is
-`2bd78b5dfbfdf0d286973fb2badc61cbd51b8b22d5cfc8a3f724b8717ac781ee`.
+> **Human review is required.** Issue descriptions and rectangular highlights are AI-generated and may be inaccurate. RentReady Vision is not a licensed property inspection, hazard diagnosis, mold/asbestos assessment, structural determination, or electrical-safety certification.
 
-The original browser evidence recorded 31,576 -> 1,053 -> 73 representatives
-across 56 scenes, but that historical Windows observation was not reproduced
-exactly on later runtimes. It is preserved for provenance rather than rewritten
-as a clean reproduction. Step 12 therefore uses the separately verified
-same-Graviton stock baseline in `evaluation/benchmark_manifest_graviton_stock.json`,
-which reproduced 74 representatives / 54 scenes twice before the COOL run.
+## What judges can see
 
-This project implements the walking skeleton plus substantive OpenCV evidence processing:
+- **Video-to-report workflow:** browser upload, processing progress, scene/keyframe selection, potential defect detection, evidence images, issue timestamps, priorities and repair checklist.
+- **Current report:** Step 54 highlights AI-estimated issue locations with responsive red rectangles; overly large rectangles (covering 80% or more of an image) are hidden, original evidence is preserved, and the UI warns users to verify localization visually.
+- **Operational controls:** processing progress uses measured counts where available ([Step 50](STEP50_REAL_PROGRESS.md)); safe cancellation is available ([Step 53](STEP53_CANCEL_INSPECTION.md)); the COOL worker starts on demand and has guarded idle shutdown ([Step 49](STEP49_ON_DEMAND_WORKER.md)).
+- **Large-video protection:** bounded Bedrock image batching ([Step 52](STEP52_BEDROCK_INPUT_GUARD.md)), disk-space safeguards ([Step 51](STEP51_STORAGE_SAFETY.md)), and one batch request for retained-frame URLs ([Step 52 report optimization](STEP52_REPORT_BATCH_OPTIMIZATION.md)).
 
-**Browser upload → presigned S3 PUT → DynamoDB inspection state → OpenCV 5 processing → S3 keyframes/manifest → API results**
+The hosted demo uses authenticated inspection operations. **The public URL alone does not grant access to private videos or reports.** Judge credentials/access will be provided separately through an approved, limited method; no bearer tokens belong in this repository or Devpost's public project story.
 
-## What works
+## Why OpenCV matters
 
-- Create an inspection.
-- Generate a short-lived S3 upload URL with `POST /inspections/{id}/upload`.
-- Upload MP4/MOV directly from the browser to private S3.
-- Confirm the upload with `HeadObject`.
-- Run OpenCV processing.
-- Read video metadata.
-- Sample frames.
-- Score blur with variance of Laplacian and classify each frame as blurry, usable or sharp.
-- Measure mean exposure, intensity percentiles and clipped dark/highlight percentages.
-- Classify exposure as too dark, usable or overexposed.
-- Track Shi–Tomasi features between closely spaced frames with pyramidal Lucas–Kanade optical flow.
-- Fit a RANSAC affine model to isolate global camera movement from moving objects.
-- Normalize camera motion as percentage of the frame diagonal per second.
-- Reject fast-motion frames as weak inspection evidence.
-- Calculate an explainable 0–100 evidence-quality score.
-- Compare consecutive and scene-reference frames using HSV histograms.
-- Match ORB features and validate them geometrically with RANSAC.
-- Fuse color similarity, feature similarity, camera motion and elapsed time into auditable scene boundaries.
-- Create timestamped scene segments and choose the strongest distinct evidence within each segment.
-- Use a duration-aware target of one to three baseline representatives per scene, then adaptively retain up to eight when additional frames add distinct evidence.
-- Retain one clearly labeled best-available frame for any scene whose strict quality candidates are all rejected, plus global fallbacks when the complete output would otherwise contain fewer than three frames.
-- Remove near-duplicate frames only when both HSV and ORB similarity support that decision.
-- Upload selected keyframes to S3.
-- Store processing summary in DynamoDB.
-- Retrieve inspection status, scenes and keyframes and display the frames in the browser.
-- Run the Step-17 schema-constrained candidate-finding detector over selected keyframes, including normalized bounding boxes for OpenCV follow-up, and persist auditable issue evidence.
-- Run Step-18 Agentic Vision follow-up: uncertain Step-17 evidence causes a targeted `inspect_interval()` SQS tool call on the same COOL/Graviton4 worker, followed by confidence revision and an accept/dismiss/human-approval action.
-- Run Step-21 `inspect_other_angle()`: geometrically match the Step-17 region across nearby frames, rank changed camera views, and ask AI whether the same issue is visible from multiple viewpoints.
-- Consolidate repeated frame-level observations into one physical issue using timestamp, room, category, whole-image, region, and semantic similarity while retaining every evidence timestamp.
-- Classify each consolidated issue as exactly **Fix before renting**, **Review recommended**, or **Cosmetic**, with an explicit visible-evidence-only disclaimer that this is not an official safety rating.
-- Apply a deterministic responsible-language policy before persistence and again at the public API boundary: describe visible conditions, never diagnose mold, never determine electrical safety, never label cracking as structural, and preserve qualified human review.
-- Build a polished, room-grouped rental-readiness report with a transparent 0–100 score, severity totals, evidence images and ranges, recommended actions, and links that seek the original walkthrough to each issue timestamp.
-- Automatically turn final verified issues into a three-section Rental Preparation Checklist with Open, In progress, and Resolved status tracking.
-- Generate short-lived GET URLs for evidence frames.
+OpenCV 5 is not simply a video decoder here. It evaluates frame quality (sharpness, illumination, motion), detects scene changes (color similarity and feature geometry), removes redundant frames, and selects useful timestamped evidence. An agentic follow-up path can request more frames from a relevant time interval, crop or enhance a region, evaluate another angle, and record the resulting decision or need for human review.
 
-## Local fallback versus production AWS path
-
-The original Days 1–8 prototype used FastAPI `BackgroundTasks` for convenient local development. That implementation remains available only as a developer fallback when `PROCESSING_QUEUE_URL` is unset.
-
-The validated production/judge path is now:
-
-`API → SQS → official OpenCV COOL EC2 worker on AWS Graviton4`
-
-The public inspection API is preserved while the SQS worker provides durable job ownership, retries/DLQ behavior, runtime verification, S3/DynamoDB persistence, and CloudWatch telemetry.
-
-## Step 41 — observability — COMPLETE / LIVE AWS FINAL PASS
-
-Step 41 adds an end-to-end structured CloudWatch lifecycle covering upload, OpenCV scene/keyframe processing, Bedrock analysis, agent verification, COOL benchmarking, report completion, and failures. It also records `processing_duration_seconds`, `frames_analyzed`, `bedrock_requests`, `agent_tool_calls`, and `errors` using low-cardinality dimensions. New lifecycle events are logs rather than one custom metric per event to keep CloudWatch cost down. See [`STEP41_OBSERVABILITY.md`](STEP41_OBSERVABILITY.md) and `evaluation/step41/repository_verification.json`.
-
-
-## Step 35 - OpenCV contribution and COOL benchmark results
-
-RentReady Vision was evaluated on 21 development walkthrough clips using the same frozen detector configuration across three pipelines:
-
-### Pipeline comparison
-
-| Metric | Simple baseline | OpenCV selection | Agentic + COOL |
-|---|---:|---:|---:|
-| Unique source frames sent to model | 122 | 67 | 127 |
-| Images sent to model | 1,215 | 655 | 1,245 |
-| Owner-reviewed interval recall | 11.1% | 11.1% | 22.2% |
-| Owner-reviewed issue precision | 20.0% | 33.3% | 33.3% |
-| AI cost estimate | $2.77 | $1.49 | $2.84 |
-| Processing time/video | 24.15s | 14.08s | 25.63s |
-| Agent tool calls | N/A | N/A | 20 |
-
-### OpenCV selection impact
-
-Compared with simple frame sampling, OpenCV-based selection:
-
-- Reduced model frames by 45%.
-- Reduced estimated AI cost by 46%.
-- Reduced processing time by 42%.
-- Maintained the same owner-reviewed interval recall on this development set.
-
-### Agentic Vision evaluation
-
-The agentic pipeline adds targeted investigation tools when evidence is uncertain.
-
-Measured results:
-
-- Owner-reviewed interval recall increased from 11.1% to 22.2%.
-- 20 investigation tool calls were recorded.
-- Owner review showed that confirmed improvements came from initial detection rather than reinspection recovery.
-- Two reinspection findings were identified as false positives.
-
-### Stock OpenCV 5 vs COOL on AWS Graviton4
-
-A separate benchmark compared stock OpenCV 5 and COOL on the same AWS Graviton4 `m8g.4xlarge` instance.
-
-| Metric | Stock OpenCV 5 | COOL |
-|---|---:|---:|
-| Output equivalence | N/A | True |
-| Median runtime | 164.217s | 153.984s |
-| Sampled frames/second | 6.41 | 6.84 |
-| Estimated compute cost | $0.0328 | $0.0307 |
-
-COOL maintained equivalent output while improving median runtime by 6.2%.
-
-All benchmark results are development measurements, not guarantees of unseen-property performance.
-
-
-## Architecture
+**Production/judge architecture (simplified):**
 
 ```text
-Browser / FastAPI
-      |
-      +------------------------> DynamoDB
-      |
-      +--> private S3 <-------- original video + evidence
-      |
-      +--> Amazon SQS
-              |
-              v
-      EC2 Graviton4 worker (m8g.4xlarge)
-              |
-              +--> official OpenCV COOL AWS Marketplace runtime (/opt/cool)
-              |       +--> Python 3.12 COOL environment
-              |       +--> OpenCV 5 optimized Arm64 processing
-              |
-              +--> versioned rentready-vision-cool-worker artifact from S3
-                      +--> SHA-256 verified before extraction
-                      +--> requirements-cool.txt (no pip OpenCV wheel)
-```
-
-The original in-process background worker remains only a local-development fallback.
-The judge/demo path is the **Graviton4 worker using the official OpenCV COOL runtime**.
-
-## DynamoDB schema
-
-One table with composite key `PK` / `SK`.
-
-Inspection metadata:
-
-```text
-PK = INSPECTION#{inspection_id}
-SK = METADATA
-```
-
-Future records can be added without a table redesign:
-
-```text
-PK = INSPECTION#{id} / SK = SCENE#0001
-PK = INSPECTION#{id} / SK = ISSUE#{issue_id}
-PK = INSPECTION#{id} / SK = AGENT_TRACE#{timestamp}
-```
-
-## S3 layout
-
-```text
-inspections/{inspection_id}/
-  original/
-    walkthrough.mp4
-  frames/
-    frame_00000_0000000000ms.jpg
-  manifest.json
-```
-
-The bucket is private. Browser access uses presigned URLs.
-
-## Why OpenCV is essential
-
-The application does not simply decode video and forward arbitrary screenshots.
-OpenCV decides which frames are credible inspection evidence before any future AI
-reasoning layer sees them.
-
-For every sampled frame, the manifest records:
-
-- Whole-frame and 3x3 tiled variance-of-Laplacian scores, the percentage of
-  sharp tiles, motion-supported blur evidence and the final blur classification.
-- Brightness mean, 5th/95th percentiles, clipped-dark percentage and clipped-highlight percentage.
-- Optical-flow feature count, RANSAC inlier ratio, global translation, rotation and normalized motion.
-- Every rejection reason and the final selection decision.
-- An evidence-quality score combining sharpness (45%), exposure (30%) and stability (25%).
-
-The motion pipeline uses:
-
-1. `cv2.goodFeaturesToTrack` for Shi–Tomasi corners.
-2. `cv2.calcOpticalFlowPyrLK` every 0.1 seconds for pyramidal Lucas–Kanade tracking.
-3. `cv2.estimateAffinePartial2D(..., RANSAC)` for robust global camera motion.
-4. A minimum of 12 RANSAC inliers and a 25% inlier ratio before motion can reject a frame.
-5. A three-observation temporal median to reduce isolated tracking errors.
-6. Frame-diagonal and elapsed-time normalization so a single threshold works across resolutions.
-
-This produces an auditable `frame_assessments` entry for every sampled frame.
-The browser report shows selected/rejected totals and the score, Laplacian value,
-brightness and motion value for each retained frame.
-
-### Scene-change pipeline
-
-RentReady Vision does not send every decoded video frame to a future AI model:
-
-```text
-source video frames
+Browser / HTTPS website
         |
         v
-1-second OpenCV samples
-        |
-        +-- HSV histogram similarity
-        +-- ORB feature similarity + RANSAC geometry
-        +-- optical-flow camera motion
-        +-- minimum/maximum scene duration
+Authenticated FastAPI application
+        |             |
+        |             +--> DynamoDB: inspection, job, issue state
+        +--> private S3: walkthrough, frames, evidence, reports
         |
         v
-timestamped scenes
+Amazon SQS (durable processing queue / DLQ)
         |
         v
-best distinct frames per scene (maximum 120 total)
+On-demand EC2 Graviton4 worker (m8g.4xlarge)
+  official OpenCV COOL runtime on Arm64
+  OpenCV 5 perception and targeted evidence processing
+  Detector v4 + Bedrock model-assisted inspection
         |
         v
-future property-inspection AI
+Evidence-linked report / review / checklist
 ```
 
-For each sampled frame, `scene_change` in `manifest.json` records:
+The API/backend and worker use versioned deployment packages. COOL runs from its supplied `/opt/cool` environment; **do not install a pip OpenCV wheel into the COOL worker environment**. The older local fallback is for development only.
 
-- HSV similarity to the previous frame and current scene reference.
-- ORB feature similarity, good-match counts and geometric confidence.
-- Combined visual similarity and change confidence.
-- Camera motion and time since the scene began.
-- The boundary decision and reason, including minimum-duration suppression or a maximum-duration split.
+**Worker runtime verification:** The EC2 Graviton4 worker uses the **official OpenCV COOL AWS Marketplace runtime**. Run [`scripts/verify_runtime.py`](scripts/verify_runtime.py) in the provisioned worker environment as described in the [COOL launch runbook](COOL_AWS_LAUNCH.md) to validate its runtime identity. The local pip-installed OpenCV build is separate from COOL.
 
-Each `scenes` entry includes its start/end timestamps, duration, boundary
-evidence, candidate count and selected-keyframe count. A low-quality visual
-transition waits for a stable frame to confirm the new view, but the configured
-maximum scene duration is always enforced. A final segment shorter than the
-minimum duration is merged into the preceding segment instead of producing a
-zero-looking end scene.
+## Evaluation — interpreted with appropriate scope
 
-Within each scene, acceptable frames are ranked by variance-of-Laplacian
-sharpness, with the evidence-quality score used as a tie-breaker. OpenCV checks
-every ranked frame against existing visual-cluster representatives using HSV
-and geometrically validated ORB similarity. Strong RANSAC-supported ORB evidence
-can identify a shifted duplicate even when panning changes its color histogram.
-An additional short-window pass removes duplicates across adjacent scene
-boundaries. Because the sharpest frame is encountered first, every
-near-duplicate cluster keeps its sharpest acceptable representative. Duplicate
-classification happens before temporal, scene-size and global limits so the
-reported reduction reason remains accurate. The global cap defaults to 120, so
-a large input cannot accidentally create thousands of downstream AI requests.
+**Step 48: one-shot, frozen external Detector v4 holdout.** The unit is **one video's defect/clean classification**, not each visible defect or bounding box.
 
-### Adaptive keyframe selection
+| Ground truth / prediction | Defect | Clean |
+| --- | ---: | ---: |
+| Actual defect | 8 TP | 1 FN |
+| Actual clean | 0 FP | 9 TN |
 
-The selector does not use one fixed frame count for every scene. After removing
-near duplicates, it greedily evaluates each remaining representative using:
+Across **18 videos** (9 defect, 9 clean), measured accuracy was **94.4%**, precision **100%**, recall **88.9%**, and F1 **94.1%**. The missed case was a **dripping faucet**. This small, pre-frozen holdout is encouraging but does **not** establish general performance on all properties, leaks, lighting conditions, exact defect localization, or unseen populations.
 
-- Sharpness: log-normalized variance of Laplacian within the scene.
-- Brightness: distance from balanced exposure, with clipping penalties.
-- Camera stability: motion relative to the fast-motion threshold.
-- Distinctiveness: inverse HSV/ORB similarity to selected frames.
-- Temporal distance: distance from the closest selected timestamp.
+[Step 48 protocol](STEP48_PROTOCOL.md) · [Step 48 results and confusion matrix](STEP48_RESULTS.md) · [Machine-readable metrics](evaluation/step48/final_metrics.json)
 
-The baseline target depends on scene duration: one frame for scenes shorter than
-8 seconds, two for scenes from 8 to under 20 seconds, and three for longer
-scenes. This avoids forcing three almost-identical frames out of a brief camera
-transition. The selector may continue up to eight while the best remaining
-frame clears the configurable marginal-value threshold. These defaults are
-starting points for benchmarking, not a fixed final decision:
+Other evidence is scoped separately:
 
-```text
-PROCESSING_MIN_KEYFRAMES_PER_SCENE=3
-PROCESSING_MAX_KEYFRAMES_PER_SCENE=8
-PROCESSING_KEYFRAME_MARGINAL_SCORE_THRESHOLD=0.62
-```
+- [Step 35](STEP35_OPENCV_CONTRIBUTION.md): development ablation design for frame-selection, detector, agentic follow-up and COOL benchmarking; see [Development history](DEVELOPMENT_HISTORY.md) for recorded measurements and their limitations.
+- [Step 12](STEP12_COOL_VALIDATION.md) and [Step 13](STEP13_BENCHMARK.md): same-hardware stock OpenCV vs COOL equivalence and runtime methodology.
+- [Steps 18–23](STEP18_AGENTIC_VISION.md): targeted interval, crop, enhancement, alternate angle, decision policy and action tracing. [Step 36](STEP36_AGENTIC_VERIFICATION.md) describes the agent-verification experiment.
+- [Step 37](STEP37_FAILURE_CASES.md): documented missed detections and other failures.
+- [Step 54](STEP54_FINAL.md): visual localization limits, responsive overlays, test results and deployed status.
 
-Every retained frame records its aggregate selection score, selection rank and
-all five component scores. Rejected candidates record
-`low_marginal_keyframe_value` when they add too little evidence. This audit
-trail supports later threshold and weight benchmarking against real labeled
-walkthroughs.
+Historical evaluation evidence must not be silently reused as a measurement of today's complete Step 54 product.
 
-### Competition frame-reduction evidence
+## Reproduce the local OpenCV pipeline (no AWS needed)
 
-`processing.reduction_metrics` in `manifest.json` and the browser report expose
-the complete reduction funnel:
-
-```json
-{
-  "original_video_frames": 5520,
-  "frames_initially_sampled": 552,
-  "frames_rejected_for_blur": 71,
-  "near_duplicates_removed": 349,
-  "representative_frames": 132
-}
-```
-
-The actual object also records exposure and motion rejection, strict versus
-fallback selections, scene coverage, scene/global limit removals, and
-source-to-representative and sampled-to-representative reduction percentages.
-Values always come from the current video; the numbers above only illustrate
-the competition-ready output format. With the default global cap enabled, the
-final representative count cannot exceed 120.
-
-### Default quality thresholds
-
-| Measurement | Default | Result |
-| --- | ---: | --- |
-| Variance of Laplacian at 720px analysis width | `< 45` | Reject as blurry |
-| Borderline whole-frame Laplacian plus weak 3x3 evidence | Laplacian `< 67.5`, tile median `< 45`, and sharp tiles `< 50%` | Reject localized-detail false positive |
-| Camera motion with borderline Laplacian | `≥ 8%/s` and Laplacian `< 1.5 × minimum` | Reject as motion-supported blur |
-| Mean brightness | `< 25` | Reject as too dark |
-| Mean brightness | `> 235` | Reject as overexposed |
-| Pixels at or below intensity 16 | `≥ 60%` | Reject as too dark |
-| Pixels at or above intensity 240 | `≥ 35%` | Reject as overexposed |
-| Global camera motion | `> 30%` of diagonal/second | Reject as fast motion |
-| Tracked optical-flow features | `< 12` | Motion unknown; do not reject on motion alone |
-| RANSAC inliers | `< 12` or `< 25%` | Motion unknown; do not reject on motion alone |
-| HSV scene similarity | `< 0.75` | Evidence supporting a scene boundary |
-| ORB feature similarity | `< 0.22` | Evidence supporting a scene boundary |
-| Combined scene similarity | `< 0.55` | Scene-change candidate |
-| Scene duration | `< 4 seconds` | Suppress boundary to avoid flicker |
-| Scene duration | `≥ 30 seconds` | Create a coverage segment |
-| Baseline keyframes by scene duration | `< 8s: 1`, `8–<20s: 2`, `≥ 20s: 3` | Avoid redundant frames in short scenes |
-| Additional distinct keyframes per scene | Up to `8` | Stop adaptively when added value falls below `0.62` |
-| Near-duplicate similarity | HSV `≥ 0.94` and ORB `≥ 0.55` | Keep the sharpest cluster representative |
-| Total keyframes | `> 120` | Preserve scene coverage, then apply global cap |
-| Scene has no strict selection | `0` | Add one labeled best-available scene frame |
-| Complete output frames | `< 3` | Add temporally separated global best-available frames |
-
-These are explicit starting thresholds, not universal constants. Tune the values
-in `.env` against real phone walkthroughs and retain the evaluation results for
-the competition submission.
-
-## API endpoints
-
-- `POST /inspections`
-- `POST /inspections/{id}/upload`
-- `POST /inspections/{id}/upload-complete`
-- `POST /inspections/{id}/process`
-- `GET /inspections/{id}`
-- `GET /inspections/{id}/status`
-- `GET /inspections/{id}/frames`
-- `GET /inspections/{id}/frames/{frame_index}/url`
-- `POST /inspections/{id}/issues/detect`
-- `GET /inspections/{id}/issues`
-- `PATCH /inspections/{id}/checklist/items/{issue_id}`
-
-## Setup
-
-### 1. Python
+Prerequisites: Python **3.12** (recommended for alignment with the cloud runtime), Git, and a **consented or synthetic** MP4/MOV. Local commands use your own test video; the repository does not distribute private property walkthroughs.
 
 ```bash
+git clone https://github.com/vincentwenger/rentready-vision.git
+cd rentready-vision
 python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-python -c "import cv2; print(cv2.__version__)"
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pytest -q tests/test_video_processor.py
+python -m scripts.process_local path/to/consented-test-video.mp4 --out local-output
 ```
 
-Confirm the OpenCV version starts with `5`.
+Local OpenCV output is **not** the complete authenticated AWS/Bedrock report. Installing locked requirements provides the stock development OpenCV build, not the official COOL runtime. To run broader offline tests, use `python -m pytest -q`; historically, two evaluation-oriented modules have been excluded from some published regression counts, so do not interpret selected-suite counts as an unconditional all-tests pass. AWS and model calls require separate access and can incur charges.
 
-### 2. Configure AWS credentials (Windows)
+## Browser regression tests (optional test tooling)
 
-The launcher creates or verifies the development S3 bucket and DynamoDB table.
-It uses your normal AWS CLI credentials and never stores credentials in this project.
-
-```bat
-aws configure
-aws sts get-caller-identity
-Start_RentReady_Vision.bat
-```
-
-On first launch, `scripts/setup_aws.py` replaces the `REPLACE_ME` bucket suffix
-with your AWS account ID, creates missing resources, applies private-bucket CORS,
-encryption and a 30-day prototype lifecycle, and then starts the application.
-Running the launcher again is safe.
-
-The AWS identity needs permission to inspect/create the development DynamoDB
-table and S3 bucket and to configure the bucket. After setup, the app needs S3
-object access plus DynamoDB item access.
-
-### 3. Alternative: provision with Terraform
-
-For the official Graviton4 worker, follow `STEP38_AWS_COOL_HARDENING.md` and
-`COOL_AWS_LAUNCH.md`. The Step 38 path pins a versioned S3 worker artifact by
-SHA-256 while preserving the official Marketplace COOL runtime under `/opt/cool`.
+Step 54's real Chromium overlay test and Step 52's report-batching browser test require Playwright. These tools are **not** needed in the production API or COOL worker environment. In a clean Python 3.12 virtual environment, run:
 
 ```bash
-cd infra/terraform
-terraform init
-terraform apply
-terraform output
+python -m pip install -r requirements-browser-tests.txt
+python -m playwright install chromium
+python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test_step52_report_browser.py tests/test_step54_report_rectangles.py
 ```
 
-### 4. Environment
-
-```bash
-cp .env.example .env
-```
-
-If you used Terraform, copy its `s3_bucket`, `ddb_table`, and `processing_queue_url` outputs into `.env`. Set `GIT_COMMIT` in the API deployment to the exact deployed revision when the API is not running from a Git checkout.
-If you use the Windows launcher, it resolves the bucket placeholder automatically.
-
-### 5. Run API
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Open `http://localhost:8000`. Swagger is at `/docs`.
-
-### 6. Test OpenCV without AWS
-
-```bash
-python scripts/process_local.py /path/to/walkthrough.mp4
-```
-
-## Milestones
-
-### Day 1
-Deploy S3/DynamoDB, run API, upload a real MP4, and reach `UPLOADED`.
-
-### Day 2
-Run OpenCV locally on 3–5 walkthrough videos and tune blur, brightness, scene, and dedupe thresholds.
-
-### Day 3
-Connect S3 processing, upload frames/manifest, expose `/frames`, and test the browser flow end to end.
-
-### Days 4–5
-Add per-frame Laplacian blur scoring and exposure/clipping classification.
-
-### Days 6–7
-Add sparse optical flow, robust affine camera-motion estimation and fast-motion rejection.
-
-### Day 8
-Fuse HSV, ORB, optical-flow motion and time separation into scene segments;
-select the best distinct evidence per scene; expose the complete audit trail in
-the manifest, API and browser; tune thresholds on real walkthroughs.
-
-## Definition of done
-
-- Real phone video uploads from the browser without giving the browser AWS credentials.
-- Original video stays private in S3.
-- DynamoDB state transitions are correct.
-- `cv2.__version__` confirms OpenCV 5.
-- OpenCV processes at least three real walkthrough videos.
-- Blur and duplicate reduction are measurable.
-- Dark, overexposed and fast-motion rejection counts are measurable.
-- Every sampled frame has an auditable decision and rejection reasons.
-- Camera motion is resolution- and sampling-rate-normalized.
-- Scene changes look plausible.
-- Every scene contains explicit timestamps and auditable boundary evidence.
-- Each scene adaptively contributes up to eight representatives and no run emits more than 120 frames by default.
-- Keyframes and `manifest.json` are stored in S3.
-- Transient SQS failures become `RETRY_PENDING`; terminal attempts become `FAILED` with an error and are preserved for DLQ redrive.
-- `/docs` can exercise the API.
-
-## Troubleshooting
-
-### `ResourceNotFoundException` on `POST /inspections`
-
-The configured DynamoDB table does not exist in the account/region selected by
-your AWS credentials. Stop the server and launch it with
-`Start_RentReady_Vision.bat`. The AWS setup step creates or verifies the table
-and bucket before FastAPI starts.
-
-If setup reports `AccessDenied`, first run:
-
-```bat
-aws sts get-caller-identity
-aws configure get region
-```
-
-Confirm that this is the intended AWS account and that the region matches
-`AWS_REGION` in `.env` (the starter uses `us-west-2`).
-
-If the AWS identity still lacks permission, `scripts/rentready_vision_iam_policy.json`
-contains the development permissions scoped to this prototype's table and
-bucket naming convention. Attach it only to the IAM user or role that runs the app.
-
-### `favicon.ico` 404
-
-This did not affect processing. The starter now returns an empty 204 response
-for that optional browser request.
-
-## Step 14 production architecture — LIVE AWS PASS
-
-Step 14 makes the SQS → Graviton4 COOL worker the real AWS execution path. The API freezes the full `analyze_video` payload (inspection ID, S3 input key/ETag, processing parameters, deterministic job ID, Git commit, and runtime schema), while the long-running COOL worker owns visibility heartbeats, DynamoDB leases, retries/DLQ behavior, conditional completion, and CloudWatch telemetry.
-
-On September 7, 2026, a real browser walkthrough completed end to end through `graviton4_cool_sqs`. The read-only verifier returned `passed=true`, `live_inspection_verified=true`, and `errors=[]`. The validated worker was an `m8g.4xlarge` Graviton4 instance running COOL `3.1` / OpenCV `5.1.0-dev` on `aarch64`; measured processing was `8.686 s`, `46.628 source frames/s`, and `417.488 MB` peak memory.
-
-See [`STEP14_PRODUCTION_WORKER.md`](STEP14_PRODUCTION_WORKER.md), [`STEP14_DEPLOYMENT_NOTES.md`](STEP14_DEPLOYMENT_NOTES.md), and [`evaluation/step14/`](evaluation/step14/) for the architecture, deployment audit trail, and machine-readable live proof. Local in-process processing remains available only when `PROCESSING_QUEUE_URL` is unset.
-
-## Step 15 dual-path infrastructure checkpoint — PASS
-
-Step 15 consolidates the Step 12–14 proof into one six-item infrastructure gate. The repository verifier reports `passed=true`, `checks_passed=6`, `checks_total=6`, and `errors=[]`: OpenCV 5 is explicitly proven, the official COOL runtime is active on Arm64 Graviton4, the real Step-8 workload runs correctly under COOL, the stock-vs-COOL benchmark is reproducible, a real web inspection traverses SQS/COOL and returns evidence, and runtime plus CloudWatch metadata are persisted for judging.
-
-Run `python scripts/verify_step15_checkpoint.py` and see [`STEP15_DUAL_PATH_CHECKPOINT.md`](STEP15_DUAL_PATH_CHECKPOINT.md) plus [`evaluation/step15/`](evaluation/step15/). The roadmap checkpoint was labeled September 5; the committed live AWS evidence used to close it was captured September 7, 2026.
-
-## Step 16 first issue detector — LIVE AWS PASS
-
-Step 16 replaces the old empty `/issues` placeholder with a narrow visual candidate detector. It uses **13 named categories plus `other`**, submits only the OpenCV-selected keyframes to Amazon Bedrock, forces the named `report_visible_property_issues` tool against the fixed taxonomy, filters low-confidence claims, validates every evidence frame index, and persists the full invocation trace plus normalized issues to S3. The browser demo runs this detector after OpenCV evidence extraction without changing the validated Step-12/13 benchmark path.
-
-On **September 8, 2026**, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed a real forced Bedrock run with `us.amazon.nova-2-lite-v1:0`. Three keyframes were considered in one batch, one normalized `cleanliness` issue was produced, and `scripts/verify_step16_aws.py` returned `passed=true` with `errors=[]`. The persisted proof includes Bedrock request ID `bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96` and the S3 issue report `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step16-visible-issues.json`.
-
-The live run also exposed one Nova 2 Lite compatibility correction: the model rejects the optional Bedrock `toolSpec.strict` field. The detector now omits that field while still forcing the named tool and enforcing taxonomy/evidence validity in application code. A regression test protects this behavior.
-
-See [`STEP16_ISSUE_DETECTOR.md`](STEP16_ISSUE_DETECTOR.md), [`evaluation/step16/`](evaluation/step16/), and [`evaluation/step16/live/`](evaluation/step16/live/) for the contract, local verification, compatibility note, and live AWS evidence.
-
-## Step 18 Agentic Vision — LIVE AWS PASS
-
-Step 18 implements the first real Agentic Vision loop. An uncertain Step-17 candidate causes the application to enqueue `inspect_interval(video_id, timestamp, seconds_before, seconds_after, sample_fps)` on the **same SQS → Graviton4 COOL worker**. The canonical 2-second-before + 3-second-after window at 6 fps requests up to 30 OpenCV frames when the full interval exists; intervals that reach a source-video boundary are safely clipped to the available duration.
-
-Live AWS validation completed on **September 9, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, Step-18 job `rv-da3386e4a5680c8aa90281f850edc791`. A Step-17 `cleanliness` candidate at timestamp `13.0` with confidence `0.8` caused the agent to call `inspect_interval`. The workload executed on **OpenCV COOL 3.1 / OpenCV 5.1.0-dev on aarch64 Graviton4 (`m8g.4xlarge`)**. Because the 13.5-second source video ended before the requested 16.0-second interval endpoint, the effective interval was clipped to 11.0–13.5 seconds and produced 15 valid OpenCV frames at 6 fps.
-
-The 15 frames were persisted to S3 and reassessed with Amazon Nova 2 Lite. Bedrock request ID `38a229fd-05df-480e-a01e-1685846c49d1` returned evidence that the clutter/toys were visible in multiple frames, increasing confidence from **0.8 to 0.9**. The agent then produced the final action **`ACCEPT_FINDING`**.
-
-The Step-18 trace persists the original agent decision, tool arguments, COOL runtime identity, frame evidence, `confidence_before`, `confidence_after`, confidence delta, Bedrock request IDs, and final action. CloudWatch contains the required `AGENT_TOOL_STARTED`, `AGENT_TOOL_OPENCV_COMPLETE`, and `AGENT_ACTION_DECIDED` events for the live job. `scripts/verify_step18_aws.py` cross-checked DynamoDB, S3, COOL runtime evidence, Bedrock evidence, and CloudWatch and returned **`passed=true` with `errors=[]`**.
-
-See [`STEP18_AGENTIC_VISION.md`](STEP18_AGENTIC_VISION.md), [`evaluation/step18/`](evaluation/step18/), and [`evaluation/step18/live/verification.json`](evaluation/step18/live/verification.json) for the implementation, local checks, and live AWS acceptance evidence.
-
-Next Agentic Vision tools after Tool 1: ROI crop/enhance using the Step-17 bbox, explicit evidence comparison, and expanded human-control/failure-case evaluation.
-
-## Step 19 Agent Tool 2 — LIVE AWS PASS
-
-Step 19 adds `crop_region(frame, bounding_box, padding)`: a deterministic COOL/OpenCV tool that converts the Step-17 normalized bbox into a padded, aspect-ratio-preserving crop with a 1024px longest edge. The original keyframe remains untouched, and the derived crop, source ETag, tool parameters, runtime identity, and lifecycle events are stored separately. See [`STEP19_CROP_REGION.md`](STEP19_CROP_REGION.md) and [`evaluation/step19/`](evaluation/step19/).
-
-## Step 20 Agent Tool 3 — LIVE AWS PASS
-
-Step 20 adds `enhance_region()` with explicit contrast, brightness-normalization, and sharpening controls. It transforms only a copied Step-17 ROI, keeps the full original evidence immutable, saves a separately labeled inspection view, records source and derived hashes, and shows **Original evidence** beside **Enhanced inspection view** in the browser. Live AWS validation passed on September 15, 2026 for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-4b566e815c422a0df54ad76e6f8d9cdf`. The tool ran on COOL 3.1 / OpenCV 5.1.0-dev on an m8g.4xlarge Graviton4 worker, preserved the original object, persisted the enhanced view separately, and produced the complete CloudWatch lifecycle event chain. See [`STEP20_ENHANCE_REGION.md`](STEP20_ENHANCE_REGION.md) and [`evaluation/step20/`](evaluation/step20/).
-
-## Step 21 Agent Tool 4 — LIVE AWS PASS
-
-Step 21 adds `inspect_other_angle()`. OpenCV detects ORB features inside the Step-17 candidate region plus local context, searches nearby video frames, validates geometric continuity with RANSAC homographies, and ranks meaningful viewpoint changes. It emits chronological Frame A/B/C evidence and asks AI whether the same issue is visible from multiple viewpoints.
-
-Live AWS validation passed on **September 15, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` and job `rv-8d430190e1ad65696dcfdb045837caf6`. The tool ran at commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8` on COOL 3.1 / OpenCV 5.1.0-dev on an `m8g.4xlarge` Arm64 Graviton4 worker.
-
-The dense 12.0–13.4 second search sampled 14 candidates, geometrically matched eight, and selected Frame A at 12.6s, reference Frame B at 13.0s, and Frame C at 13.4s. Amazon Nova 2 Lite confirmed the same region and visible clutter/toys across the three viewpoints, increasing confidence from **0.80 to 0.95** and producing `ACCEPT_FINDING`. The verifier checked all six derived S3 JPEGs and hashes, original-video immutability, runtime identity, and the complete CloudWatch event chain, returning `passed=true` with `errors=[]`.
-
-See [`STEP21_OTHER_ANGLE.md`](STEP21_OTHER_ANGLE.md), [`evaluation/step21/`](evaluation/step21/), and [`evaluation/step21/live_aws_verification.json`](evaluation/step21/live_aws_verification.json).
-
-## Step 22 actual decision policy — LIVE AWS PASS
-
-Step 22 converts confidence into an explicit, bounded policy: candidates above `0.85` are accepted; candidates from `0.50` through `0.85` are investigated; and candidates below `0.50` are rejected unless a recorded safety guard applies. Exactly `0.85` remains in investigation. A low-confidence safety candidate is never auto-accepted—the override preserves it for investigation and, when unresolved, human approval.
-
-The investigation assesses evidence sufficiency, verifies already-sufficient evidence, otherwise calls `inspect_interval()`, conditionally calls `crop_region()` when temporal evidence is still insufficient, and then re-evaluates once. The complete route, safety reasons, tool results, confidence change, human-control decision, COOL runtime, and immutable evidence references are persisted in `step22-decision-policy-trace.json`. The browser calls `POST /inspections/{inspection_id}/agent/policy` and displays the policy path.
-
-See [`STEP22_DECISION_POLICY.md`](STEP22_DECISION_POLICY.md), [`evaluation/step22/`](evaluation/step22/), and [`evaluation/step22/live_aws_verification.json`](evaluation/step22/live_aws_verification.json).
-
-On **September 18, 2026**, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed live job `rv-a5b37620b2cd24c5f8b2438d8618f470` on the Graviton4 COOL worker at commit `25d3d24367d552c7860aedf9e2087822f53e70fc`. The policy investigated the `0.80` candidate with 15 interval frames, found sufficient evidence without spending a crop call, raised confidence to `0.90`, and returned `ACCEPT_CANDIDATE`. The verifier returned `passed=true` with `errors=[]` after checking S3 hashes, immutable evidence, COOL/OpenCV/Arm64 identity, and the full CloudWatch lifecycle.
-
-## Step 23 agent action log -- LIVE AWS PASS
-
-Step 23 adds one canonical, ordered audit log for the perception → decision → action loop. Every record includes `candidate_id`, `action`, `reason`, `input_timestamp`, `frames_returned`, `confidence_before`, and `confidence_after`, plus sequence, deterministic event identity, write time, and action-specific details. Investigated candidates record the observation, each visual tool actually used, and the final decision; direct accept/reject routes record the observation and terminal decision without inventing tool activity.
-
-Each policy run embeds the log in the Step-22 trace and stores a dedicated `step23-agent-action-log.json` artifact. `GET /inspections/{inspection_id}/agent/actions` returns the latest log, and the browser's **Agent Investigation** timeline shows the observation, OpenCV frame count, optional ROI close-up, confidence transitions, and final human-readable result.
-
-See [`STEP23_AGENT_ACTION_LOG.md`](STEP23_AGENT_ACTION_LOG.md) and [`evaluation/step23/`](evaluation/step23/). Live AWS validation passed on **September 18, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-7f65b61f061005d9e1fbc28b03e73542`, and implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`. OpenCV logged 15 nearby frames, confidence increased from **0.80 to 0.90**, and the three-action audit trail ended with `ACCEPT_CANDIDATE`. The Step 23 evidence summary passed all **17/17** checks with `errors=[]`.
-
-## Step 24 issue consolidation -- LIVE AWS PASS
-
-Step 24 converts repeated frame observations into a user-facing physical-issue list. It combines bounded timestamp proximity, exact normalized room and category, OpenCV whole-image similarity, candidate-region similarity, and deterministic semantic similarity. Raw detections remain available for audit, while each consolidated issue retains every evidence timestamp, source issue ID, frame reference, bbox, confidence, pairwise score, and rejection reason.
-
-The implementation is conservative: room and category are hard gates; cluster duration and spatial continuity are bounded; and unavailable image bytes produce `null` visual similarity plus stricter metadata-only thresholds. The browser now renders consolidated issues and their evidence timeline. Local verification reduces five bathroom-vanity stain observations at `04:28`, `04:30`, `04:31`, `04:34`, and `04:36` to one issue while keeping a separate shower-ceiling stain distinct.
-
-See [`STEP24_ISSUE_CONSOLIDATION.md`](STEP24_ISSUE_CONSOLIDATION.md), [`evaluation/step24/`](evaluation/step24/), and [`evaluation/step24/live/`](evaluation/step24/live/). Live AWS validation passed on **September 19, 2026** for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` using implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`. The forced Bedrock run persisted the Step 24 report to S3, DynamoDB recorded `COMPLETE`, and the live acceptance summary passed all **12/12** checks with `errors=[]`. The short live video produced one issue; the deterministic verifier separately proves the five-to-one duplicate reduction case.
-
-## Step 25 severity classification — LIVE AWS PASS
-
-Step 25 assigns exactly one of three rental-readiness classes to every consolidated issue: **Fix before renting**, **Review recommended**, or **Cosmetic**. The deterministic classifier runs after Step-24 consolidation, records its rule and rationale, ignores the detector's free-form preliminary severity label, and uses the cautious review class for unknown future categories.
-
-The API report and browser explicitly state that this is a visible-evidence rental-readiness prioritization—not an official safety, code-compliance, or professional inspection rating. Final issues are sorted Fix → Review → Cosmetic and persisted with schema `rentready-issue-report/4.0` at `step25-severity-classified-issues.json`.
-
-Local verification covers all eight requested examples plus the closed-class, fallback, model-label isolation, persistence-path, UI, and disclaimer guardrails. See [`STEP25_SEVERITY_CLASSIFICATION.md`](STEP25_SEVERITY_CLASSIFICATION.md) and [`evaluation/step25/`](evaluation/step25/). Live AWS validation passed 15/15 checks using inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`. Amazon Nova 2 Lite processed three keyframes in one batch, and Bedrock request `738f2e87-ef01-40e2-8359-334579f91891` produced one visible cleanliness issue classified as **Cosmetic**. The schema-v4 report was persisted to S3, DynamoDB recorded the Step 25 metadata, the GET API matched the persisted report, and the browser exposed the three classes plus the non-safety-rating disclaimer.
-
-## Step 26 user-facing confidence — LOCAL PASS
-
-Step 26 keeps numerical confidence as the internal source of truth while presenting **Low**, **Medium**, or **High** to users. The initial display bands are Low for `0.00–<0.60`, Medium for `0.60–<0.80`, and High for `0.80–1.00`; exact `0.60` is Medium and exact `0.80` is High.
-
-The mapping is centralized and presentation-only. Stored reports, policy calculations, agent traces, and audit records retain their numeric values. API issue records add `confidence_label` without replacing `confidence`, expose the versioned scale contract, and the browser uses categorical confidence across issue cards and agent evidence views. Step 22 decision thresholds remain independent and unchanged.
-
-See [`STEP26_CONFIDENCE.md`](STEP26_CONFIDENCE.md) and [`evaluation/step26/`](evaluation/step26/). Live AWS validation is not required because Step 26 does not alter the AWS, Bedrock, OpenCV, persistence, or decision paths.
-
-## Step 27 responsible-language policy — LOCAL PASS
-
-Step 27 adds the versioned `rentready-responsible-language/1.0` policy layer. Unsupported mold diagnoses are rewritten as visible discoloration that may warrant inspection for moisture or other causes. Electrical safety conclusions are rewritten as visible fixture damage with qualified inspection recommended. Structural conclusions are rewritten as visible cracking with human inspection recommended to determine significance.
-
-The guardrail is enforced in model prompts, before findings enter identity/consolidation/persistence, after agent evidence-summary generation, and again at the API boundary for legacy reports and public traces. Each presented issue carries an audit marker, and the issue response exposes the complete policy contract. Confidence, severity, OpenCV evidence, and Step-22 routing are unchanged.
-
-See [`STEP27_RESPONSIBLE_LANGUAGE.md`](STEP27_RESPONSIBLE_LANGUAGE.md) and [`evaluation/step27/`](evaluation/step27/). Local deterministic verification is sufficient because the policy does not change the AWS/COOL/OpenCV workload.
-
-## Step 28 polished rental-readiness report — LOCAL PASS
-
-Step 28 makes the property report the primary dashboard. It shows the property label, a transparent **Rental Readiness** score, counts for all three Step-25 classes, and room-grouped issue cards with categorical confidence, evidence ranges, representative images, responsible descriptions, recommended actions, and timestamp links into the original walkthrough. The technical OpenCV and agent audit view remains available in a disclosure below the report.
-
-The versioned `rentready-polished-report/1.0` contract is deterministic and does not change stored evidence, AWS processing, confidence, severity, or responsible-language policy. The score begins at 100 and deducts 5 points per Fix Before Renting issue, 1.5 per Review Recommended issue, and 0.2 per Cosmetic issue; therefore the requested 3/4/5 example is exactly **78/100**. It is explicitly a visible-condition prioritization index, not a safety rating.
-
-See [`STEP28_POLISHED_REPORT.md`](STEP28_POLISHED_REPORT.md) and [`evaluation/step28/`](evaluation/step28/). Live AWS validation is not required because this step presents previously validated evidence through the existing short-lived S3 URL pattern.
-
-## Step 29 clickable issue evidence — LOCAL PASS
-
-Step 29 gives every room-grouped issue card a **View at MM:SS** control. For the
-canonical `271`-second example, the label is **View at 04:31**. Selecting it
-opens the original walkthrough, sets `video.currentTime` to the issue's
-representative timestamp, and starts playback so a judge can verify the AI
-claim against its source evidence immediately.
-
-The original video is prepared once per inspection for responsive playback,
-and the cache is explicitly keyed by inspection ID so a later inspection cannot
-reuse an earlier walkthrough. The native button includes an issue-specific
-accessible label and visible keyboard focus. Step 29 changes only browser
-presentation behavior; stored evidence and all processing contracts are
-unchanged.
-
-See [`STEP29_CLICKABLE_ISSUES.md`](STEP29_CLICKABLE_ISSUES.md) and
-[`evaluation/step29/`](evaluation/step29/). Live AWS validation is not required
-because this step uses the original-video endpoint already covered by the Step
-28 API test.
-
-## Step 30 rental preparation checklist — LOCAL PASS
-
-Step 30 converts the final consolidated, classified, and language-safe issue
-collection into a versioned `rentready-repair-checklist/1.0` contract. Tasks
-are grouped under **FIX BEFORE RENTING**, **REVIEW**, and **COSMETIC**, and every
-task defaults to **Open**. The only allowed workflow states are **Open**, **In
-progress**, and **Resolved**.
-
-Checklist status is persisted by stable `issue_id` on the inspection through
-`PATCH /inspections/{inspection_id}/checklist/items/{issue_id}`. Raw detections
-and candidate findings are not converted into checklist tasks. Contractor
-management remains explicitly out of scope: no assignee, contractor, bid,
-invoice, work-order, or scheduling model was added.
-
-See [`STEP30_REPAIR_CHECKLIST.md`](STEP30_REPAIR_CHECKLIST.md) and
-[`evaluation/step30/`](evaluation/step30/) for the contract and local
-verification evidence. Live AWS validation is not required because the
-deterministic checklist is built from the already validated issue report and
-uses the existing inspection-metadata update path.
-
-## Step 13 benchmark
-
-The controlled stock-OpenCV-vs-COOL performance harness is documented in
-[`STEP13_BENCHMARK.md`](STEP13_BENCHMARK.md). Run it on the same Graviton4
-`m8g.4xlarge` and EBS-cached input used by Step 12. Judge-facing outputs are
-written to `evaluation/step13/`.
-
-
-## Step 17 structured candidate JSON — LIVE AWS PASS
-
-Step 17 extends the live-tested Step-16 Bedrock detector so every accepted AI candidate is machine-readable and directly actionable by later Agentic Vision tools. Each canonical candidate now includes `room`, `category`, `description`, exact video `timestamp`, `confidence`, `severity_candidate`, and a normalized top-left-origin `bbox` (`x`, `y`, `width`, `height`). The room vocabulary is fixed to Kitchen, Bathroom, Living room, Bedroom, Garage, Exterior, Hallway, and Unknown (normalized to snake case).
-
-The application preserves every structurally valid candidate, including uncertain findings below the legacy 0.65 issue threshold, so Step 18 can decide whether to inspect them again. It rejects timestamps that do not match a submitted OpenCV keyframe and invalid/out-of-image boxes. `normalized_bbox_to_pixels(...)` converts a validated bbox into an OpenCV crop rectangle. Step 17 originally wrote `inspections/{inspection_id}/issues/step17-structured-findings.json`; the current Step-25 report writes `step25-severity-classified-issues.json`, retains the original detections in `raw_candidate_findings` and `raw_issues`, and exposes consolidated, classified `issues` for downstream use.
-
-Local verification on **September 8, 2026** passed all 15 Step-17 contract checks. The same day, inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3` completed the real AWS acceptance run against `us.amazon.nova-2-lite-v1:0`: three persisted keyframes were considered in one Bedrock batch, one structured `cleanliness` candidate was returned at timestamp `13.0` with confidence `0.8` and a normalized bbox, and the candidate was promoted to an enriched issue linked to source frame `2`. Bedrock request ID `1a9170ad-069c-4688-8c29-2be4f63f290d` proves the live invocation. The report is persisted at `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step17-structured-findings.json`, and `scripts/verify_step17_aws.py` returned `passed=true` with `errors=[]`. Step 17 is therefore **LIVE AWS PASS**. See `STEP17_STRUCTURED_JSON.md`, `evaluation/step17/structured_finding_contract.json`, `evaluation/step17/local_verification.json`, and `evaluation/step17/live/` for the contract and evidence.
-
-## Steps 34B–34D detector evaluation and freeze
-
-[`STEP34B_DEVELOPMENT.md`](STEP34B_DEVELOPMENT.md) records the Compass and
-Quimby houses development experiments and the owner-verified 2/9 interval
-milestone from the conditional offline replay.
-[`STEP34C_DEVELOPMENT_METRICS.md`](STEP34C_DEVELOPMENT_METRICS.md) reports the
-21-clip classification, candidate, evidence-frame, confidence, and workload
-measurements. [`STEP34D_DETECTOR_V2_FREEZE.md`](STEP34D_DETECTOR_V2_FREEZE.md)
-records the callable detector-v2 live development validation and the frozen
-commit/tag. The Mozart house was not used for these development measurements.
-
-## Step 36 agentic verification benchmark — FROZEN CHALLENGE MEASURED
-
-Step 36 now measures the Agentic Vision investigation loop at the **candidate** level rather than treating Step 35's clip-level agent arm as proof of verification value. A fixed candidate receives a single-frame initial assessment; ambiguous confidence (`0.50–0.85` inclusive) triggers the bounded sequence `inspect_interval` → `crop_region` → other-angle evidence → final `verify`, with an explicit fixed-threshold re-evaluation after every evidence step and immediate stopping on a terminal decision.
-
-The benchmark reports before/after classification accuracy, ambiguous-resolution rate, average tool calls, incorrect escalations, unnecessary calls, missed-finding recovery, correct rejection of false candidates, and tool-level correction attribution. Candidate inputs and ground-truth labels are separate files; labels are parsed only after candidate execution, and final challenge preflight checks the label file only by SHA-256. A challenge freeze fingerprints candidates, labels, media, policy and Step-36 runner code before final measurement.
-
-The development measurement and separate frozen challenge are complete. On the two-candidate final challenge, both ambiguous findings were resolved with one `inspect_interval()` call each: the real positive was recovered, while the staged removable surface look-alike was incorrectly retained as `PRESENT`. Post-investigation candidate-level accuracy was **50%**, missed-finding recovery was **1/1**, and correct rejection of the one negative ambiguous finding was **0/1**. The failure is retained without post-label policy tuning. See [`STEP36_AGENTIC_VERIFICATION.md`](STEP36_AGENTIC_VERIFICATION.md), `scripts/build_step36_candidates.py`, `scripts/measure_step36_agentic.py`, `scripts/freeze_step36_challenge.py`, and [`evaluation/step36/`](evaluation/step36/).
-
-## Step 37 failure cases and limitations — COMPLETE
-
-Step 37 records five measured failure cases for the competition submission rather than substituting hypothetical examples. The set includes the original Mozart house held-out **0% recall** detector result, the transient water-drip pre-AI loss, five defect-visible development cases where the multimodal model emitted no candidate, one frozen-v2 issue that did not match its annotation, and the frozen Step-36 false surface finding that temporal reinspection reinforced.
-
-The documentation distinguishes implemented mitigations from recommended future controls and explicitly records that detector v2 has a frozen development measurement but **no additional unseen-property evaluation set**. Run `python scripts/verify_step37_failure_cases.py` to cross-check the Step 37 claims against the frozen Step 34, Step 34A, Step 34D, and Step 36 evidence. See [`STEP37_FAILURE_CASES.md`](STEP37_FAILURE_CASES.md) and [`evaluation/step37/`](evaluation/step37/).
-
-## Step 38 AWS + COOL deployment hardening — COMPLETE / LIVE FINAL PASS
-
-Step 38 replaces mutable Git-clone bootstrap with a deterministic, versioned
-`rentready-vision-cool-worker` artifact. The artifact is uploaded to a versioned
-S3 deployment prefix, pinned in Terraform by SHA-256, verified before extraction,
-and installed beside the **official OpenCV COOL AWS Marketplace runtime** on the
-**EC2 Graviton4 worker**. Runtime evidence records the deployment artifact
-version, S3 URI, SHA-256, source commit, Marketplace AMI, COOL/OpenCV identity,
-and Graviton4 instance type.
-
-Repository-side hardening passes with `python scripts/verify_step38_hardening.py`.
-Final live verification was also completed successfully on the actual judge/demo
-Graviton4 instance using `scripts/verify_runtime.py`. The committed
-`evaluation/step38/final_runtime_verification.json` reports `passed=true` with no
-errors and confirms the COOL worker service is active. See
-[`STEP38_AWS_COOL_HARDENING.md`](STEP38_AWS_COOL_HARDENING.md).
-
-## Step 39 S3 organization and retention - COMPLETE / LIVE AWS PASS
-
-New inspections use `rentready/inspections/{inspection_id}/original/`, `frames/`,
-`crops/`, `evidence/`, and `reports/`. Final reports are saved as
-`reports/report.json`, with supporting issue frames preserved separately.
-Existing inspection keys remain readable and continue in their original namespace.
-
-Original videos receive a retention tag. Scoped lifecycle rules expire tagged
-current videos after 30 days, tagged noncurrent versions after 30 noncurrent days,
-and incomplete multipart uploads after seven days. All durations are configurable;
-frames, crops, evidence, and reports have no automatic data expiry in these rules.
-The previous broad 30-day rule is disabled by the Python configuration path.
-
-Run `python scripts/verify_step39_s3.py` for offline checks. Preview/apply the
-merged AWS lifecycle configuration with `scripts/configure_s3_lifecycle.py`, then
-verify a new inspection with `python scripts/verify_step39_s3.py --live --inspection-id ID`.
-See [`STEP39_S3_STORAGE.md`](STEP39_S3_STORAGE.md) for the complete deployment sequence.
-
-
-## Step 40 Security — COMPLETE / LIVE SECURITY PASS
-
-The website and FastAPI API are hosted at **https://rentreadyvision.com** and
-**https://www.rentreadyvision.com**. Both hostnames passed trusted HTTPS,
-HTTP-to-HTTPS redirect, authentication, and security-header checks. The small
-`t4g.small` API server uses its EC2 instance role and reads the operator token
-from the encrypted Parameter Store value `/rentready/api-token`.
-
-Hosted uploads use short-lived SigV4 presigned URLs with temporary credentials,
-signed encryption/size/tagging/conditional-write headers, and private encrypted
-S3 storage. The real upload passed all 15 checks, including anonymous-read denial
-and overwrite protection. Both approved website origins passed CORS preflight
-checks; an unapproved origin was rejected.
-
-The API and COOL worker have separately scoped IAM roles. Broad worker SSM
-parameter access was removed, and actual runtime checks confirmed that the
-worker cannot read the API token. Both EC2 disks are encrypted and IMDSv2 is
-required. The worker has no inbound access and was returned to **stopped** after
-its final security test; its official COOL OpenCV runtime remains intact.
-
-See [STEP40_SECURITY.md](STEP40_SECURITY.md), [STEP40_HOSTING.md](STEP40_HOSTING.md),
-and [evaluation/step40/README.md](evaluation/step40/README.md). Run
-`python scripts/verify_step40_completion.py` to check the retained evidence,
-and `python scripts/verify_step40_security.py --live` for a fresh resource audit.
-The individual audit deliberately leaves its aggregate IAM status pending;
-`evaluation/step40/completion_verification.json` combines the separate evidence.
-This is a single-operator demo; the shared token does not provide tenant isolation.
-Git publication is the final packaging step. All 22 frozen Step 34D sources remain unchanged.
-
-## Step 45 Detector v4 research - COMPLETE / DEVELOPMENT ONLY
-
-Step 44 evaluated frozen Detector v3 once on the external-v3 holdout and recorded
-TP=1, TN=7, FP=1, FN=5 (16.7% recall, 25.0% F1). That holdout is now consumed
-and must not be reused as an unbiased Detector v4 benchmark.
-
-Step 45 performed post-holdout failure analysis and controlled Detector v4
-research without modifying frozen Detector v3. Two components survived as
-research candidates:
-
-- Arm A: whole-scene severe-damage specialist
-- Arm B1: electrical-flicker temporal specialist
-
-On the consumed Step 44 development evidence, Detector v3 OR Arm A OR Arm B1
-produced TP=4, TN=7, FP=1, FN=2 (66.7% recall, 72.7% F1).
-
-Localized water-motion research (Arm B2), the current semantic water specialist
-(Arm B3), and the fixture-condition specialist (Arm C) were not promoted.
-Further case-specific tuning against the consumed Step 44 set is prohibited.
-
-Any eventual Detector v4 must be evaluated once on a brand-new untouched
-external holdout.
-
-See [`STEP45_FINAL.md`](STEP45_FINAL.md) for the complete research record.
-
-## Step 46 Integrated Detector v4 candidate - COMPLETE / NOT YET LIVE
-
-Step 46 productionizes the retained Step 45 research direction as
-`detector_v4_candidate/1.0`:
-
-- frozen Detector v3 compatible base
-- OR Arm A whole-scene severe-damage specialist
-- OR Arm B1 deterministic electrical-flicker specialist
-
-The candidate is integrated into the video-processing path while the original
-walkthrough and selected JPEGs are still local. Localized findings retain the
-existing issue-report contract; holder geometry, Arm A, and Arm B1 are preserved
-separately as `detector_signals` without fabricated bounding boxes.
-
-The integration is gated by `DETECTOR_V4_ENABLED`, which defaults to `false`.
-The historical frozen detector sources remain unchanged. The complete repository
-suite passes with `303 passed, 1 skipped`.
-
-Step 46 does not claim live EC2 enablement or unbiased Detector v4 accuracy.
-The consumed Step 44 holdout must not be reused for that purpose.
-
-See [`STEP46_FINAL.md`](STEP46_FINAL.md) for the complete integration record.
-
-## Step 47 Detector v4 live EC2/COOL deployment - COMPLETE / LIVE SMOKE + RETRY-FIX PASS
-
-Step 47 deploys the Step 46 `detector_v4_candidate/1.0` release to the existing
-OpenCV COOL / Graviton4 worker.
-
-The deterministic worker artifact was built from commit
-`f1456e571f1196d69c2dcc58b11c9b2af95a47af`, published to versioned S3, verified
-by SHA-256, and installed through SSM without replacing the EC2 instance.
-
-Live verification passed for:
-
-- official COOL 3.1 / OpenCV 5.1.0-dev ARM64 runtime
-- exact deployed source commit and artifact SHA
-- `DETECTOR_V4_ENABLED=true`
-- Amazon Nova 2 Lite invocation
-- Claude Sonnet 4.5 invocation
-- real S3 -> SQS -> COOL worker processing
-- persisted `detector_v4_candidate/1.0` issue report
-- preserved issue evidence and durable completion
-
-A consumed `case_012` clip was used only as a production smoke test. The live
-run was positive in both the v3-compatible base and Arm A branches, so it must
-not be described as an Arm-A-only recovery.
-
-Step 47 does not claim unbiased Detector v4 accuracy. A new untouched external
-holdout is still required.
-
-The development `m8g.4xlarge` worker was stopped after the successful smoke test
-to avoid unnecessary compute cost.
-
-A Step 47 live follow-up subsequently aligned both the public API and worker to
-source commit `7607014dd09ef0caea49439964af8785c913d577` and deployed a service-level fix for the Step-21
-low-feature other-angle retry loop. The live reproduction completed on its
-first processing attempt with
-`unavailable_reason=insufficient_reference_features`,
-`action=REQUEST_HUMAN_APPROVAL`, no Bedrock reassessment, and no SQS/DLQ
-residue. Public HTTPS health returned HTTP 200 on both production hostnames.
-The worker was stopped again after verification to minimize AWS cost.
-
-Follow-up immutable artifacts:
-
-- API SHA-256: `2e00fd8db6992605aa66f7452fcc3c2f319092423623c2afc6569064745a75e0`
-- worker SHA-256: `560ff2c5c61d66561202d0a77a37963cb2ae96bafaae03607cd3104b0b3a69d8`
-
-See [`STEP47_FINAL.md`](STEP47_FINAL.md) and
-[`evaluation/step47/README.md`](evaluation/step47/README.md).
-
-## Step 49 — On-Demand COOL Worker Auto-Start & Safe Idle Shutdown
-
-Step 49 adds automatic startup of the existing COOL worker when the API queues
-an inspection, startup messages in the website, and guarded shutdown after
-**10 minutes idle**. A Lambda controller reconciles every minute and recovers
-uploads that arrive during an EC2 stop transition. Durable jobs, all SQS queue
-counts, and an atomic worker busy/drain guard protect processing and retries.
-
-Status: **COMPLETE / LIVE AWS FINAL PASS** (October 7, 2026). The live
-checks verified cold startup, completed inspections, overlapping jobs, a safe
-upload during shutdown, and automatic stop after 600 seconds idle. The final
-worker state was `stopped`. Frozen detector configuration and accuracy evidence
-are unchanged. See [`STEP49_ON_DEMAND_WORKER.md`](STEP49_ON_DEMAND_WORKER.md)
-and `evaluation/step49/` for deployment details and live evidence.
-
-
-## Step 50 — Real processing progress — COMPLETE / LIVE PROGRESS PASS
-
-The worker and UI now expose measured byte, sample, analyzed-frame, and upload counts, explicit Detector v4 stages, and elapsed waits for work with unknown totals. The overall page bar counts completed workflow steps. Percentages never advance with a timer. Progress writes are scoped to the current durable job lease and reset on retries. See [STEP50_REAL_PROGRESS.md](STEP50_REAL_PROGRESS.md) for verification and live acceptance.
-
-
-The live rollout passed on **October 7, 2026 (Pacific time)** using source commit
-`c591c7a73c91a2d97809ef55b25fbfb0d6507b07` for the API and COOL worker. Inspection
-`7255b442-96d0-4f2e-b0e7-844d5f611b81` showed measured extraction counts,
-increasing Detector v4 frame counts, an indeterminate electrical-flicker check,
-and completed workflow progress through **100% — Report ready**. Its report
-confirmed **198 sampled frames, 20 retained frames, 16 scenes**, and the deployed
-commit on the official `/opt/cool/python_3.12/` OpenCV runtime. The targeted
-repository suite passed **87 tests**. See [`evaluation/step50/`](evaluation/step50/)
-for the deployment receipts and captured browser evidence. Retry/lease fencing
-is covered by repository tests; a forced live retry was not performed. This
-progress check does not establish detector accuracy.
-
-## Step 53 ? Cancel inspection ? DEPLOYED / PRIMARY LIVE PASS
-
-Step 53 adds cancellation during video uploads, queued processing,
-active processing, and supported agent follow-up operations.
-
-Cancellation uses guarded DynamoDB transitions and worker checkpoints
-to distinguish `CANCEL_REQUESTED` from `CANCELLED` and prevent
-cancelled jobs from publishing normal completion results.
-
-**Validation:** 720 tests passed, 1 skipped (two historical detector
-evaluation modules excluded). The live AWS test confirmed that both
-the inspection and processing job reached `CANCELLED` during active
-frame extraction.
-
-**Deployed source:** `051fd9855602`. API and COOL worker deployment
-succeeded. Automatic idle shutdown was restored; its final EC2 stop
-after this live test was not separately confirmed.
-
-See [Step 53 ? Cancel Inspection](STEP53_CANCEL_INSPECTION.md)
-for implementation details, deployment verification, test evidence,
-and remaining UX improvements.
-
-## Step 52 follow-up ? Report batch optimization ? LIVE VERIFIED
-
-The final report now retrieves retained-frame URLs through one batch
-API request rather than making up to 120 parallel requests that each
-reload the S3 manifest.
-
-The optimization passed 726 local tests and was deployed and
-independently verified on the production API. The original HTTP 503
-cause remains unconfirmed.
-
-See [Step 52 Report Batch Optimization](STEP52_REPORT_BATCH_OPTIMIZATION.md)
-for implementation, testing, and deployment details.
+[`requirements-browser-tests.txt`](requirements-browser-tests.txt) specifies Playwright 1.62.0, pyee 13.0.1 and greenlet 3.5.6 on top of the application's hash-bearing lock. **Step 56.11A** confirmed the video-processor and Step 54 subset (19 tests passed on Python 3.12.10); the combined command above, which also includes Step 52, still needs a fresh run. The browser install downloads a matching Chromium build to the local Playwright browser cache. Browser tests use synthetic fixture images and locally intercepted network requests, not paid AWS inference.
+
+## Dependencies and reproducible cloud setup
+
+- [`requirements.in`](requirements.in) specifies direct Python dependency versions; [`requirements.txt`](requirements.txt) references the fully pinned, hash-bearing [`requirements.lock.txt`](requirements.lock.txt).
+- [`requirements-cool.txt`](requirements-cool.txt) pins direct worker dependencies and intentionally omits a pip OpenCV package so the Marketplace COOL build stays authoritative. It is **not** a fully hash-locked transitive dependency set; review this before claiming bit-for-bit worker environment reproduction.
+- [Terraform provider lock](infra/terraform/.terraform.lock.hcl) records selected provider versions/hashes. Real provisioning needs your own account-specific values, authorized credentials, paid AWS resources and careful state review.
+- [COOL AWS launch and deployment runbook](COOL_AWS_LAUNCH.md), [Step 38 worker hardening](STEP38_AWS_COOL_HARDENING.md), [Step 40 hosting](STEP40_HOSTING.md), and [Step 49 worker lifecycle](STEP49_ON_DEMAND_WORKER.md) document deployment operations.
+- **Do not blindly apply Terraform to an existing deployment.** [Step 54](STEP54_FINAL.md) records IAM policies requiring import/state reconciliation before a future apply.
+
+## Documentation index
+
+| Topic | Evidence |
+| --- | --- |
+| Architecture / COOL runtime | [COOL launch](COOL_AWS_LAUNCH.md), [deployment hardening](STEP38_AWS_COOL_HARDENING.md), [hosting](STEP40_HOSTING.md) |
+| Evaluation / holdout | [Step 48 results](STEP48_RESULTS.md), [protocol](STEP48_PROTOCOL.md), [Step 35 contribution](STEP35_OPENCV_CONTRIBUTION.md), [Step 37 failures](STEP37_FAILURE_CASES.md) |
+| Agentic Vision / human control | [Steps 18](STEP18_AGENTIC_VISION.md), [22](STEP22_DECISION_POLICY.md), [23](STEP23_AGENT_ACTION_LOG.md), [36](STEP36_AGENTIC_VERIFICATION.md) |
+| Deployment / operations | [Step 49](STEP49_ON_DEMAND_WORKER.md), [Step 50](STEP50_REAL_PROGRESS.md), [Step 51](STEP51_STORAGE_SAFETY.md), [Step 52](STEP52_BEDROCK_INPUT_GUARD.md), [Step 53](STEP53_CANCEL_INSPECTION.md), [Step 54](STEP54_FINAL.md) |
+| Security / data retention | [Step 39](STEP39_S3_STORAGE.md), [Step 40 security](STEP40_SECURITY.md) |
+| Full engineering history | [Historical README](DEVELOPMENT_HISTORY.md) |
+
+## Security, privacy and known limits
+
+Storage is private by default, upload/evidence links are time-limited, and hosted inspection operations require authentication. API tokens are stored outside tracked code, with runtime-secret mechanisms described in [Step 40 security](STEP40_SECURITY.md). Do not place tokens, presigned links, private media, AWS credentials or real tenant details in issues, pull requests, sample configuration, screenshots or Devpost attachments.
+
+- The repository is currently **private**. Public release or judge access is **pending a separate tracked-content and Git-history review**, including image/evaluation artifacts and infrastructure identifiers. The presence of `.gitignore` does not remove previously committed files.
+- The development tree has contained tracked Python `__pycache__` files and screenshot artifacts. These need review before public release; do not mistake their presence for a completed privacy audit.
+- Bounding boxes can be inaccurate even when small enough to display; a human must confirm any highlighted issue.
+- The holdout has one missed leak-related positive, and a sample size too small for broad reliability claims.
+- [Step 54](STEP54_FINAL.md) reports the hosted site and frontend checks as passing, but does **not** claim a new authenticated end-to-end report-browser run after its final quality adjustment.
+- Large-video handling and certain cancellation/idle-shutdown edge cases have separately documented validation limits.
+
+**Status:** Documentation prepared for judge review; **full privacy audit and judge-access verification remain outstanding**. No cloud resources or production service are changed by this documentation.
