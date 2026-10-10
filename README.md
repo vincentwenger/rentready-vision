@@ -38,7 +38,7 @@ Authenticated FastAPI application
 Amazon SQS (durable processing queue / DLQ)
         |
         v
-On-demand EC2 Graviton4 (m8g.4xlarge)
+On-demand EC2 Graviton4 worker (m8g.4xlarge)
   official OpenCV COOL runtime on Arm64
   OpenCV 5 perception and targeted evidence processing
   Detector v4 + Bedrock model-assisted inspection
@@ -48,6 +48,8 @@ Evidence-linked report / review / checklist
 ```
 
 The API/backend and worker use versioned deployment packages. COOL runs from its supplied `/opt/cool` environment; **do not install a pip OpenCV wheel into the COOL worker environment**. The older local fallback is for development only.
+
+**Worker runtime verification:** The EC2 Graviton4 worker uses the **official OpenCV COOL AWS Marketplace runtime**. Run [`scripts/verify_runtime.py`](scripts/verify_runtime.py) in the provisioned worker environment as described in the [COOL launch runbook](COOL_AWS_LAUNCH.md) to validate its runtime identity. The local pip-installed OpenCV build is separate from COOL.
 
 ## Evaluation — interpreted with appropriate scope
 
