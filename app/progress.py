@@ -27,8 +27,10 @@ class ProgressReporter:
     """
     def __init__(self, sink: ProgressCallback, *, job_id: str, stages: list[str],
                  attempt: int = 1, min_interval: float = 2.0,
-                 clock: Callable[[], float] = time.monotonic) -> None:
+                 clock: Callable[[], float] = time.monotonic,
+                 cancellation_check: Callable[[], None] | None = None) -> None:
         self.sink, self.job_id, self.stages = sink, job_id, stages
+        self.cancellation_check = cancellation_check
         self.attempt, self.min_interval, self.clock = attempt, min_interval, clock
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.stage: str | None = None
@@ -40,6 +42,11 @@ class ProgressReporter:
         self.lock = threading.RLock()
 
     def __call__(self, event: dict[str, Any]) -> None:
+        # Cancellation is control flow, not best-effort telemetry.
+        # Never swallow cancellation inside the progress sink handler.
+        if self.cancellation_check is not None:
+            self.cancellation_check()
+
         with self.lock:
             stage = event['stage']
             if stage not in self.stages:

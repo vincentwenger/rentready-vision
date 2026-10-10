@@ -259,6 +259,28 @@ def test_worker_low_storage_failure_is_terminal(monkeypatch, agent):
     monkeypatch.setattr(
         worker, "fail_processing_attempt", failure_record
     )
+    # Step 53: cancellation checks and guarded agent state
+    # must be mocked in these legacy worker error-path tests.
+    monkeypatch.setattr(
+        worker,
+        "JobCancellationCheck",
+        lambda *args, **kwargs: Mock(),
+    )
+    monkeypatch.setattr(
+        worker,
+        "AgentJobCancellationCheck",
+        lambda *args, **kwargs: Mock(),
+    )
+    monkeypatch.setattr(
+        worker,
+        "mark_agent_job_processing_if_active",
+        Mock(return_value=True),
+    )
+    monkeypatch.setattr(
+        worker,
+        "fail_agent_processing_attempt_if_allowed",
+        failure_record,
+    )
     monkeypatch.setattr(worker, "update_inspection", inspection_update)
     monkeypatch.setattr(worker, "update_processing_progress", Mock())
     monkeypatch.setattr(worker, "_heartbeat", lambda **kwargs: None)
@@ -334,10 +356,8 @@ def test_worker_low_storage_failure_is_terminal(monkeypatch, agent):
     )
 
     if agent:
-        assert (
-            inspection_update.call_args.kwargs["agentic_status"]
-            == "FAILED"
-        )
+        # Agent failure is now recorded by one guarded transaction.
+        inspection_update.assert_not_called()
 
 @pytest.mark.parametrize("prefix", [
     "rentready-",

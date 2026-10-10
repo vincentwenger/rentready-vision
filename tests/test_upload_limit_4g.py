@@ -65,6 +65,25 @@ def test_upload_size_boundary(monkeypatch, size, accepted):
         lambda *args, **kwargs: kwargs,
     )
 
+    # Step 53: the upload transition is now conditional.
+    # Keep this legacy test entirely within its mocked state.
+    monkeypatch.setattr(
+        routes,
+        "update_inspection_if_status",
+        lambda inspection_id, *args, **changes: routes.update_inspection(
+            inspection_id,
+            **{
+                key: value
+                for key, value in changes.items()
+                if key not in {
+                    "expected_status",
+                    "expected_statuses",
+                    "allowed_statuses",
+                }
+            },
+        ),
+    )
+
     payload = CreateUploadUrlRequest(
         filename="walkthrough.mp4",
         content_type="video/mp4",

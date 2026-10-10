@@ -7,7 +7,7 @@ import tempfile
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .progress import ProgressCallback, ProgressReporter, emit_progress, processing_stages
 from .storage_safety import check_processing_disk_space
@@ -471,8 +471,11 @@ def execute_interval_inspection_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    cancellation_check: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     """Execute the Step-18 inspect_interval agent tool on the COOL worker."""
+    if cancellation_check is not None:
+        cancellation_check()
     storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
@@ -512,8 +515,12 @@ def execute_interval_inspection_job(
                 int(source_head.get('ContentLength') or 0),
                 working_directory=tmp_path,
             )
+            if cancellation_check is not None:
+                cancellation_check()
             s3.download_file(settings.s3_bucket, source_key, str(input_path))
 
+            if cancellation_check is not None:
+                cancellation_check()
             interval = inspect_interval(
                 input_path,
                 frame_dir,
@@ -527,6 +534,8 @@ def execute_interval_inspection_job(
             for frame in interval["frames"]:
                 local_path = Path(frame["local_path"])
                 key = f"{prefix}/{local_path.name}"
+                if cancellation_check is not None:
+                    cancellation_check()
                 s3.upload_file(
                     str(local_path), settings.s3_bucket, key,
                     ExtraArgs={"ContentType": "image/jpeg"},
@@ -546,6 +555,8 @@ def execute_interval_inspection_job(
                     returned_frame_count=len(public_frames),
                 )
 
+            if cancellation_check is not None:
+                cancellation_check()
             reassessment = reassess_interval_batches(
                 bedrock_client=bedrock_runtime,
                 bucket=settings.s3_bucket,
@@ -594,6 +605,8 @@ def execute_interval_inspection_job(
         },
     }
     result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step18-agentic-trace.json", context=agent_context)
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -626,8 +639,11 @@ def execute_decision_policy_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    cancellation_check: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     """Execute the bounded Step-22 evidence policy on the COOL worker."""
+    if cancellation_check is not None:
+        cancellation_check()
     storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
@@ -694,6 +710,8 @@ def execute_decision_policy_job(
             tmp_path = Path(tmp)
             next_step = initial_policy["next_step"]
             if next_step == VERIFY_EVIDENCE:
+                if cancellation_check is not None:
+                    cancellation_check()
                 verification = verify_candidate_image(
                     bedrock_client=bedrock_runtime,
                     bucket=settings.s3_bucket,
@@ -721,7 +739,11 @@ def execute_decision_policy_job(
                     int(source_head.get('ContentLength') or 0),
                     working_directory=tmp_path,
                 )
+                if cancellation_check is not None:
+                    cancellation_check()
                 s3.download_file(settings.s3_bucket, source_key, str(input_path))
+                if cancellation_check is not None:
+                    cancellation_check()
                 interval = inspect_interval(
                     input_path,
                     interval_dir,
@@ -735,6 +757,8 @@ def execute_decision_policy_job(
                 for frame in interval["frames"]:
                     local_path = Path(frame["local_path"])
                     key = f"{interval_prefix}/{local_path.name}"
+                    if cancellation_check is not None:
+                        cancellation_check()
                     s3.upload_file(
                         str(local_path), settings.s3_bucket, key,
                         ExtraArgs={"ContentType": "image/jpeg"},
@@ -754,6 +778,8 @@ def execute_decision_policy_job(
                         returned_frame_count=len(public_frames),
                         runtime=runtime.get("runtime"),
                     )
+                if cancellation_check is not None:
+                    cancellation_check()
                 interval_reassessment = reassess_interval_batches(
                     bedrock_client=bedrock_runtime,
                     bucket=settings.s3_bucket,
@@ -795,7 +821,11 @@ def execute_decision_policy_job(
                 if interval_next_step == CALL_CROP_REGION:
                     frame_path = tmp_path / ("source" + (Path(frame_key).suffix or ".jpg"))
                     crop_path = tmp_path / "policy_crop_1024.jpg"
+                    if cancellation_check is not None:
+                        cancellation_check()
                     s3.download_file(settings.s3_bucket, frame_key, str(frame_path))
+                    if cancellation_check is not None:
+                        cancellation_check()
                     crop = write_crop_region(
                         frame_path,
                         crop_path,
@@ -803,6 +833,8 @@ def execute_decision_policy_job(
                         padding=float(parameters["crop_padding"]),
                     )
                     crop_key = artifact_key(storage_prefix, f"agentic/{job_id}/policy/crop/crop_1024.jpg", context=agent_context)
+                    if cancellation_check is not None:
+                        cancellation_check()
                     s3.upload_file(
                         str(crop_path), settings.s3_bucket, crop_key,
                         ExtraArgs={"ContentType": "image/jpeg"},
@@ -813,6 +845,8 @@ def execute_decision_policy_job(
                     crop_public["source"]["s3_key"] = frame_key
                     crop_public["source"]["etag"] = observed_frame_etag or None
                     crop_public["output"]["s3_key"] = crop_key
+                    if cancellation_check is not None:
+                        cancellation_check()
                     verification = verify_candidate_image(
                         bedrock_client=bedrock_runtime,
                         bucket=settings.s3_bucket,
@@ -1039,12 +1073,16 @@ def execute_decision_policy_job(
         },
     }
     result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step22-decision-policy-trace.json", context=agent_context)
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=action_log_key,
         Body=json.dumps(action_log, indent=2).encode("utf-8"),
         ContentType="application/json",
     )
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -1078,8 +1116,11 @@ def execute_crop_region_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    cancellation_check: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     """Execute Step-19 Agent Tool 2: crop_region on the COOL/OpenCV worker."""
+    if cancellation_check is not None:
+        cancellation_check()
     storage_prefix = inspection_prefix(inspection_id, source_key)
     frame_s3_key = str(parameters["frame_s3_key"])
     if source_key != frame_s3_key:
@@ -1116,8 +1157,12 @@ def execute_crop_region_job(
             source_suffix = Path(frame_s3_key).suffix or ".jpg"
             source_path = tmp_path / f"source{source_suffix}"
             crop_path = tmp_path / "crop_1024.jpg"
+            if cancellation_check is not None:
+                cancellation_check()
             s3.download_file(settings.s3_bucket, frame_s3_key, str(source_path))
 
+            if cancellation_check is not None:
+                cancellation_check()
             crop = write_crop_region(
                 source_path,
                 crop_path,
@@ -1125,6 +1170,8 @@ def execute_crop_region_job(
                 padding=float(parameters["padding"]),
             )
             crop_key = artifact_key(storage_prefix, f"agentic/{job_id}/crop/crop_1024.jpg", context=agent_context)
+            if cancellation_check is not None:
+                cancellation_check()
             s3.upload_file(
                 str(crop_path),
                 settings.s3_bucket,
@@ -1173,6 +1220,8 @@ def execute_crop_region_job(
         },
     }
     result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step19-crop-region-trace.json", context=agent_context)
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -1213,8 +1262,11 @@ def execute_enhance_region_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    cancellation_check: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     """Execute Step-20 Agent Tool 3 without replacing original evidence."""
+    if cancellation_check is not None:
+        cancellation_check()
     storage_prefix = inspection_prefix(inspection_id, source_key)
     frame_s3_key = str(parameters["frame_s3_key"])
     if source_key != frame_s3_key:
@@ -1253,8 +1305,12 @@ def execute_enhance_region_job(
             source_suffix = Path(frame_s3_key).suffix or ".jpg"
             source_path = tmp_path / f"original{source_suffix}"
             enhanced_path = tmp_path / "enhanced_inspection_view.jpg"
+            if cancellation_check is not None:
+                cancellation_check()
             s3.download_file(settings.s3_bucket, frame_s3_key, str(source_path))
 
+            if cancellation_check is not None:
+                cancellation_check()
             enhancement = write_enhanced_region(
                 source_path,
                 enhanced_path,
@@ -1266,6 +1322,8 @@ def execute_enhance_region_job(
             enhanced_key = (
                 artifact_key(storage_prefix, f"agentic/{job_id}/enhance/enhanced_inspection_view.jpg", context=agent_context)
             )
+            if cancellation_check is not None:
+                cancellation_check()
             s3.upload_file(
                 str(enhanced_path),
                 settings.s3_bucket,
@@ -1319,6 +1377,8 @@ def execute_enhance_region_job(
         },
     }
     result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step20-enhance-region-trace.json", context=agent_context)
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,
@@ -1359,8 +1419,11 @@ def execute_other_angle_job(
     require_cool: bool,
     expected_source_etag: str | None = None,
     telemetry: CloudWatchTelemetry | None = None,
+    cancellation_check: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
     """Execute Step-21 Agent Tool 4 and persist auditable multi-view evidence."""
+    if cancellation_check is not None:
+        cancellation_check()
     storage_prefix = inspection_prefix(inspection_id, source_key)
     source_head = s3.head_object(Bucket=settings.s3_bucket, Key=source_key)
     observed_etag = str(source_head.get("ETag", "")).strip('"')
@@ -1398,8 +1461,12 @@ def execute_other_angle_job(
                 int(source_head.get('ContentLength') or 0),
                 working_directory=tmp_path,
             )
+            if cancellation_check is not None:
+                cancellation_check()
             s3.download_file(settings.s3_bucket, source_key, str(input_path))
             try:
+                if cancellation_check is not None:
+                    cancellation_check()
                 search = inspect_other_angle(
                     input_path,
                     evidence_dir,
@@ -1474,12 +1541,16 @@ def execute_other_angle_job(
                 local_region = Path(frame["local_region_path"])
                 view_key = f"{prefix}/{local_view.name}"
                 region_key = f"{prefix}/{local_region.name}"
+                if cancellation_check is not None:
+                    cancellation_check()
                 s3.upload_file(
                     str(local_view),
                     settings.s3_bucket,
                     view_key,
                     ExtraArgs={"ContentType": "image/jpeg"},
                 )
+                if cancellation_check is not None:
+                    cancellation_check()
                 s3.upload_file(
                     str(local_region),
                     settings.s3_bucket,
@@ -1509,6 +1580,8 @@ def execute_other_angle_job(
                 )
 
             if len(public_frames) >= 2:
+                if cancellation_check is not None:
+                    cancellation_check()
                 assessment = reassess_other_angle_evidence(
                     bedrock_client=bedrock_runtime,
                     bucket=settings.s3_bucket,
@@ -1605,6 +1678,8 @@ def execute_other_angle_job(
         },
     }
     result_key = artifact_key(storage_prefix, f"agentic/{job_id}/step21-other-angle-trace.json", context=agent_context)
+    if cancellation_check is not None:
+        cancellation_check()
     s3.put_object(
         Bucket=settings.s3_bucket,
         Key=result_key,

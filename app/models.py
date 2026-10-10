@@ -14,6 +14,8 @@ class InspectionStatus(StrEnum):
     PROCESSING = "PROCESSING"
     COMPLETE = "COMPLETE"
     FAILED = "FAILED"
+    CANCEL_REQUESTED = "CANCEL_REQUESTED"
+    CANCELLED = "CANCELLED"
 
 
 class InspectionPurpose(StrEnum):

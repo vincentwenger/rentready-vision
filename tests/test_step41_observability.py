@@ -259,6 +259,25 @@ def test_upload_complete_emits_video_uploaded_when_api_telemetry_is_enabled(monk
     monkeypatch.setattr(routes, "s3", S3())
     monkeypatch.setattr(routes, "_require_inspection", lambda _: item)
     monkeypatch.setattr(routes, "update_inspection", lambda _, **changes: item.update(changes) or item)
+
+    # Step 53: the upload transition is now conditional.
+    # Keep this legacy test entirely within its mocked state.
+    monkeypatch.setattr(
+        routes,
+        "update_inspection_if_status",
+        lambda inspection_id, *args, **changes: routes.update_inspection(
+            inspection_id,
+            **{
+                key: value
+                for key, value in changes.items()
+                if key not in {
+                    "expected_status",
+                    "expected_statuses",
+                    "allowed_statuses",
+                }
+            },
+        ),
+    )
     monkeypatch.setattr(routes, "_api_cloudwatch_telemetry", lambda: telemetry)
 
     routes.upload_complete("id", UploadCompleteRequest(filename="tour.mp4", content_type="video/mp4"))

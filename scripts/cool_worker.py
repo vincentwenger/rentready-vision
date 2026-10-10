@@ -23,10 +23,16 @@ from app.worker_lifecycle import WorkerLifecycle  # noqa: E402
 from app.worker_lifecycle_config import get_lifecycle_settings  # noqa: E402
 from app.storage_safety import find_cleanup_eligible_directories
 from app.db import (  # noqa: E402
+    acknowledge_agent_job_cancellation,
+    acknowledge_processing_cancellation,
+    mark_agent_job_processing_if_active,
     claim_processing_job,
+    finalize_queued_processing_cancellation,
     complete_agent_tool_job,
     complete_processing_job,
     extend_processing_lease,
+    fail_agent_processing_attempt_if_allowed,
+    finalize_queued_agent_cancellation,
     fail_processing_attempt,
     get_processing_job,
     reconcile_completed_job,
@@ -51,6 +57,7 @@ from app.services import (  # noqa: E402
     execute_processing_job,
 )
 from app.progress import ProgressReporter, emit_progress, processing_stages
+from app.cancellation import CancellationRequested, JobCancellationCheck, AgentJobCancellationCheck, JobOwnershipLost
 from app.storage_safety import is_terminal_processing_error
 from app.vision.detector_v4 import detector_v4_enabled
 from app.telemetry import CloudWatchTelemetry, count_bedrock_requests  # noqa: E402
@@ -124,31 +131,21 @@ def _handle_agent_tool_message(
             sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
             LOGGER.info("Acknowledged duplicate agent tool job_id=%s status=%s", job_id, status)
             return
+        if status == "CANCELLED":
+            sqs.delete_message(
+                QueueUrl=queue_url,
+                ReceiptHandle=receipt_handle,
+            )
+            LOGGER.info(
+                "Acknowledged canceled agent tool job_id=%s",
+                job_id,
+            )
+            return
         if status == "FAILED":
             LOGGER.error("Leaving terminally failed agent tool for SQS redrive: %s", job_id)
             return
         raise RuntimeError(f"Could not claim agent tool job {job_id}; durable status={status}")
 
-    agent_progress = ProgressReporter(
-        lambda value: update_processing_progress(inspection_id, job_id,
-            claim_token=claim_token, progress=value),
-        job_id=job_id, stages=["agent"],
-        attempt=int((existing or {}).get("attempt_count") or receive_count))
-    emit_progress(agent_progress, "agent", "Inspecting additional evidence; waiting for video or AI work")
-
-    update_inspection(
-        inspection_id,
-        agentic_status="PROCESSING",
-        active_agent_job_id=job_id,
-        last_agentic_event="AGENT_TOOL_STARTED",
-    )
-    telemetry.event(
-        "AGENT_TOOL_CALL",
-        inspection_id=inspection_id,
-        job_id=job_id,
-        tool=str(body["operation"]),
-        receive_count=receive_count,
-    )
     heartbeat_stop = threading.Event()
     heartbeat = threading.Thread(
         target=_heartbeat,
@@ -162,7 +159,52 @@ def _handle_agent_tool_message(
         daemon=True,
     )
     heartbeat.start()
+    agent_check = None
     try:
+        agent_check = AgentJobCancellationCheck(
+            inspection_id, job_id
+        )
+
+        # Never overwrite a cancellation request with PROCESSING.
+        if not mark_agent_job_processing_if_active(
+            inspection_id, job_id
+        ):
+            agent_check.force_check()
+            raise JobOwnershipLost(
+                "Agent job is no longer eligible to start"
+            )
+
+        # A fresh read immediately before expensive work.
+        agent_check.force_check()
+
+        agent_progress = ProgressReporter(
+            lambda value: update_processing_progress(
+                inspection_id, job_id,
+                claim_token=claim_token, progress=value
+            ),
+            job_id=job_id,
+            stages=["agent"],
+            attempt=int(
+                (existing or {}).get("attempt_count")
+                or receive_count
+            ),
+            cancellation_check=agent_check,
+        )
+
+        emit_progress(
+            agent_progress,
+            "agent",
+            "Inspecting additional evidence; waiting for video or AI work",
+        )
+
+        telemetry.event(
+            "AGENT_TOOL_CALL",
+            inspection_id=inspection_id,
+            job_id=job_id,
+            tool=str(body["operation"]),
+            receive_count=receive_count,
+        )
+
         if body["operation"] == OPERATION_INSPECT_INTERVAL:
             result = execute_interval_inspection_job(
                 inspection_id=inspection_id,
@@ -173,6 +215,7 @@ def _handle_agent_tool_message(
                 require_cool=True,
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
+                cancellation_check=agent_check,
             )
         elif body["operation"] == OPERATION_CROP_REGION:
             result = execute_crop_region_job(
@@ -184,6 +227,7 @@ def _handle_agent_tool_message(
                 require_cool=True,
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
+                cancellation_check=agent_check,
             )
         elif body["operation"] == OPERATION_ENHANCE_REGION:
             result = execute_enhance_region_job(
@@ -195,6 +239,7 @@ def _handle_agent_tool_message(
                 require_cool=True,
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
+                cancellation_check=agent_check,
             )
         elif body["operation"] == OPERATION_INSPECT_OTHER_ANGLE:
             result = execute_other_angle_job(
@@ -206,6 +251,7 @@ def _handle_agent_tool_message(
                 require_cool=True,
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
+                cancellation_check=agent_check,
             )
         elif body["operation"] == OPERATION_DECISION_POLICY:
             result = execute_decision_policy_job(
@@ -217,16 +263,37 @@ def _handle_agent_tool_message(
                 require_cool=True,
                 expected_source_etag=body.get("source_etag"),
                 telemetry=telemetry,
+                cancellation_check=agent_check,
             )
         else:
             raise ValueError(f"Unsupported agent tool operation: {body['operation']!r}")
+        # Detect cancellation immediately before completion.
+        # Agent completion must also be protected atomically later.
+        agent_check.force_check()
+
         committed = complete_agent_tool_job(
             inspection_id, job_id, claim_token=claim_token,
             result_s3_key=result["result_s3_key"],
             result=result["result"], telemetry=result["telemetry"],
         )
         if not committed:
-            raise RuntimeError("Agent tool finished but worker no longer owns the durable job lease")
+            # Step 53: cancellation may have won the atomic
+            # agent-completion transaction.
+            #
+            # Force a fresh read even if the normal polling
+            # interval has not elapsed.
+            agent_check.force_check()
+
+            # If cancellation was requested, force_check()
+            # raises CancellationRequested. The dedicated
+            # handler acknowledges the cancellation without
+            # retrying this job.
+            #
+            # Otherwise preserve the original ownership error.
+            raise RuntimeError(
+                "Agent tool finished but worker no longer owns "
+                "the durable job lease"
+            )
         bedrock_requests = count_bedrock_requests(result.get("result"))
         result_telemetry = result.get("telemetry") or {}
         frames_analyzed = next(
@@ -255,19 +322,135 @@ def _handle_agent_tool_message(
             bedrock_requests=bedrock_requests,
         )
         sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
+    except CancellationRequested:
+        acknowledged = acknowledge_agent_job_cancellation(
+            inspection_id,
+            job_id,
+            claim_token=claim_token,
+        )
+
+        if not acknowledged:
+            raise RuntimeError(
+                "Agent cancellation acknowledgment failed"
+            )
+
+        # Delete only this canceled SQS message.
+        # Never treat intentional cancellation as a retryable failure.
+        sqs.delete_message(
+            QueueUrl=queue_url,
+            ReceiptHandle=receipt_handle,
+        )
+
+        LOGGER.info(
+            "Agent investigation canceled inspection_id=%s job_id=%s",
+            inspection_id,
+            job_id,
+        )
+        return
+
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         terminal = is_terminal_processing_error(
             exc, receive_count, settings.queue_max_receive_count
         )
-        fail_processing_attempt(
-            inspection_id, job_id, claim_token=claim_token, error=error,
-            terminal=terminal, receive_count=receive_count,
+        def finish_if_canceled() -> bool:
+            # The checker might not have been constructed if
+            # the error occurred during early initialization.
+            if agent_check is None:
+                return False
+
+            # Always perform a fresh DynamoDB read.
+            try:
+                agent_check.force_check()
+            except CancellationRequested:
+                acknowledged = acknowledge_agent_job_cancellation(
+                    inspection_id,
+                    job_id,
+                    claim_token=claim_token,
+                )
+
+                if not acknowledged:
+                    raise RuntimeError(
+                        "Agent cancellation acknowledgment failed"
+                    )
+
+                sqs.delete_message(
+                    QueueUrl=queue_url,
+                    ReceiptHandle=receipt_handle,
+                )
+
+                LOGGER.info(
+                    "Agent cancellation took priority over failure "
+                    "inspection_id=%s job_id=%s",
+                    inspection_id,
+                    job_id,
+                )
+                return True
+
+            return False
+
+        # If cancellation was requested while the AI operation
+        # was failing, do not record another processing failure.
+        if finish_if_canceled():
+            return
+
+        # Atomically update the job and agent metadata.
+        # A concurrent cancellation makes this return False.
+        recorded = fail_agent_processing_attempt_if_allowed(
+            inspection_id,
+            job_id,
+            claim_token=claim_token,
+            error=error,
+            terminal=terminal,
+            receive_count=receive_count,
         )
-        update_inspection(
-            inspection_id, agentic_status="FAILED" if terminal else "RETRY_PENDING",
-            agentic_error=error, last_agentic_event="AGENT_TOOL_FAILED",
-        )
+
+        if not recorded:
+            # Cancellation might have arrived during the
+            # atomic transaction itself.
+            if finish_if_canceled():
+                return
+
+            # A non-cancellation conflict must not be treated
+            # as a successful failure transition.
+            raise RuntimeError(
+                "Agent failure transition rejected without "
+                "cancellation; job state or ownership changed"
+            ) from exc
+        # Step 53: cancellation after successful failure transition.
+        #
+        # The job is now RETRY_PENDING, not PROCESSING.
+        # We must use the queued cancellation finalizer rather
+        # than the running-worker acknowledgment function.
+        if not terminal:
+            try:
+                agent_check.force_check()
+            except CancellationRequested:
+                finalized = finalize_queued_agent_cancellation(
+                    inspection_id,
+                    job_id,
+                )
+
+                if not finalized:
+                    # Never delete an SQS delivery unless
+                    # cancellation was durably finalized.
+                    raise RuntimeError(
+                        "Agent retry cancellation finalization failed"
+                    ) from exc
+
+                sqs.delete_message(
+                    QueueUrl=queue_url,
+                    ReceiptHandle=receipt_handle,
+                )
+
+                LOGGER.info(
+                    "Agent retry canceled after failure transition "
+                    "inspection_id=%s job_id=%s",
+                    inspection_id,
+                    job_id,
+                )
+                return
+
         telemetry.event(
             "AGENT_TOOL_FAILED", inspection_id=inspection_id, job_id=job_id,
             error=error, receive_count=receive_count, terminal=terminal,
@@ -399,6 +582,23 @@ def _handle_message(
             return
         # Never acknowledge a terminal failure here; SQS must be allowed to apply
         # its redrive policy and preserve the message in the DLQ.
+        if status == "CANCELLED":
+            # Repair metadata if cancellation was interrupted after
+            # the job was marked canceled but before metadata changed.
+            finalized = finalize_queued_processing_cancellation(
+                inspection_id,
+                job_id,
+            )
+            LOGGER.info(
+                "Canceled job acknowledged job_id=%s finalized=%s",
+                job_id,
+                finalized,
+            )
+            sqs.delete_message(
+                QueueUrl=queue_url,
+                ReceiptHandle=receipt_handle,
+            )
+            return
         if status == "FAILED":
             LOGGER.error("Leaving terminally failed job for SQS redrive: %s", job_id)
             return
@@ -422,11 +622,17 @@ def _handle_message(
     heartbeat.start()
 
     try:
+        cancellation_check = JobCancellationCheck(
+            inspection_id, job_id
+        )
         progress = ProgressReporter(
             lambda value: update_processing_progress(inspection_id, job_id,
                 claim_token=claim_token, progress=value),
             job_id=job_id, stages=processing_stages(detector_v4_enabled()),
-            attempt=int((existing or {}).get("attempt_count") or receive_count))
+            attempt=int((existing or {}).get("attempt_count") or receive_count),
+            cancellation_check=cancellation_check)
+        # Check immediately before starting expensive work.
+        cancellation_check()
         result = execute_processing_job(
             inspection_id=inspection_id,
             source_key=str(body["s3_input_key"]),
@@ -437,6 +643,10 @@ def _handle_message(
             telemetry=telemetry,
             progress_callback=progress,
         )
+        # Step 53: perform a fresh, unthrottled cancellation check
+        # before publishing the job's completed status.
+        cancellation_check.force_check()
+
         committed = complete_processing_job(
             inspection_id,
             job_id,
@@ -450,7 +660,20 @@ def _handle_message(
             ),
         )
         if not committed:
-            raise RuntimeError("Processing finished but the worker no longer owns the durable job lease")
+            # Step 53: cancellation may have won the atomic
+            # completion transaction. Recheck durable state now.
+            #
+            # If canceled, this raises CancellationRequested and
+            # enters the dedicated cancellation acknowledgment path,
+            # avoiding ordinary processing failure/retry handling.
+            cancellation_check.force_check()
+
+            # Cancellation was not observed. Preserve the original
+            # ownership error instead of claiming success.
+            raise RuntimeError(
+                "Processing finished but the worker no longer owns "
+                "the durable job lease"
+            )
 
         telemetry.event(
             "PROCESSING_COMPLETE",
@@ -473,6 +696,29 @@ def _handle_message(
             # The durable job is already COMPLETE. A redelivery is harmless: it
             # will hit the idempotent COMPLETE branch and be acknowledged.
             LOGGER.exception("Could not acknowledge completed job %s", job_id)
+    except CancellationRequested:
+        acknowledged = acknowledge_processing_cancellation(
+            inspection_id,
+            job_id,
+            claim_token=claim_token,
+        )
+        if not acknowledged:
+            raise RuntimeError(
+                "Cancellation requested, but durable acknowledgment failed"
+            )
+
+        # Delete only this delivery after cancellation is durable.
+        # Never send an intentional cancellation through failure/retry.
+        sqs.delete_message(
+            QueueUrl=queue_url,
+            ReceiptHandle=receipt_handle,
+        )
+        LOGGER.info(
+            "Processing canceled inspection_id=%s job_id=%s",
+            inspection_id,
+            job_id,
+        )
+        return
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         terminal = is_terminal_processing_error(

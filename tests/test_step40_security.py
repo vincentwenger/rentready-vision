@@ -163,6 +163,25 @@ def upload_fixture(monkeypatch, **head_overrides):
     monkeypatch.setattr(routes, "s3", S3())
     monkeypatch.setattr(routes, "_require_inspection", lambda _: item)
     monkeypatch.setattr(routes, "update_inspection", update)
+
+    # Step 53: the upload transition is now conditional.
+    # Keep this legacy test entirely within its mocked state.
+    monkeypatch.setattr(
+        routes,
+        "update_inspection_if_status",
+        lambda inspection_id, *args, **changes: routes.update_inspection(
+            inspection_id,
+            **{
+                key: value
+                for key, value in changes.items()
+                if key not in {
+                    "expected_status",
+                    "expected_statuses",
+                    "allowed_statuses",
+                }
+            },
+        ),
+    )
     return routes, item, calls
 
 

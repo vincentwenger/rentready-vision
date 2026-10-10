@@ -106,6 +106,28 @@ def test_worker_marks_bedrock_input_limit_terminal(monkeypatch, agent):
         lambda *args, **kwargs: (True, {"attempt_count": 1}),
     )
     monkeypatch.setattr(worker, "fail_processing_attempt", failed)
+    # Step 53: cancellation checks and guarded agent state
+    # must be mocked in these legacy worker error-path tests.
+    monkeypatch.setattr(
+        worker,
+        "JobCancellationCheck",
+        lambda *args, **kwargs: Mock(),
+    )
+    monkeypatch.setattr(
+        worker,
+        "AgentJobCancellationCheck",
+        lambda *args, **kwargs: Mock(),
+    )
+    monkeypatch.setattr(
+        worker,
+        "mark_agent_job_processing_if_active",
+        Mock(return_value=True),
+    )
+    monkeypatch.setattr(
+        worker,
+        "fail_agent_processing_attempt_if_allowed",
+        failed,
+    )
     monkeypatch.setattr(worker, "update_inspection", inspection)
     monkeypatch.setattr(worker, "update_processing_progress", Mock())
     monkeypatch.setattr(worker, "_heartbeat", lambda **kwargs: None)
@@ -195,7 +217,8 @@ def test_worker_marks_bedrock_input_limit_terminal(monkeypatch, agent):
     assert telemetry.event.call_args.kwargs["bedrock_context"] == error.rentready_bedrock_context
 
     if agent:
-        assert inspection.call_args.kwargs["agentic_status"] == "FAILED"
+        # Agent failure is now recorded by one guarded transaction.
+        inspection.assert_not_called()
 
 
 def test_diagnostic_wrapper_preserves_exception(caplog):

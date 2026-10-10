@@ -32,7 +32,7 @@ def build_policies(*, account, region, bucket, table, queue, models=(), secret_a
         statement("InspectionObjects", ["s3:GetObject", "s3:PutObject", "s3:GetObjectTagging", "s3:PutObjectTagging",
                   "s3:GetObjectVersionTagging", "s3:PutObjectVersionTagging"],
                   [bucket_arn + "/inspections/*", bucket_arn + "/rentready/inspections/*"]),
-        statement("InspectionState", ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"], table_arn),
+        statement("InspectionState", ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:TransactWriteItems"], table_arn),
         statement("EnqueueJobs", ["sqs:SendMessage"], f"arn:aws:sqs:{region}:{account}:{queue}"),
     ]
     # Some demo issue-detection routes invoke Bedrock in the API. Explicitly

@@ -163,6 +163,25 @@ def test_upload_signs_video_tag_and_upload_complete_tags_exact_version(monkeypat
     monkeypatch.setattr(routes, "_require_inspection", lambda _: item)
     def update(_, **changes): item.update(changes); return item
     monkeypatch.setattr(routes, "update_inspection", update)
+
+    # Step 53: the upload transition is now conditional.
+    # Keep this legacy test entirely within its mocked state.
+    monkeypatch.setattr(
+        routes,
+        "update_inspection_if_status",
+        lambda inspection_id, *args, **changes: routes.update_inspection(
+            inspection_id,
+            **{
+                key: value
+                for key, value in changes.items()
+                if key not in {
+                    "expected_status",
+                    "expected_statuses",
+                    "allowed_statuses",
+                }
+            },
+        ),
+    )
     result = routes.create_upload_url("id", CreateUploadUrlRequest(filename="tour.mov", content_type="video/quicktime"))
     assert result.s3_key == prefix + "/original/walkthrough.mov"
     assert result.required_headers["x-amz-tagging"] == VIDEO_TAGGING

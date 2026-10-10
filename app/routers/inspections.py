@@ -15,6 +15,16 @@ from ..security_config import get_security_settings
 from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
                        report_key, artifact_key)
 from ..db import (
+    CancellationConflict,
+    mark_agent_job_queued_if_allowed,
+    restore_cached_agent_completion_if_allowed,
+    mark_agent_enqueue_failed_if_active,
+    request_inspection_cancellation,
+    request_agent_job_cancellation,
+    finalize_queued_agent_cancellation,
+    finalize_queued_processing_cancellation,
+    create_queued_processing_job,
+    ensure_processing_dispatch_allowed,
     get_processing_job,
     create_inspection,
     get_inspection,
@@ -23,6 +33,7 @@ from ..db import (
     mark_processing_job_enqueued,
     prepare_processing_job,
     update_inspection,
+    update_inspection_if_status,
 )
 from ..models import (
     AgenticRunRequest,
@@ -135,6 +146,31 @@ def _present_issue_report(
     return presented
 
 
+
+
+def _restore_cached_agent_completion(
+    inspection_id: str,
+    *,
+    agentic_status: str,
+    active_agent_job_id: str,
+    **agent_fields,
+):
+    if agentic_status != "COMPLETE":
+        raise ValueError("Expected completed cached agent result")
+
+    try:
+        return restore_cached_agent_completion_if_allowed(
+            inspection_id,
+            active_agent_job_id,
+            **agent_fields,
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+
 @router.post("", response_model=CreateInspectionResponse, status_code=status.HTTP_201_CREATED)
 def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectionResponse:
     inspection_id = str(uuid4())
@@ -168,14 +204,21 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
         HttpMethod="PUT",
     )
 
-    update_inspection(
-        inspection_id,
-        status="UPLOAD_PENDING",
-        original_s3_key=s3_key,
-        original_filename=payload.filename,
-        content_type=payload.content_type,
-        expected_upload_bytes=payload.size_bytes,
-    )
+    try:
+        update_inspection_if_status(
+            inspection_id,
+            expected_statuses=("CREATED", "UPLOAD_PENDING"),
+            status="UPLOAD_PENDING",
+            original_s3_key=s3_key,
+            original_filename=payload.filename,
+            content_type=payload.content_type,
+            expected_upload_bytes=payload.size_bytes,
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="Inspection was canceled or changed during upload setup",
+        ) from exc
 
     return UploadUrlResponse(
         inspection_id=inspection_id,
@@ -225,12 +268,19 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
     tags = [tag for tag in tags if tag["Key"] != VIDEO_TAG["Key"]] + [dict(VIDEO_TAG)]
     s3.put_object_tagging(**tag_args, Tagging={"TagSet": tags})
 
-    updated = update_inspection(
-        inspection_id,
-        status="UPLOADED",
-        upload_bytes=size,
-        s3_etag=str(head.get("ETag", "")).strip('"'),
-    )
+    try:
+        updated = update_inspection_if_status(
+            inspection_id,
+            expected_statuses=("UPLOAD_PENDING",),
+            status="UPLOADED",
+            upload_bytes=size,
+            s3_etag=str(head.get("ETag", "")).strip('"'),
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="Inspection was canceled or changed during upload completion",
+        ) from exc
     telemetry = _api_cloudwatch_telemetry()
     if telemetry:
         telemetry.event(
@@ -261,7 +311,60 @@ def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> d
             source_etag=item.get("s3_etag"),
             parameters=processing_parameters(settings),
         )
-        job_record, should_enqueue = prepare_processing_job(inspection_id, message)
+        # Step 53: the first processing job and inspection status
+        # must be committed atomically.
+        created_atomically = False
+
+        if item["status"] == "UPLOADED":
+            try:
+                job_record = create_queued_processing_job(
+                    inspection_id,
+                    message,
+                    backend="graviton4_cool_sqs",
+                )
+                should_enqueue = True
+                created_atomically = True
+            except CancellationConflict as exc:
+                # A concurrent request may have started the same job.
+                # A cancellation or different active job must be
+                # rejected rather than overwritten.
+                latest = _require_inspection(inspection_id)
+
+                if (
+                    latest.get("status") in {
+                        "CANCEL_REQUESTED", "CANCELLED"
+                    }
+                    or latest.get("active_job_id") != message["job_id"]
+                ):
+                    raise HTTPException(
+                        status_code=409,
+                        detail=(
+                            "Inspection was canceled or changed "
+                            "while starting processing"
+                        ),
+                    ) from exc
+
+                job_record = get_processing_job(
+                    inspection_id,
+                    message["job_id"],
+                )
+
+                if not job_record:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Processing job state is unavailable",
+                    ) from exc
+
+                # Preserve retryability of an interrupted enqueue.
+                should_enqueue = (
+                    job_record["status"] == "PENDING_ENQUEUE"
+                )
+        else:
+            # Existing duplicate/retry behavior is retained.
+            # Its cancellation races will be guarded separately.
+            job_record, should_enqueue = prepare_processing_job(
+                inspection_id, message
+            )
 
         if job_record.get("status") == "COMPLETE":
             return {
@@ -280,7 +383,40 @@ def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> d
                 "note": "Identical deterministic job is already queued or processing.",
             }
 
-        mark_inspection_queued(inspection_id, message, backend="graviton4_cool_sqs")
+        # The atomic startup transaction already set QUEUED.
+        # Do not repeat that write: it could overwrite cancellation.
+        if not created_atomically and item["status"] != "UPLOADED":
+            try:
+                mark_inspection_queued(
+                    inspection_id,
+                    message,
+                    backend="graviton4_cool_sqs",
+                )
+            except CancellationConflict as exc:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "Inspection was canceled or changed "
+                        "while retrying processing"
+                    ),
+                ) from exc
+
+        # Step 53: reject cancellation or job changes immediately
+        # before sending this inspection's message to SQS.
+        try:
+            ensure_processing_dispatch_allowed(
+                inspection_id,
+                message["job_id"],
+            )
+        except CancellationConflict as exc:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "Inspection was canceled or its processing job "
+                    "changed before queue dispatch"
+                ),
+            ) from exc
+
         try:
             response = send_processing_message(
                 QueueUrl=settings.processing_queue_url,
@@ -328,6 +464,110 @@ def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> d
         "status": "PROCESSING",
         "backend": "local_fallback",
         "note": "Local developer fallback processing started.",
+    }
+
+
+@router.post(
+    "/{inspection_id}/cancel",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def cancel_inspection(inspection_id: str) -> dict:
+    """Record a cancellation request for one inspection.
+
+    Active processing continues until the worker acknowledges cancellation.
+    """
+    try:
+        item = request_inspection_cancellation(inspection_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail="Inspection not found",
+        ) from None
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    if (
+        item["status"] == "CANCEL_REQUESTED"
+        and item.get("active_job_id")
+    ):
+        finalized = finalize_queued_processing_cancellation(
+            inspection_id,
+            str(item["active_job_id"]),
+        )
+        if finalized:
+            item = {**item, "status": "CANCELLED"}
+
+    current = item["status"]
+
+    if current == "CANCELLED":
+        message = "Inspection cancellation completed."
+    else:
+        message = (
+            "Cancellation requested. Waiting for the worker "
+            "to acknowledge and stop processing."
+        )
+
+    return {
+        "inspection_id": inspection_id,
+        "status": current,
+        "message": message,
+    }
+
+
+@router.post(
+    "/{inspection_id}/agent/cancel",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def cancel_agent_inspection(inspection_id: str) -> dict:
+    """Request cancellation of the active follow-up AI job.
+
+    The primary video inspection remains COMPLETE.
+    """
+    try:
+        item = request_agent_job_cancellation(inspection_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail="Inspection not found",
+        ) from None
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
+
+    # Step 53: finalize an unclaimed agent job immediately.
+    # Running jobs must acknowledge cancellation themselves.
+    if (
+        item["agentic_status"] == "CANCEL_REQUESTED"
+        and item.get("active_agent_job_id")
+    ):
+        finalized = finalize_queued_agent_cancellation(
+            inspection_id,
+            str(item["active_agent_job_id"]),
+        )
+        if finalized:
+            item = {**item, "agentic_status": "CANCELLED"}
+
+    agent_status = item["agentic_status"]
+
+    if agent_status == "CANCELLED":
+        message = "Agent investigation cancellation completed."
+    else:
+        message = (
+            "Agent investigation cancellation requested. "
+            "Waiting for the worker to stop and acknowledge it."
+        )
+
+    return {
+        "inspection_id": inspection_id,
+        "status": agent_status,
+        "primary_status": item["status"],
+        "job_id": item.get("active_agent_job_id"),
+        "message": message,
     }
 
 
@@ -596,16 +836,21 @@ def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> Agenti
             note="Identical targeted follow-up is already queued or processing.",
         )
 
-    update_inspection(
-        inspection_id,
-        agentic_status="QUEUED",
-        agentic_error=None,
-        active_agent_job_id=message["job_id"],
-        agentic_confidence_before=confidence_before,
-        agentic_decision="CALL_TOOL",
-        agentic_tool_call=tool_call,
-        last_agentic_event="AGENT_DECISION",
-    )
+    try:
+        mark_agent_job_queued_if_allowed(
+            inspection_id,
+            message["job_id"],
+            agentic_error=None,
+            agentic_confidence_before=confidence_before,
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_DECISION",
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
     try:
         response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
@@ -618,7 +863,7 @@ def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> Agenti
     except Exception as exc:
         error = f"Agent tool enqueue failed: {type(exc).__name__}: {exc}"
         mark_enqueue_failed(inspection_id, message["job_id"], error)
-        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        mark_agent_enqueue_failed_if_active(inspection_id, message["job_id"], error)
         raise HTTPException(status_code=503, detail=error) from exc
 
     mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
@@ -726,16 +971,21 @@ def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> A
             note="Identical crop_region request is already queued or processing.",
         )
 
-    update_inspection(
-        inspection_id,
-        agentic_status="QUEUED",
-        agentic_error=None,
-        active_agent_job_id=message["job_id"],
-        agentic_confidence_before=confidence_before,
-        agentic_decision="CALL_TOOL",
-        agentic_tool_call=tool_call,
-        last_agentic_event="AGENT_DECISION",
-    )
+    try:
+        mark_agent_job_queued_if_allowed(
+            inspection_id,
+            message["job_id"],
+            agentic_error=None,
+            agentic_confidence_before=confidence_before,
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_DECISION",
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
     try:
         response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
@@ -748,7 +998,7 @@ def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> A
     except Exception as exc:
         error = f"crop_region enqueue failed: {type(exc).__name__}: {exc}"
         mark_enqueue_failed(inspection_id, message["job_id"], error)
-        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        mark_agent_enqueue_failed_if_active(inspection_id, message["job_id"], error)
         raise HTTPException(status_code=503, detail=error) from exc
 
     mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
@@ -842,7 +1092,7 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
         },
     }
     if job_record.get("status") == "COMPLETE":
-        update_inspection(
+        _restore_cached_agent_completion(
             inspection_id,
             agentic_status="COMPLETE",
             active_agent_job_id=message["job_id"],
@@ -873,16 +1123,21 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
             note="Identical enhance_region request is already queued or processing.",
         )
 
-    update_inspection(
-        inspection_id,
-        agentic_status="QUEUED",
-        agentic_error=None,
-        active_agent_job_id=message["job_id"],
-        agentic_confidence_before=confidence_before,
-        agentic_decision="CALL_TOOL",
-        agentic_tool_call=tool_call,
-        last_agentic_event="AGENT_DECISION",
-    )
+    try:
+        mark_agent_job_queued_if_allowed(
+            inspection_id,
+            message["job_id"],
+            agentic_error=None,
+            agentic_confidence_before=confidence_before,
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_DECISION",
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
     try:
         response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
@@ -898,7 +1153,7 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
     except Exception as exc:
         error = f"enhance_region enqueue failed: {type(exc).__name__}: {exc}"
         mark_enqueue_failed(inspection_id, message["job_id"], error)
-        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        mark_agent_enqueue_failed_if_active(inspection_id, message["job_id"], error)
         raise HTTPException(status_code=503, detail=error) from exc
 
     mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
@@ -994,7 +1249,7 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
         },
     }
     if job_record.get("status") == "COMPLETE":
-        update_inspection(
+        _restore_cached_agent_completion(
             inspection_id,
             agentic_status="COMPLETE",
             active_agent_job_id=message["job_id"],
@@ -1025,16 +1280,21 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
             note="Identical inspect_other_angle request is already queued or processing.",
         )
 
-    update_inspection(
-        inspection_id,
-        agentic_status="QUEUED",
-        agentic_error=None,
-        active_agent_job_id=message["job_id"],
-        agentic_confidence_before=confidence_before,
-        agentic_decision="CALL_TOOL",
-        agentic_tool_call=tool_call,
-        last_agentic_event="AGENT_DECISION",
-    )
+    try:
+        mark_agent_job_queued_if_allowed(
+            inspection_id,
+            message["job_id"],
+            agentic_error=None,
+            agentic_confidence_before=confidence_before,
+            agentic_decision="CALL_TOOL",
+            agentic_tool_call=tool_call,
+            last_agentic_event="AGENT_DECISION",
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
     try:
         response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
@@ -1050,7 +1310,7 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
     except Exception as exc:
         error = f"inspect_other_angle enqueue failed: {type(exc).__name__}: {exc}"
         mark_enqueue_failed(inspection_id, message["job_id"], error)
-        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        mark_agent_enqueue_failed_if_active(inspection_id, message["job_id"], error)
         raise HTTPException(status_code=503, detail=error) from exc
 
     mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
@@ -1292,7 +1552,7 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             Body=json.dumps(trace, indent=2).encode("utf-8"),
             ContentType="application/json",
         )
-        update_inspection(
+        _restore_cached_agent_completion(
             inspection_id,
             agentic_status="COMPLETE",
             agentic_error=None,
@@ -1335,7 +1595,7 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
         },
     }
     if job_record.get("status") == "COMPLETE":
-        update_inspection(
+        _restore_cached_agent_completion(
             inspection_id,
             agentic_status="COMPLETE",
             active_agent_job_id=message["job_id"],
@@ -1370,16 +1630,21 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
             note="Identical Step-22 policy investigation is already queued or processing.",
         )
 
-    update_inspection(
-        inspection_id,
-        agentic_status="QUEUED",
-        agentic_error=None,
-        active_agent_job_id=message["job_id"],
-        agentic_confidence_before=confidence_before,
-        agentic_decision="POLICY_INVESTIGATION",
-        agentic_tool_call=tool_call,
-        last_agentic_event="DECISION_POLICY_STARTED",
-    )
+    try:
+        mark_agent_job_queued_if_allowed(
+            inspection_id,
+            message["job_id"],
+            agentic_error=None,
+            agentic_confidence_before=confidence_before,
+            agentic_decision="POLICY_INVESTIGATION",
+            agentic_tool_call=tool_call,
+            last_agentic_event="DECISION_POLICY_STARTED",
+        )
+    except CancellationConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=str(exc),
+        ) from exc
     try:
         response = send_processing_message(
             QueueUrl=settings.processing_queue_url,
@@ -1395,7 +1660,7 @@ def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -
     except Exception as exc:
         error = f"Decision-policy enqueue failed: {type(exc).__name__}: {exc}"
         mark_enqueue_failed(inspection_id, message["job_id"], error)
-        update_inspection(inspection_id, agentic_status="FAILED", agentic_error=error)
+        mark_agent_enqueue_failed_if_active(inspection_id, message["job_id"], error)
         raise HTTPException(status_code=503, detail=error) from exc
     mark_processing_job_enqueued(inspection_id, message["job_id"], response.get("MessageId"))
     return AgenticRunResponse(

@@ -16,6 +16,18 @@
     .purpose { display: flex; align-items: center; gap: 9px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; }
     button { width: 100%; margin-top: 18px; padding: 13px 16px; border: 0; border-radius: 10px; color: white; background: #166534; font-size: 1rem; font-weight: 700; cursor: pointer; }
     button:disabled { cursor: wait; opacity: .6; }
+    .cancel-inspection {
+      margin-top: 14px;
+      background: #fff;
+      color: #991b1b;
+      border: 1px solid #b91c1c;
+    }
+    .cancel-inspection:hover:not(:disabled) {
+      background: #fef2f2;
+    }
+    .cancel-inspection:disabled {
+      cursor: not-allowed;
+    }
     .steps { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
     .step { display: flex; gap: 10px; align-items: flex-start; color: #7b8495; }
     .step .mark { width: 22px; text-align: center; font-weight: 800; }
@@ -178,6 +190,12 @@
     </div>
     <progress id="stage-progress" max="100" aria-label="Current stage progress" style="width:100%"></progress>
     <p id="stage-wait" class="muted"></p>
+    <button type="button" id="cancel-inspection"
+      class="cancel-inspection" disabled>
+      Cancel inspection
+    </button>
+    <p id="cancel-status" class="issue-note"
+      role="status" aria-live="polite" hidden></p>
     <ul class="steps">
       <li class="step" id="step-upload"><span class="mark">○</span><span>Video uploaded</span></li>
       <li class="step" id="step-read"><span class="mark">○</span><span>Reading video</span></li>
@@ -268,6 +286,26 @@
 const runButton = document.getElementById("run");
 const errorEl = document.getElementById("error");
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Step 53: each run owns its cancellation state.
+// Keeping the run object avoids confusing an old canceled
+// request with a new inspection started later.
+let activeWorkflow = null;
+const AGENT_LAUNCH_CANCELLATION_TIMEOUT_MS = 5000;
+
+class InspectionCanceled extends Error {
+  constructor() {
+    super("Inspection cancellation requested.");
+    this.name = "InspectionCanceled";
+  }
+}
+
+function throwIfWorkflowCancelled(workflow, allowed = false) {
+  if (workflow?.cancelRequested && !allowed) {
+    throw new InspectionCanceled();
+  }
+}
+
 let activeConfidenceScale = {
   bands: [
     {label: "Low", minimum_inclusive: 0.0, maximum_exclusive: 0.60},
@@ -275,6 +313,156 @@ let activeConfidenceScale = {
     {label: "High", minimum_inclusive: 0.80, maximum_inclusive: 1.0}
   ]
 };
+
+
+// Step 53: decide which backend job must be stopped.
+// Cancellation calls use allowDuringCancellation because
+// ordinary workflow API requests are blocked after Cancel.
+async function requestBackendCancellation(workflow) {
+  if (!workflow || !workflow.cancelRequested) {
+    throw new Error("No cancellation has been requested.");
+  }
+
+  if (!workflow.inspectionId) {
+    return {
+      status: "WAITING_FOR_ID",
+      scope: "pending",
+      message: "Waiting for the inspection ID before requesting cancellation."
+    };
+  }
+
+  // A submitted agent request may not have registered its job yet.
+  // Wait for the HTTP response before reading authoritative job state.
+  const pendingLaunch = workflow.pendingAgentLaunch;
+
+  if (pendingLaunch) {
+    showCancellationMessage(
+      "Waiting for the AI start request to finish so its job can be canceled."
+    );
+
+    // Never wait indefinitely for an HTTP request that may be stuck.
+    // A timeout means UNKNOWN, not successful cancellation.
+    let timeoutId;
+
+    try {
+      await Promise.race([
+        pendingLaunch,
+        new Promise((resolve, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error(
+              "The AI start request has not finished. " +
+              "Backend cancellation is not yet confirmed."
+            )),
+            AGENT_LAUNCH_CANCELLATION_TIMEOUT_MS
+          );
+        })
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  const id = encodeURIComponent(workflow.inspectionId);
+
+  const primary = await api(
+    `/inspections/${id}/status`,
+    {allowDuringCancellation: true}
+  );
+
+  if (primary.status === "COMPLETE") {
+    // The primary video report is preserved.
+    // Only an active follow-up investigation can be canceled.
+    const agent = await api(
+      `/inspections/${id}/agent`,
+      {allowDuringCancellation: true}
+    );
+
+    const agentActive = [
+      "PENDING_ENQUEUE",
+      "QUEUED",
+      "RETRY_PENDING",
+      "PROCESSING",
+      "CANCEL_REQUESTED"
+    ].includes(agent.status);
+
+    if (agentActive) {
+      const response = await api(
+        `/inspections/${id}/agent/cancel`,
+        {
+          method: "POST",
+          allowDuringCancellation: true
+        }
+      );
+
+      return {
+        ...response,
+        scope: "agent"
+      };
+    }
+
+    if (agent.status === "CANCELLED") {
+      return {
+        status: "CANCELLED",
+        scope: "agent",
+        message: "AI investigation canceled. The completed video evidence is preserved."
+      };
+    }
+
+    return {
+      status: "UI_ONLY",
+      scope: "local",
+      message: "No active AI job was found. The page will stop requesting new work; any server operation already underway may continue."
+    };
+  }
+
+  if (primary.status === "CANCELLED") {
+    return {
+      status: "CANCELLED",
+      scope: "primary",
+      message: "Primary inspection cancellation completed."
+    };
+  }
+
+  if (primary.status === "FAILED") {
+    return {
+      status: "UI_ONLY",
+      scope: "local",
+      message: "The primary job has already failed. No active job was confirmed for cancellation."
+    };
+  }
+
+  const primaryActive = [
+    "CREATED",
+    "UPLOAD_PENDING",
+    "UPLOADED",
+    "PENDING_ENQUEUE",
+    "QUEUED",
+    "RETRY_PENDING",
+    "PROCESSING",
+    "CANCEL_REQUESTED"
+  ].includes(primary.status);
+
+  if (primaryActive) {
+    const response = await api(
+      `/inspections/${id}/cancel`,
+      {
+        method: "POST",
+        allowDuringCancellation: true
+      }
+    );
+
+    return {
+      ...response,
+      scope: "primary"
+    };
+  }
+
+  // Unknown states must never be silently treated as
+  // successfully canceled.
+  throw new Error(
+    `Cannot determine cancellation action for inspection status: ${primary.status}`
+  );
+}
 
 function setConfidenceScale(scale) {
   if (Array.isArray(scale?.bands) && scale.bands.length === 3) activeConfidenceScale = scale;
@@ -307,18 +495,104 @@ function formatTimestamp(seconds) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    headers: {"Content-Type": "application/json", ...(options.headers || {}),
-      ...(document.getElementById("access-token").value ?
-        {"Authorization": `Bearer ${document.getElementById("access-token").value}`} : {})}
-  });
-  if (!response.ok) {
-    let message = await response.text();
-    try { message = JSON.parse(message).detail || message; } catch (_) {}
-    throw new Error(message);
+  const {allowDuringCancellation = false, ...requestOptions} = options;
+  const workflow = activeWorkflow;
+
+  // An inspection-creation request must return its ID even
+  // if the user clicks Cancel while the request is in flight.
+  const isInspectionCreation =
+    path === "/inspections" &&
+    (requestOptions.method || "GET").toUpperCase() === "POST";
+
+  const allowed = allowDuringCancellation || isInspectionCreation;
+  throwIfWorkflowCancelled(workflow, allowed);
+
+  // Track only requests which can create agent jobs.
+  // Cancellation must not conclude UI_ONLY while one is in flight.
+  const launchesAgent =
+    workflow &&
+    !allowed &&
+    (requestOptions.method || "GET").toUpperCase() === "POST" &&
+    /^\/inspections\/[^/]+\/agent\/(run|crop|enhance|other-angle|policy)$/.test(path);
+
+  let resolveAgentLaunch = null;
+  let trackedAgentLaunch = null;
+
+  if (launchesAgent) {
+    if (workflow.pendingAgentLaunch) {
+      throw new Error("Another agent launch is already in progress.");
+    }
+
+    trackedAgentLaunch = new Promise(resolve => {
+      resolveAgentLaunch = resolve;
+    });
+
+    workflow.pendingAgentLaunch = trackedAgentLaunch;
   }
-  return response.json();
+
+  try {
+  const response = await fetch(path, {
+      ...requestOptions,
+      headers: {"Content-Type": "application/json", ...(requestOptions.headers || {}),
+        ...(document.getElementById("access-token").value ?
+          {"Authorization": `Bearer ${document.getElementById("access-token").value}`} : {})}
+    });
+
+    // A response arriving after cancellation must not advance
+    // the old inspection workflow.
+    throwIfWorkflowCancelled(workflow, allowed);
+
+    if (!response.ok) {
+      let message = await response.text();
+      throwIfWorkflowCancelled(workflow, allowed);
+      try { message = JSON.parse(message).detail || message; } catch (_) {}
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+
+    if (
+      !allowed &&
+      workflow &&
+      (path.endsWith("/status") || path.endsWith("/agent")) &&
+      ["CANCEL_REQUESTED", "CANCELLED"].includes(result?.status)
+    ) {
+      workflow.cancelRequested = true;
+      throw new InspectionCanceled();
+    }
+
+    throwIfWorkflowCancelled(workflow, allowed);
+    return result;  } finally {
+    if (resolveAgentLaunch) {
+      if (workflow.pendingAgentLaunch === trackedAgentLaunch) {
+        workflow.pendingAgentLaunch = null;
+      }
+      resolveAgentLaunch();
+
+      // If cancellation timed out, a late successful AI launch
+      // must trigger another cancellation attempt automatically.
+      // Wait for any earlier cancellation task to finish first.
+      if (
+        workflow.cancelRequested &&
+        workflow.inspectionId &&
+        !workflow.cancelAccepted &&
+        activeWorkflow === workflow
+      ) {
+        void Promise.resolve(workflow.cancelTask)
+          .catch(() => null)
+          .then(() => {
+            if (
+              activeWorkflow === workflow &&
+              workflow.cancelRequested &&
+              !workflow.cancelAccepted &&
+              !workflow.cancelTask
+            ) {
+              return beginBackendCancellation(workflow);
+            }
+          });
+      }
+    }
+  }
 }
 
 // Step 51: a finished technical operation is not necessarily a confirmed finding.
@@ -1055,9 +1329,151 @@ async function renderResults(id, response) {
   document.getElementById("results").hidden = false;
 }
 
+// Step 53: retain the active upload controller for cancellation.
+let activeUploadController = null;
+
+// Step 53: browser cancellation controls.
+const cancelButton = document.getElementById("cancel-inspection");
+const cancelStatusElement = document.getElementById("cancel-status");
+
+function showCancellationMessage(message) {
+  cancelStatusElement.textContent = message;
+  cancelStatusElement.hidden = false;
+  document.getElementById("stage-message").textContent = message;
+}
+
+async function beginBackendCancellation(workflow) {
+  if (!workflow?.cancelRequested) {
+    throw new Error("Cancellation was not requested.");
+  }
+
+  // Avoid duplicate cancellation requests from repeated clicks.
+  if (workflow.cancelTask) return workflow.cancelTask;
+
+  if (!workflow.inspectionId) {
+    showCancellationMessage(
+      "Stopping this page. Waiting for the inspection ID before contacting the server."
+    );
+    return {status: "WAITING_FOR_ID"};
+  }
+
+  cancelButton.disabled = true;
+  showCancellationMessage(
+    "Requesting cancellation from RentReady Vision..."
+  );
+
+  const task = requestBackendCancellation(workflow)
+    .then(result => {
+      workflow.cancelResult = result;
+      workflow.cancelError = null;
+
+      if (activeWorkflow !== workflow) return result;
+
+      if (result.status === "CANCELLED") {
+        workflow.cancelAccepted = true;
+        runButton.disabled = false;
+        showCancellationMessage(
+          result.message || "Inspection cancellation completed."
+        );
+      } else if (result.status === "CANCEL_REQUESTED") {
+        workflow.cancelAccepted = true;
+        runButton.disabled = false;
+        showCancellationMessage(
+          "Cancellation requested successfully. " +
+          "The worker may still be stopping; completion is not yet confirmed."
+        );
+      } else if (result.status === "UI_ONLY") {
+        workflow.cancelAccepted = true;
+        runButton.disabled = false;
+        showCancellationMessage(result.message);
+      } else if (result.status === "WAITING_FOR_ID") {
+        showCancellationMessage(result.message);
+      } else {
+        showCancellationMessage(
+          `Cancellation returned status ${result.status}. ` +
+          "Server cancellation is not yet confirmed."
+        );
+      }
+
+      return result;
+    })
+    .catch(error => {
+      workflow.cancelError = error;
+
+      if (activeWorkflow === workflow) {
+        showCancellationMessage(
+          "Unable to confirm backend cancellation: " +
+          (error instanceof Error ? error.message : String(error)) +
+          ". Select Retry cancellation."
+        );
+
+        cancelButton.textContent = "Retry cancellation";
+        cancelButton.disabled = false;
+      }
+
+      return null;
+    })
+    .finally(() => {
+      if (workflow.cancelTask === task) {
+        workflow.cancelTask = null;
+      }
+    });
+
+  workflow.cancelTask = task;
+  return task;
+}
+
+cancelButton.onclick = () => {
+  const workflow = activeWorkflow;
+
+  if (!workflow) return;
+
+  if (!workflow.cancelRequested) {
+    // Stop the page from starting any further AI stages.
+    workflow.cancelRequested = true;
+
+    // Abort the active browser-to-S3 upload, if present.
+    // Previously uploaded evidence is not deleted.
+    if (activeUploadController) {
+      activeUploadController.abort();
+    }
+  }
+
+  cancelButton.disabled = true;
+
+  if (!workflow.inspectionId) {
+    showCancellationMessage(
+      "Cancel requested. Waiting for inspection creation to finish " +
+      "so the server can cancel it too."
+    );
+    return;
+  }
+
+  // Errors are handled by beginBackendCancellation so there
+  // is no unhandled promise rejection from the click handler.
+  void beginBackendCancellation(workflow);
+};
+
 runButton.onclick = async () => {
   const file = document.getElementById("file").files[0];
   if (!file) return alert("Choose an MP4 or MOV video first.");
+
+  const workflow = {
+    inspectionId: null,
+    pendingAgentLaunch: null,
+    cancelRequested: false,
+    cancelAccepted: false,
+    cancelResult: null,
+    cancelError: null,
+    cancelTask: null
+  };
+
+  activeWorkflow = workflow;
+
+  cancelButton.textContent = "Cancel inspection";
+  cancelButton.disabled = false;
+  cancelStatusElement.textContent = "";
+  cancelStatusElement.hidden = true;
 
   runButton.disabled = true;
   errorEl.style.display = "none";
@@ -1081,21 +1497,42 @@ runButton.onclick = async () => {
       })
     });
     const id = inspection.inspection_id;
+    workflow.inspectionId = id;
+
+    if (workflow.cancelRequested) {
+      await beginBackendCancellation(workflow);
+      throw new InspectionCanceled();
+    }
+
     const contentType = file.type || "video/mp4";
     const upload = await api(`/inspections/${id}/upload`, {
       method: "POST",
       body: JSON.stringify({filename: file.name, content_type: contentType, size_bytes: file.size})
     });
-    const put = await fetch(upload.upload_url, {
-      method: "PUT",
-      headers: upload.required_headers,
-      body: file
-    });
+    const uploadController = new AbortController();
+    activeUploadController = uploadController;
+
+    let put;
+    try {
+      put = await fetch(upload.upload_url, {
+        method: "PUT",
+        headers: upload.required_headers,
+        body: file,
+        signal: uploadController.signal
+      });
+    } finally {
+      if (activeUploadController === uploadController) {
+        activeUploadController = null;
+      }
+    }
+
+    throwIfWorkflowCancelled(workflow);
     if (!put.ok) throw new Error(`S3 upload failed with status ${put.status}.`);
     await api(`/inspections/${id}/upload-complete`, {
       method: "POST",
       body: JSON.stringify({filename: file.name, content_type: contentType})
     });
+    throwIfWorkflowCancelled(workflow);
     setStep("upload", "done", "Walkthrough uploaded successfully.");
     setStep("read", "active");
 
@@ -1109,10 +1546,12 @@ runButton.onclick = async () => {
     }
 
     document.getElementById("extract-label").textContent = "Extracting useful frames";
+    throwIfWorkflowCancelled(workflow);
     setStep("read", "done", "Walkthrough was decoded.");
     setStep("extract", "done", "Useful frames were selected for inspection.");
     const frames = await api(`/inspections/${id}/frames`);
 
+    throwIfWorkflowCancelled(workflow);
     setStep("inspect", "active");
     let issueResponse = null;
     let issueWarning = null;
@@ -1120,6 +1559,7 @@ runButton.onclick = async () => {
       issueResponse = await api(`/inspections/${id}/issues/detect`, {method: "POST"});
       setStep("inspect", "done", "Initial issue detection finished; this does not guarantee every defect was found.");
     } catch (issueError) {
+        if (issueError instanceof InspectionCanceled || workflow.cancelRequested) throw new InspectionCanceled();
       issueWarning = issueError instanceof Error ? issueError.message : String(issueError);
       setStep("inspect", "warn", "Detection could not complete. Review the error in the report and try a new analysis if needed.");
     }
@@ -1152,6 +1592,7 @@ runButton.onclick = async () => {
           setStep("agent", "done", "Targeted reinspection finished. Its confidence decision is shown below.");
         }
       } catch (agentError) {
+        if (agentError instanceof InspectionCanceled || workflow.cancelRequested) throw new InspectionCanceled();
         agentWarning = agentError instanceof Error ? agentError.message : String(agentError);
         setStep("agent", "warn", "Targeted reinspection failed; the initial evidence remains available.");
       }
@@ -1194,6 +1635,7 @@ runButton.onclick = async () => {
           setStep("enhance", "done", "Comparison images are ready; the original evidence was preserved.");
         }
       } catch (enhancementError) {
+        if (enhancementError instanceof InspectionCanceled || workflow.cancelRequested) throw new InspectionCanceled();
         enhancementWarning = enhancementError instanceof Error ? enhancementError.message : String(enhancementError);
         setStep("enhance", "warn", "The enhanced comparison failed; original evidence is unchanged.");
       }
@@ -1248,6 +1690,7 @@ runButton.onclick = async () => {
           }
         }
       } catch (otherAngleError) {
+        if (otherAngleError instanceof InspectionCanceled || workflow.cancelRequested) throw new InspectionCanceled();
         otherAngleWarning = otherAngleError instanceof Error ? otherAngleError.message : String(otherAngleError);
         setStep("angle", "warn",
           "Nearby-view search failed technically. The existing finding is not verified; try a new analysis or request review.");
@@ -1298,6 +1741,7 @@ runButton.onclick = async () => {
           }
         }
       } catch (policyError) {
+        if (policyError instanceof InspectionCanceled || workflow.cancelRequested) throw new InspectionCanceled();
         policyWarning = policyError instanceof Error ? policyError.message : String(policyError);
         setStep("policy", "warn", "Decision policy failed; do not treat a candidate as verified.");
         setStep("audit", "warn", "A complete decision audit trail is unavailable.");
@@ -1308,14 +1752,20 @@ runButton.onclick = async () => {
       setStep("audit", "skipped", "No decision was made to record.");
     }
 
+    throwIfWorkflowCancelled(workflow);
     setStep("report", "active");
+    throwIfWorkflowCancelled(workflow);
     await renderResults(id, frames);
+    throwIfWorkflowCancelled(workflow);
     await renderIssues(issueResponse, issueWarning, id);
     renderAgentic(agentResponse, agentWarning);
+    throwIfWorkflowCancelled(workflow);
     await renderEnhancement(id, enhancementResponse, enhancementWarning, enhancementViews);
+    throwIfWorkflowCancelled(workflow);
     await renderOtherAngles(id, otherAngleResponse, otherAngleWarning, otherAngleViews);
     renderDecisionPolicy(policyResponse, policyWarning);
     renderAgentInvestigation(policyResponse, policyWarning);
+    throwIfWorkflowCancelled(workflow);
     setStep("report", "done", "The available report and rental checklist are ready.");
     const failed = document.querySelector("#progress-card .step.warn");
     const uncertain = document.querySelector("#progress-card .step.no-view");
@@ -1325,16 +1775,66 @@ runButton.onclick = async () => {
     document.getElementById("stage-progress").value = 100;
     document.getElementById("stage-counts").textContent = "";
   } catch (error) {
-    const active = document.querySelector("#progress-card .step.active, #progress-card .step.retry");
+    if (error instanceof InspectionCanceled || workflow.cancelRequested) {
+      workflow.cancelRequested = true;
+
+      // Wait for the already-started cancellation request,
+      // or initiate it if cancellation was observed remotely.
+      if (workflow.inspectionId) {
+        if (!workflow.cancelResult && !workflow.cancelError) {
+          await beginBackendCancellation(workflow);
+        }
+      } else {
+        showCancellationMessage(
+          "The workflow stopped, but the inspection ID is unavailable. " +
+          "Backend cancellation could not be confirmed."
+        );
+      }
+
+      const active = document.querySelector(
+        "#progress-card .step.active, #progress-card .step.retry"
+      );
+
+      if (active) {
+        setStep(
+          active.id.slice(5),
+          "skipped",
+          "Stopped by request. Previously completed evidence is preserved."
+        );
+      }
+
+      errorEl.style.display = "none";
+      document.getElementById("stage-progress").hidden = true;
+    } else {
+      const active = document.querySelector("#progress-card .step.active, #progress-card .step.retry");
     if (active) setStep(active.id.slice(5), "warn", "This stage could not finish. Check the error below; a new analysis may be needed.");
     errorEl.textContent = error instanceof Error ? error.message : String(error);
     errorEl.style.display = "block";
     document.getElementById("stage-message").textContent = "Processing could not continue in this page. See the error below.";
     document.getElementById("stage-progress").hidden = true;
+    }
   } finally {
     if (progressClock) clearInterval(progressClock);
     progressClock = null;
-    runButton.disabled = false;
+
+    if (activeWorkflow === workflow) {
+      const needsRetry = Boolean(
+        workflow.cancelRequested &&
+        workflow.inspectionId &&
+        !workflow.cancelAccepted
+      );
+
+      runButton.disabled = needsRetry;
+      cancelButton.disabled = !needsRetry;
+
+      if (needsRetry) {
+        cancelButton.textContent = "Retry cancellation";
+      }
+
+      if (!workflow.cancelRequested) {
+        activeWorkflow = null;
+      }
+    }
   }
 };
 </script>
