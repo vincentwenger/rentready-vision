@@ -894,3 +894,25 @@ repository suite passed **87 tests**. See [`evaluation/step50/`](evaluation/step
 for the deployment receipts and captured browser evidence. Retry/lease fencing
 is covered by repository tests; a forced live retry was not performed. This
 progress check does not establish detector accuracy.
+
+## Step 53 ? Cancel inspection ? DEPLOYED / PRIMARY LIVE PASS
+
+Step 53 adds cancellation during video uploads, queued processing,
+active processing, and supported agent follow-up operations.
+
+Cancellation uses guarded DynamoDB transitions and worker checkpoints
+to distinguish `CANCEL_REQUESTED` from `CANCELLED` and prevent
+cancelled jobs from publishing normal completion results.
+
+**Validation:** 720 tests passed, 1 skipped (two historical detector
+evaluation modules excluded). The live AWS test confirmed that both
+the inspection and processing job reached `CANCELLED` during active
+frame extraction.
+
+**Deployed source:** `051fd9855602`. API and COOL worker deployment
+succeeded. Automatic idle shutdown was restored; its final EC2 stop
+after this live test was not separately confirmed.
+
+See [Step 53 ? Cancel Inspection](STEP53_CANCEL_INSPECTION.md)
+for implementation details, deployment verification, test evidence,
+and remaining UX improvements.
