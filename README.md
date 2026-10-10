@@ -2,7 +2,7 @@
 
 **Walk through once. Know what to fix before you rent.**
 
-[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md)
+[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md)
 
 RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
 
@@ -115,6 +115,7 @@ python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test
 
 | Topic | Evidence |
 | --- | --- |
+| Technical report | [RentReady Vision technical report](TECHNICAL_REPORT.md) |
 | Architecture / COOL runtime | [COOL launch](COOL_AWS_LAUNCH.md), [deployment hardening](STEP38_AWS_COOL_HARDENING.md), [hosting](STEP40_HOSTING.md) |
 | Evaluation / holdout | [Step 48 results](STEP48_RESULTS.md), [protocol](STEP48_PROTOCOL.md), [Step 35 contribution](STEP35_OPENCV_CONTRIBUTION.md), [Step 37 failures](STEP37_FAILURE_CASES.md) |
 | Agentic Vision / human control | [Steps 18](STEP18_AGENTIC_VISION.md), [22](STEP22_DECISION_POLICY.md), [23](STEP23_AGENT_ACTION_LOG.md), [36](STEP36_AGENTIC_VERIFICATION.md) |
