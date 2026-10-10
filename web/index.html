@@ -134,6 +134,19 @@
     .evidence-label, .action-label { margin: 18px 0 5px; color: #64748b; font-size: .75rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
     .evidence-range { margin: 0 0 10px; font-weight: 800; }
     .report-evidence-image { width: 100%; max-height: 460px; object-fit: contain; display: block; background: #e2e8f0; }
+    .report-evidence-image-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .report-evidence-bbox {
+      position: absolute;
+      box-sizing: border-box;
+      border: 3px solid #dc2626;
+      border-radius: 3px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.85);
+      pointer-events: none;
+      z-index: 1;
+    }
     .evidence-unavailable { display: grid; min-height: 180px; place-items: center; padding: 24px; color: #64748b; background: #f1f5f9; text-align: center; }
     .evidence-summary, .recommended-action { margin: 12px 0 0; line-height: 1.6; }
     .video-link { width: auto; margin-top: 16px; padding: 10px 13px; background: #166534; font-size: .9rem; }
@@ -894,7 +907,69 @@ async function renderReportIssue(inspectionId, issue) {
       img.src = image.url;
       img.alt = `${issue.title} evidence at ${formatTimestamp(issue.representative_timestamp_seconds)}`;
       img.loading = "lazy";
-      card.append(img);
+
+      const imageWrap = document.createElement("div");
+      imageWrap.className = "report-evidence-image-wrap";
+      imageWrap.append(img);
+
+      const bbox = issue.bbox;
+
+      if (
+        bbox &&
+        [bbox.x, bbox.y, bbox.width, bbox.height].every(
+          value => typeof value === "number" && Number.isFinite(value)
+        ) &&
+        bbox.x >= 0 &&
+        bbox.y >= 0 &&
+        bbox.width > 0 &&
+        bbox.height > 0 &&
+        bbox.x + bbox.width <= 1.000001 &&
+        bbox.y + bbox.height <= 1.000001
+      ) {
+        const marker = document.createElement("div");
+        marker.className = "report-evidence-bbox";
+        marker.setAttribute("aria-hidden", "true");
+        imageWrap.append(marker);
+
+        const placeMarker = () => {
+          if (!img.naturalWidth || !img.naturalHeight) return;
+
+          const boxWidth = img.clientWidth;
+          const boxHeight = img.clientHeight;
+          if (!boxWidth || !boxHeight) return;
+
+          const scale = Math.min(
+            boxWidth / img.naturalWidth,
+            boxHeight / img.naturalHeight
+          );
+
+          const displayedWidth = img.naturalWidth * scale;
+          const displayedHeight = img.naturalHeight * scale;
+
+          const offsetX = (boxWidth - displayedWidth) / 2;
+          const offsetY = (boxHeight - displayedHeight) / 2;
+
+          marker.style.left =
+            `${offsetX + bbox.x * displayedWidth}px`;
+          marker.style.top =
+            `${offsetY + bbox.y * displayedHeight}px`;
+          marker.style.width =
+            `${bbox.width * displayedWidth}px`;
+          marker.style.height =
+            `${bbox.height * displayedHeight}px`;
+        };
+
+        img.addEventListener("load", placeMarker);
+
+        if (typeof ResizeObserver !== "undefined") {
+          const observer = new ResizeObserver(placeMarker);
+          observer.observe(img);
+        }
+
+        if (img.complete) placeMarker();
+      }
+
+      card.append(imageWrap);
     } catch (_) {
       const unavailable = document.createElement("div");
       unavailable.className = "evidence-unavailable";

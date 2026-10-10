@@ -161,6 +161,7 @@ def _report_issue(issue: dict[str, Any]) -> dict[str, Any]:
             if issue.get("evidence_frame_index") is not None
             else (frame_indices[0] if frame_indices else None)
         ),
+        "bbox": dict(issue["bbox"]) if isinstance(issue.get("bbox"), dict) else None,
         "evidence_summary": _evidence_summary(issue, timestamps),
         "recommended_action": _recommendation(issue),
     }
