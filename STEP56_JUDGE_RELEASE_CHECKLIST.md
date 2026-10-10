@@ -28,10 +28,10 @@ git diff --check
 - **Full results:** **727 passed, 1 skipped, 1 non-failing Starlette/httpx deprecation warning** in 39.46 seconds. Exactly the two historical detector-evaluation modules above were excluded.
 - **Bytecode cleanup:** 26 tracked `.pyc` artifacts removed from the **current PR branch** (commit `8e5e2fd`). Those files remain in Git history; no history rewrite has occurred.
 - **Preliminary secret/history checks:** source scanner checked 937 local text files with no known secret-pattern findings. A separate patch-added-line history scan checked 182,326 lines, with no AWS-key/private-key/signed-URL/email matches; three possible address-path matches were investigated and found to use one fictional test property label. This is a limited pattern review, **not** complete history/binary safety certification.
-- **Screenshot contact sheet:** 13 tracked Step 50 images received a preliminary low-resolution visual review; full-resolution review remains outstanding.
+- **Screenshot review:** all 13 Step 50 PNGs reviewed individually at original resolution in Step 56.15; no visible personal names, property addresses, email, credentials, people, property photographs, or private documents. Uploaded PNG copies were checked for EXIF/extra metadata and no such fields were present. This addresses the 13 screenshots only, not other repository artifacts.
 - **Step 56.14 current tracked text scan:** 648 tracked text files examined; 0 email, AWS-key, signed S3 URL, or private-key pattern matches. The only three filename locations with apparent street-address matches were the previously verified fictional Step 28 property-label fixture (7 occurrences in total). Worktree clean after the scan. This is not a binary-artifact, full history, or comprehensive personal-data audit.
 
-**Still pending:** full screenshot and JSON audit, a complete historical secret review, local sample-video reproducibility, COOL/worker dependency reproducibility and judge-access validation. No public-release approval is implied.
+**Still pending:** broader JSON/artifact privacy audit, a complete historical secret review, local sample-video reproducibility, COOL/worker dependency reproducibility and judge-access validation. No public-release approval is implied.
 
 ## Reproducibility acceptance
 
