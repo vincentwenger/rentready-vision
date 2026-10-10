@@ -89,6 +89,18 @@ python -m scripts.process_local path/to/consented-test-video.mp4 --out local-out
 
 Local OpenCV output is **not** the complete authenticated AWS/Bedrock report. Installing locked requirements provides the stock development OpenCV build, not the official COOL runtime. To run broader offline tests, use `python -m pytest -q`; historically, two evaluation-oriented modules have been excluded from some published regression counts, so do not interpret selected-suite counts as an unconditional all-tests pass. AWS and model calls require separate access and can incur charges.
 
+## Browser regression tests (optional test tooling)
+
+Step 54's real Chromium overlay test and Step 52's report-batching browser test require Playwright. These tools are **not** needed in the production API or COOL worker environment. In a clean Python 3.12 virtual environment, run:
+
+```bash
+python -m pip install -r requirements-browser-tests.txt
+python -m playwright install chromium
+python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test_step52_report_browser.py tests/test_step54_report_rectangles.py
+```
+
+[`requirements-browser-tests.txt`](requirements-browser-tests.txt) specifies Playwright 1.62.0, pyee 13.0.1 and greenlet 3.5.6 on top of the application's hash-bearing lock. **Step 56.11A** confirmed the video-processor and Step 54 subset (19 tests passed on Python 3.12.10); the combined command above, which also includes Step 52, still needs a fresh run. The browser install downloads a matching Chromium build to the local Playwright browser cache. Browser tests use synthetic fixture images and locally intercepted network requests, not paid AWS inference.
+
 ## Dependencies and reproducible cloud setup
 
 - [`requirements.in`](requirements.in) specifies direct Python dependency versions; [`requirements.txt`](requirements.txt) references the fully pinned, hash-bearing [`requirements.lock.txt`](requirements.lock.txt).
