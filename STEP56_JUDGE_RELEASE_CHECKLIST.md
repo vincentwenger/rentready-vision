@@ -19,6 +19,19 @@ git diff --check
 - Inspect tracked `__pycache__` and `.pyc` files, then remove them via a separately reviewed commit if safe. Adding a `.gitignore` rule alone does not untrack previously committed files.
 - Do not alter frozen holdout videos, manifest hashes or labels, and do not silently remove failed predictions. Where privacy and frozen-evaluation artifacts conflict, preserve private frozen originals separately and publish only appropriately sanitized summaries.
 
+## Step 56 verification record — October 10, 2026
+
+- **Commit under test:** `e00cae4` on the Step 56 documentation branch.
+- **Clean local test environment:** Windows; Python 3.12.10; installed from `requirements.txt` (which references `requirements.lock.txt`). Browser tests use `requirements-browser-tests.txt` with Playwright 1.62.0; matching Chromium installed separately.
+- **Focused tests:** 20 passed in 10.82 seconds (`test_video_processor.py`, `test_step52_report_browser.py`, `test_step54_report_rectangles.py`).
+- **Full regression command:** `python -B -m pytest -q -p no:cacheprovider --ignore=tests/test_step34d_freeze.py --ignore=tests/test_step35_measurement.py` with dummy AWS credentials and EC2 metadata discovery disabled.
+- **Full results:** **727 passed, 1 skipped, 1 non-failing Starlette/httpx deprecation warning** in 39.46 seconds. Exactly the two historical detector-evaluation modules above were excluded.
+- **Bytecode cleanup:** 26 tracked `.pyc` artifacts removed from the **current PR branch** (commit `8e5e2fd`). Those files remain in Git history; no history rewrite has occurred.
+- **Preliminary secret/history checks:** source scanner checked 937 local text files with no known secret-pattern findings. A separate patch-added-line history scan checked 182,326 lines, with no AWS-key/private-key/signed-URL/email matches; three possible address-path matches were investigated and found to use one fictional test property label. This is a limited pattern review, **not** complete history/binary safety certification.
+- **Screenshot contact sheet:** 13 tracked Step 50 images received a preliminary low-resolution visual review; full-resolution review remains outstanding.
+
+**Still pending:** exact test-only Moto pin, full screenshot and JSON audit, a complete historical secret review, local sample-video reproducibility, COOL/worker dependency reproducibility and judge-access validation. No public-release approval is implied.
+
 ## Reproducibility acceptance
 
 - Confirm `requirements.txt` installs `requirements.lock.txt` in a clean Python 3.12 environment. Keep the authoritative COOL runtime separate from pip OpenCV.
