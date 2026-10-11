@@ -10,6 +10,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from ..aws import s3, sqs
 from ..config import get_settings
+from ..public_mode import (public_context, create_public_inspection, upload_limit, url_ttl, once_public)
 from ..worker_dispatch import send_processing_message, worker_status
 from ..security_config import get_security_settings
 from ..storage import (VIDEO_TAG, VIDEO_TAGGING, inspection_prefix, prefix_for_record,
@@ -174,7 +175,8 @@ def _restore_cached_agent_completion(
 @router.post("", response_model=CreateInspectionResponse, status_code=status.HTTP_201_CREATED)
 def create_inspection_route(payload: CreateInspectionRequest) -> CreateInspectionResponse:
     inspection_id = str(uuid4())
-    item = create_inspection(inspection_id, purpose=payload.purpose.value, property_label=payload.property_label)
+    creator = create_public_inspection if public_context.get() is not None else create_inspection
+    item = creator(inspection_id, purpose=payload.purpose.value, property_label=payload.property_label)
     return CreateInspectionResponse(inspection_id=inspection_id, status=InspectionStatus(item["status"]))
 
 
@@ -188,9 +190,9 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
     ext = PurePath(payload.filename).suffix.lower()
     s3_key = f"{prefix_for_record(inspection_id, item)}/original/walkthrough{ext}"
 
-    if security_settings.cloud_mode and payload.size_bytes is None:
+    if (security_settings.cloud_mode or public_context.get() is not None) and payload.size_bytes is None:
         raise HTTPException(status_code=400, detail="Upload size_bytes is required")
-    if payload.size_bytes is not None and payload.size_bytes > settings.max_upload_bytes:
+    if payload.size_bytes is not None and payload.size_bytes > upload_limit(settings.max_upload_bytes):
         raise HTTPException(status_code=413, detail="Video exceeds configured size limit")
     params = {"Bucket": settings.s3_bucket, "Key": s3_key, "ContentType": payload.content_type,
               "Tagging": VIDEO_TAGGING, "ServerSideEncryption": "AES256", "IfNoneMatch": "*"}
@@ -200,7 +202,7 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
     upload_url = s3.generate_presigned_url(
         ClientMethod="put_object",
         Params=params,
-        ExpiresIn=settings.presigned_url_ttl_seconds,
+        ExpiresIn=url_ttl(settings.presigned_url_ttl_seconds),
         HttpMethod="PUT",
     )
 
@@ -224,7 +226,7 @@ def create_upload_url(inspection_id: str, payload: CreateUploadUrlRequest) -> Up
         inspection_id=inspection_id,
         upload_url=upload_url,
         s3_key=s3_key,
-        expires_in_seconds=settings.presigned_url_ttl_seconds,
+        expires_in_seconds=url_ttl(settings.presigned_url_ttl_seconds),
         required_headers={"Content-Type": payload.content_type, "x-amz-tagging": VIDEO_TAGGING,
                           "x-amz-server-side-encryption": "AES256", "If-None-Match": "*"},
     )
@@ -253,7 +255,7 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
     size = int(head.get("ContentLength", 0))
     if size <= 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
-    if size > settings.max_upload_bytes:
+    if size > upload_limit(settings.max_upload_bytes):
         raise HTTPException(status_code=413, detail="Uploaded file exceeds configured size limit")
     if head.get("ContentType") != item["content_type"] or head.get("ServerSideEncryption") != "AES256":
         raise HTTPException(status_code=400, detail="Uploaded object content type or encryption is invalid")
@@ -295,6 +297,7 @@ def upload_complete(inspection_id: str, payload: UploadCompleteRequest) -> Inspe
 
 
 @router.post("/{inspection_id}/process", status_code=status.HTTP_202_ACCEPTED)
+@once_public("process")
 def start_processing(inspection_id: str, background_tasks: BackgroundTasks) -> dict:
     item = _require_inspection(inspection_id)
     if item["status"] not in {"UPLOADED", "FAILED", "COMPLETE", "QUEUED", "RETRY_PENDING", "PROCESSING"}:
@@ -616,6 +619,7 @@ def get_frames(inspection_id: str) -> FramesResponse:
 
 
 @router.post("/{inspection_id}/issues/detect", response_model=IssuesResponse)
+@once_public("detect")
 def detect_issues(inspection_id: str, force: bool = False) -> IssuesResponse:
     item = _require_inspection(inspection_id)
     if item.get("status") != "COMPLETE":
@@ -729,7 +733,7 @@ def get_frame_urls(inspection_id: str) -> dict:
             status_code=409, detail=str(exc)
         ) from exc
 
-    ttl = settings.presigned_url_ttl_seconds
+    ttl = url_ttl(settings.presigned_url_ttl_seconds)
 
     frames = [
         {
@@ -763,9 +767,9 @@ def get_frame_url(inspection_id: str, frame_index: int) -> dict:
     url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},
-        ExpiresIn=settings.presigned_url_ttl_seconds,
+        ExpiresIn=url_ttl(settings.presigned_url_ttl_seconds),
     )
-    return {"url": url, "expires_in_seconds": settings.presigned_url_ttl_seconds}
+    return {"url": url, "expires_in_seconds": url_ttl(settings.presigned_url_ttl_seconds)}
 
 
 @router.get("/{inspection_id}/video/url")
@@ -784,12 +788,13 @@ def get_video_url(inspection_id: str) -> dict:
     url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.s3_bucket, "Key": key},
-        ExpiresIn=settings.presigned_url_ttl_seconds,
+        ExpiresIn=url_ttl(settings.presigned_url_ttl_seconds),
     )
-    return {"url": url, "expires_in_seconds": settings.presigned_url_ttl_seconds}
+    return {"url": url, "expires_in_seconds": url_ttl(settings.presigned_url_ttl_seconds)}
 
 
 @router.post("/{inspection_id}/agent/run", response_model=AgenticRunResponse, status_code=status.HTTP_202_ACCEPTED)
+@once_public("agent_run")
 def run_agentic_vision(inspection_id: str, payload: AgenticRunRequest) -> AgenticRunResponse:
     item = _require_inspection(inspection_id)
     if item.get("status") != "COMPLETE":
@@ -1051,6 +1056,7 @@ def run_crop_region_tool(inspection_id: str, payload: CropRegionRunRequest) -> A
 
 
 @router.post("/{inspection_id}/agent/enhance", response_model=AgenticRunResponse, status_code=status.HTTP_202_ACCEPTED)
+@once_public("agent_enhance")
 def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest) -> AgenticRunResponse:
     """Run Agent Tool 3 on a copied ROI of the uncertain candidate keyframe."""
     item = _require_inspection(inspection_id)
@@ -1210,6 +1216,7 @@ def run_enhance_region_tool(inspection_id: str, payload: EnhanceRegionRunRequest
     response_model=AgenticRunResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@once_public("agent_angle")
 def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> AgenticRunResponse:
     """Run Agent Tool 4 against the original video and Step-17 candidate bbox."""
     item = _require_inspection(inspection_id)
@@ -1367,6 +1374,7 @@ def run_other_angle_tool(inspection_id: str, payload: OtherAngleRunRequest) -> A
     response_model=AgenticRunResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@once_public("agent_policy")
 def run_decision_policy(inspection_id: str, payload: DecisionPolicyRunRequest) -> AgenticRunResponse:
     """Apply Step 22 and run the bounded investigation only when policy requires it."""
     item = _require_inspection(inspection_id)
@@ -1742,7 +1750,7 @@ def get_other_angle_views(inspection_id: str) -> dict:
                 "url": s3.generate_presigned_url(
                     "get_object",
                     Params={"Bucket": settings.s3_bucket, "Key": key},
-                    ExpiresIn=settings.presigned_url_ttl_seconds,
+                    ExpiresIn=url_ttl(settings.presigned_url_ttl_seconds),
                 ),
             }
         )
@@ -1758,7 +1766,7 @@ def get_other_angle_views(inspection_id: str) -> dict:
         "confidence_scale": confidence_contract(),
         "action": trace.get("action"),
         "original_overwritten": (trace.get("evidence_preservation") or {}).get("original_overwritten"),
-        "expires_in_seconds": settings.presigned_url_ttl_seconds,
+        "expires_in_seconds": url_ttl(settings.presigned_url_ttl_seconds),
     }
 
 
@@ -1785,7 +1793,7 @@ def get_agentic_evidence_views(inspection_id: str) -> dict:
             "url": s3.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": settings.s3_bucket, "Key": key},
-                ExpiresIn=settings.presigned_url_ttl_seconds,
+                ExpiresIn=url_ttl(settings.presigned_url_ttl_seconds),
             ),
         }
 
@@ -1795,7 +1803,7 @@ def get_agentic_evidence_views(inspection_id: str) -> dict:
         "enhanced": view("Enhanced inspection view", str(enhanced_key), True),
         "original_overwritten": preservation.get("original_overwritten"),
         "parameters": (trace.get("enhancement_result") or {}).get("request"),
-        "expires_in_seconds": settings.presigned_url_ttl_seconds,
+        "expires_in_seconds": url_ttl(settings.presigned_url_ttl_seconds),
     }
 
 

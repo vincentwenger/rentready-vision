@@ -10,6 +10,9 @@ from pathlib import Path
 import boto3
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
+
+from .public_mode import public_context
 
 log = logging.getLogger("rentready.security")
 
@@ -56,6 +59,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         secure = request.url.scheme == "https"
         response = None
+        public_value = None
         if (not self.settings.cloud_mode and not self.token and request.client
                 and request.client.host not in {"127.0.0.1", "::1", "testclient"}):
             # testclient is an in-process ASGI client, never a network peer IP.
@@ -72,11 +76,30 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 auth = request.headers.get("authorization", "")
                 supplied = auth[7:] if auth.lower().startswith("bearer ") else ""
                 if not hmac.compare_digest(hashlib.sha256(supplied.encode()).digest(), hashlib.sha256(self.token.encode()).digest()):
-                    response = JSONResponse({"detail": "Valid operator access token required"}, status_code=401,
-                                            headers={"WWW-Authenticate": "Bearer"})
-                    log.warning("security_event=auth_denied")
+                    # An invalid supplied token is never downgraded to public access.
+                    if auth:
+                        response = JSONResponse({"detail": "Valid operator access token required"}, status_code=401,
+                                                headers={"WWW-Authenticate": "Bearer"})
+                    elif not self.settings.public_mode_supported:
+                        response = JSONResponse({"detail": "Valid operator access token required"}, status_code=401,
+                                                headers={"WWW-Authenticate": "Bearer"})
+                    else:
+                        from .public_access import authorize_public
+                        try:
+                            public_value = await run_in_threadpool(authorize_public, request)
+                        except Exception as exc:
+                            from fastapi import HTTPException
+                            code = exc.status_code if isinstance(exc, HTTPException) else 503
+                            detail = exc.detail if isinstance(exc, HTTPException) else "Public access unavailable; use operator access"
+                            response = JSONResponse({"detail": detail}, status_code=code)
+                    if response is not None:
+                        log.warning("security_event=auth_denied")
         if response is None:
-            response = await call_next(request)
+            context_token = public_context.set(public_value)
+            try:
+                response = await call_next(request)
+            finally:
+                public_context.reset(context_token)
         response.headers["Cache-Control"] = "no-store"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Content-Type-Options"] = "nosniff"

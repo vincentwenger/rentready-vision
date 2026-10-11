@@ -84,3 +84,10 @@ def favicon() -> Response:
 @app.get("/")
 def demo_page():
     return FileResponse(demo_file)
+
+
+@app.get("/public-mode", include_in_schema=False)
+def public_mode_status() -> dict:
+    from .public_mode import control, status_document
+    document = status_document(control() if security_settings.public_mode_supported else {})
+    return {**document, "supported": security_settings.public_mode_supported}

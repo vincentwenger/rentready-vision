@@ -1,0 +1,3 @@
+# Test-only dependencies; keep the frozen worker runtime unchanged.
+pytest>=8,<10
+moto[dynamodb]>=5,<6

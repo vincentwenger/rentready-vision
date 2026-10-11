@@ -11,6 +11,7 @@ class SecuritySettings(BaseSettings):
     api_auth_secret_id: str | None = None
     api_auth_ssm_parameter: str | None = None
     require_https: bool = False
+    public_mode_supported: bool = False
     allowed_hosts: str = "localhost,127.0.0.1,[::1],testserver"
     cors_origins: str = "http://localhost:8000,http://localhost:5173"
     presigned_url_ttl_seconds: int = Field(default=900, ge=60, le=900)

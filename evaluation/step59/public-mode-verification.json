@@ -1,0 +1,86 @@
+{
+  "step": 59,
+  "date": "2026-10-11",
+  "timezone": "America/Los_Angeles",
+  "feature": "temporary public judging mode",
+  "evidence_basis": "User-supplied Windows command output and UI screenshots in this session",
+  "local_windows_checks": {
+    "python_tests_passed": 54,
+    "public_ui_cases_passed": 6,
+    "bbox_renderer_cases_passed": 19,
+    "warning": "TestClient deprecation"
+  },
+  "deployment": {
+    "release": "/opt/rentready/releases/step59-public-49d6be1dc049323d",
+    "package_sha256": "0312559b5c3af1ed5a70efc6889ff91d81fac36bfa56f72c45fb58e93e50dddf",
+    "stage_command": "b90b1c15-8b7a-4bbc-bd3d-5888589fa06d",
+    "activation_command": "bb195e75-4483-4a49-9ae1-6c583ae2d5d5",
+    "stage": "PASS",
+    "activation_public_off": "PASS"
+  },
+  "api_role_permission": {
+    "action": "dynamodb:ConditionCheckItem",
+    "policy": "RentReadyStep59PublicConditionCheck",
+    "before": "implicitDeny",
+    "after": "allowed",
+    "scope": "existing RentReady table only"
+  },
+  "authorized_demo_footage": "defect_13_vanity_mounting_damage.mp4",
+  "public_rehearsal": {
+    "inspection_id": "5e30a92f-27e4-483a-a1bc-1c5b3e0854b3",
+    "score": 99,
+    "findings": 1,
+    "priority": "Review recommended",
+    "workflow_steps_complete": 10,
+    "token_free_workflow": "PASS",
+    "timestamp_viewer": "PASS",
+    "checklist_resolved_in_ui": "PASS",
+    "fresh_anonymous_read_resolved_count": 1
+  },
+  "live_controls": {
+    "quota_429": "PASS",
+    "rejection_preserves_count": "PASS",
+    "adjust_quota_preserves_usage": "PASS",
+    "missing_upload_size_400": "PASS",
+    "size_500000001_rejected_413": "PASS",
+    "size_500000000_authorized_200": "PASS",
+    "actual_500mb_upload_performed": false,
+    "boundary_test_cancel_endpoint_status": 202,
+    "boundary_test_saved_state": "CANCELLED",
+    "boundary_test_has_processing_job": false,
+    "disable_anonymous_401": "PASS",
+    "same_window_reopen_preserves_usage": "PASS",
+    "prior_operator_record_anonymous_404": "PASS",
+    "invalid_supplied_token_401": "PASS",
+    "automatic_expiry_without_disable": "PASS",
+    "operator_authenticated_inspection_after_public_off": "PASS"
+  },
+  "final_rehearsal_settings": {
+    "enabled": false,
+    "public_access": false,
+    "max_upload_bytes": 500000000,
+    "quota": 3,
+    "admitted": 3
+  },
+  "playback": {
+    "firefox_local_and_report_washed_out": true,
+    "edge_local_video_correct": true,
+    "viewer_serves_original": true,
+    "viewer_brightness_filter": false,
+    "firefox_root_cause": "not diagnosed",
+    "demo_browser": "Edge"
+  },
+  "remaining_handoff": [
+    "Git publication",
+    "Check Edge report playback before recording",
+    "Choose and enable final judging window",
+    "Separate demo-video and submission deliverables"
+  ],
+  "limitations": [
+    "AI findings and scores vary across runs",
+    "Same-window inspection IDs are capabilities, not visitor accounts",
+    "No inspection history or permanent report-sharing UI",
+    "Quota counts admissions including failed/cancelled/abandoned uploads",
+    "Expiry does not stop queued work or immediately revoke issued S3 links"
+  ]
+}

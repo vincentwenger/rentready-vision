@@ -1,0 +1,10 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "dynamodb:ConditionCheckItem",
+      "Resource": "arn:aws:dynamodb:us-west-2:081087819788:table/rentready-vision-dev"
+    }
+  ]
+}

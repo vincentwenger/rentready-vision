@@ -188,6 +188,7 @@
 
   <section class="card" id="form-card">
     <h2>New Inspection</h2>
+    <p id="public-mode-note" class="issue-note" hidden></p>
     <label for="access-token">Operator access token (for protected deployments)</label>
     <input id="access-token" type="password" autocomplete="off" placeholder="Paste your access token if required" />
     <p class="issue-note">The token is kept only in this page's memory. Reloading clears it.</p>
@@ -517,6 +518,30 @@ function formatTimestamp(seconds) {
   const value = Math.max(0, Math.round(Number(seconds) || 0));
   return `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
 }
+
+// Step 59: temporary public judging controls; never store the operator token.
+async function publicModeStatus() {
+  const response = await fetch("/public-mode", {cache: "no-store"});
+  if (!response.ok) throw new Error("Access settings unavailable. Please try again.");
+  const mode = await response.json();
+  const note = document.getElementById("public-mode-note");
+  note.hidden = !mode.public_access;
+  if (mode.public_access) {
+    const until = new Date(mode.expires_at_epoch * 1000).toLocaleString();
+    note.textContent = `Public demonstration: token optional until ${until}. Maximum video: ${Math.floor(mode.max_upload_bytes / 1000000)} MB. ${mode.remaining_inspections} new inspection(s) available. Keep your report open; there is no inspection history page.`;
+  }
+  return mode;
+}
+async function validatePublicUpload(file) {
+  // Operator use must continue even if the optional public settings store fails.
+  if (document.getElementById("access-token").value) return;
+  const mode = await publicModeStatus();
+  if (mode.public_access) {
+    if (file.size > mode.max_upload_bytes) throw new Error(`Video exceeds the public upload limit. Choose a file of ${Math.floor(mode.max_upload_bytes / 1000000)} MB or less.`);
+    if (mode.remaining_inspections < 1) throw new Error("Public demonstration quota reached. Contact the operator.");
+  }
+}
+publicModeStatus().catch(() => {});
 
 async function api(path, options = {}) {
   const {allowDuringCancellation = false, ...requestOptions} = options;
@@ -1588,6 +1613,8 @@ runButton.onclick = async () => {
 
   try {
     setStep("upload", "active");
+    await validatePublicUpload(file);
+    throwIfWorkflowCancelled(workflow);
     const inspection = await api("/inspections", {
       method: "POST",
       body: JSON.stringify({
