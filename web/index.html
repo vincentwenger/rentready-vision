@@ -137,15 +137,26 @@
     .report-evidence-image-wrap {
       position: relative;
       width: 100%;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
+    /* Step 59: the SVG and object-fit image share the same source coordinates.
+       Browser layout scales both together, including during PDF printing. */
     .report-evidence-bbox {
       position: absolute;
-      box-sizing: border-box;
-      border: 3px solid #dc2626;
-      border-radius: 3px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.85);
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: hidden;
       pointer-events: none;
       z-index: 1;
+    }
+    .report-evidence-bbox rect {
+      fill: none;
+      stroke: #dc2626;
+      stroke-width: 3;
+      vector-effect: non-scaling-stroke;
     }
     .evidence-unavailable { display: grid; min-height: 180px; place-items: center; padding: 24px; color: #64748b; background: #f1f5f9; text-align: center; }
     .evidence-summary, .recommended-action { margin: 12px 0 0; line-height: 1.6; }
@@ -927,47 +938,34 @@ async function renderReportIssue(inspectionId, issue) {
         bbox.x + bbox.width <= 1.000001 &&
         bbox.y + bbox.height <= 1.000001
       ) {
-        const marker = document.createElement("div");
-        marker.className = "report-evidence-bbox";
+        // Step 59: avoid cached screen-pixel offsets. The SVG viewBox uses
+        // the original frame dimensions and matches object-fit: contain.
+        const svgNS = "http://www.w3.org/2000/svg";
+        const marker = document.createElementNS(svgNS, "svg");
+        marker.classList.add("report-evidence-bbox");
         marker.setAttribute("aria-hidden", "true");
+        marker.setAttribute("focusable", "false");
+        marker.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        marker.setAttribute("hidden", "");
+        const rectangle = document.createElementNS(svgNS, "rect");
+        marker.append(rectangle);
         imageWrap.append(marker);
 
-        const placeMarker = () => {
-          if (!img.naturalWidth || !img.naturalHeight) return;
-
-          const boxWidth = img.clientWidth;
-          const boxHeight = img.clientHeight;
-          if (!boxWidth || !boxHeight) return;
-
-          const scale = Math.min(
-            boxWidth / img.naturalWidth,
-            boxHeight / img.naturalHeight
-          );
-
-          const displayedWidth = img.naturalWidth * scale;
-          const displayedHeight = img.naturalHeight * scale;
-
-          const offsetX = (boxWidth - displayedWidth) / 2;
-          const offsetY = (boxHeight - displayedHeight) / 2;
-
-          marker.style.left =
-            `${offsetX + bbox.x * displayedWidth}px`;
-          marker.style.top =
-            `${offsetY + bbox.y * displayedHeight}px`;
-          marker.style.width =
-            `${bbox.width * displayedWidth}px`;
-          marker.style.height =
-            `${bbox.height * displayedHeight}px`;
+        const setSourceCoordinates = () => {
+          const width = img.naturalWidth;
+          const height = img.naturalHeight;
+          if (!width || !height) return;
+          marker.setAttribute("viewBox", `0 0 ${width} ${height}`);
+          rectangle.setAttribute("x", String(bbox.x * width));
+          rectangle.setAttribute("y", String(bbox.y * height));
+          rectangle.setAttribute("width", String(bbox.width * width));
+          rectangle.setAttribute("height", String(bbox.height * height));
+          marker.removeAttribute("hidden");
         };
 
-        img.addEventListener("load", placeMarker);
-
-        if (typeof ResizeObserver !== "undefined") {
-          const observer = new ResizeObserver(placeMarker);
-          observer.observe(img);
-        }
-
-        if (img.complete) placeMarker();
+        img.addEventListener("load", setSourceCoordinates);
+        img.addEventListener("error", () => marker.setAttribute("hidden", ""));
+        if (img.complete) setSourceCoordinates();
       }
 
       card.append(imageWrap);

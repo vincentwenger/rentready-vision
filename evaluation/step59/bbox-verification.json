@@ -1,0 +1,410 @@
+{
+  "step": 59,
+  "validation_date_pacific": "2026-10-10",
+  "scope": "Source-coordinate rendering in fresh browser PDFs; not model accuracy",
+  "pdf_edge_tolerance_points": 0.25,
+  "reports": [
+    {
+      "label": "Quimby vanity",
+      "inspection_id": "379d3403-60e8-4349-b1e5-315777a83cd0",
+      "score": 94,
+      "finding_count": 2,
+      "source_pdf": {
+        "name": "RentReady Vision \u2014 OpenCV Evidence Processing(4).pdf",
+        "sha256": "d337b47ba5282825c1301717bcc8fdf6f3c082d08f4ac3bde051e6563e300178"
+      },
+      "verified_pdf": {
+        "name": "Quimby-vanity-Step59.pdf",
+        "sha256": "a7c5269db1eeacd8a7b0f4e8b17d88dccd3d25782a4bf65c9e313fde37e2075a"
+      },
+      "api_report_export_sha256": "a0d56c242fd9e54b6c1f3c72e0ea971e06e2aa09c96d8e79b45b2882570457e0",
+      "findings": [
+        {
+          "issue_id": "issue-cluster-391ea8e45da61f1c",
+          "description": "small hole in cabinet door",
+          "representative_frame_index": 1,
+          "timestamp_seconds": 2,
+          "source_image_dimensions": [
+            1080,
+            1920
+          ],
+          "source_image_pixel_digest_md5": "f4bdf52ca521324cd4ee92773a33275e",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.6657407407407407,
+            "y": 0.3015625,
+            "width": 0.062037037037037036,
+            "height": 0.03802083333333333
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 4,
+          "verified_pdf_page": 3,
+          "image_rect_pdf_points": [
+            209.25,
+            28.5,
+            403.5,
+            373.4999694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            338.5701388888889,
+            132.53905329704287,
+            350.62083333333334,
+            145.6562396367391
+          ],
+          "observed_box_rect_pdf_points": [
+            338.5390319824219,
+            132.5390625,
+            350.5780944824219,
+            145.65623474121094
+          ],
+          "max_edge_error_pdf_points": 0.04273885091146212,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        },
+        {
+          "issue_id": "issue-dcc00234db12048e",
+          "description": "small dark spot on cabinet door likely indicating damage or stain",
+          "representative_frame_index": 0,
+          "timestamp_seconds": 1,
+          "source_image_dimensions": [
+            1080,
+            1920
+          ],
+          "source_image_pixel_digest_md5": "561d46d244816a6eeaaf136f68c2f96e",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.8595,
+            "y": 0.2812,
+            "width": 0.0281,
+            "height": 0.0563
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 5,
+          "verified_pdf_page": 4,
+          "image_rect_pdf_points": [
+            209.25,
+            28.5,
+            403.5,
+            373.4999694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            376.207875,
+            125.51399141845704,
+            381.6663,
+            144.93748970031737
+          ],
+          "observed_box_rect_pdf_points": [
+            376.14044189453125,
+            125.51398468017578,
+            381.5935974121094,
+            144.9375
+          ],
+          "max_edge_error_pdf_points": 0.07270258789060335,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        }
+      ]
+    },
+    {
+      "label": "Compass",
+      "inspection_id": "d3c87036-cd43-42bd-a7a2-b3b4588683a1",
+      "score": 100,
+      "finding_count": 1,
+      "source_pdf": {
+        "name": "RentReady Vision \u2014 OpenCV Evidence Processing(5).pdf",
+        "sha256": "a7588bb3a8f8557a68b031eefc4613634bbe3aa8072bb3cc719713de523d31f7"
+      },
+      "verified_pdf": {
+        "name": "Compass-Step59.pdf",
+        "sha256": "c0a5711b2dea04ed7cb441f3f1c779b08df89ed07fe8000a5c26e5009c363ffc"
+      },
+      "api_report_export_sha256": "2b8ad225e5918bb715949366fd8126d187b025427a947547d442c6be8eaec35c",
+      "findings": [
+        {
+          "issue_id": "issue-7a17fe62542be6ea",
+          "description": "Two small filled fastener holes visible in the upper left portion of the wall surface, appearing as slightly raised or textured circular spots against the painted wall",
+          "representative_frame_index": 1,
+          "timestamp_seconds": 2.002,
+          "source_image_dimensions": [
+            1088,
+            1920
+          ],
+          "source_image_pixel_digest_md5": "9ba28eeddc699513b2e706feeac4932a",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.276,
+            "y": 0.3316,
+            "width": 0.096,
+            "height": 0.0544
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 4,
+          "verified_pdf_page": 3,
+          "image_rect_pdf_points": [
+            208.5,
+            28.5,
+            404.25,
+            373.4999694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            262.527,
+            142.9019898803711,
+            281.319,
+            161.66998822021483
+          ],
+          "observed_box_rect_pdf_points": [
+            262.5829772949219,
+            142.9019775390625,
+            281.3509521484375,
+            161.66998291015625
+          ],
+          "max_edge_error_pdf_points": 0.05597729492188819,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        }
+      ]
+    },
+    {
+      "label": "Quimby drywall/baseboard",
+      "inspection_id": "cef47de7-0824-4651-aca6-b4ee18554eb4",
+      "score": 99,
+      "finding_count": 1,
+      "source_pdf": {
+        "name": "RentReady Vision \u2014 OpenCV Evidence Processing(6).pdf",
+        "sha256": "f8469354175db4eec5852d803d7cea8e8d08a4f56e5d2226d26d8d01347ed652"
+      },
+      "verified_pdf": {
+        "name": "Quimby-drywall-Step59.pdf",
+        "sha256": "20e3141c7f3f16b24d9a5da05c8c1638a8733962ed74c8296119bd10e7fe4a85"
+      },
+      "api_report_export_sha256": "2b8ad225e5918bb715949366fd8126d187b025427a947547d442c6be8eaec35c",
+      "findings": [
+        {
+          "issue_id": "issue-d0485f23e4bd2672",
+          "description": "small circular stain near baseboard",
+          "representative_frame_index": 1,
+          "timestamp_seconds": 2,
+          "source_image_dimensions": [
+            1080,
+            1920
+          ],
+          "source_image_pixel_digest_md5": "bef99daad321e00c3aa63fdae596cc5e",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.5,
+            "y": 0.8,
+            "width": 0.1,
+            "height": 0.1
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 4,
+          "verified_pdf_page": 3,
+          "image_rect_pdf_points": [
+            209.25,
+            28.5,
+            403.5,
+            373.4999694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            306.375,
+            304.49997558593753,
+            325.8,
+            338.9999725341797
+          ],
+          "observed_box_rect_pdf_points": [
+            306.3749694824219,
+            304.4999694824219,
+            325.7812194824219,
+            338.9999694824219
+          ],
+          "max_edge_error_pdf_points": 0.01878051757813637,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        }
+      ]
+    },
+    {
+      "label": "case_012",
+      "inspection_id": "5ee30657-9b78-405b-b7cb-31f91463f46c",
+      "score": 91,
+      "finding_count": 4,
+      "source_pdf": {
+        "name": "RentReady Vision \u2014 OpenCV Evidence Processing(7).pdf",
+        "sha256": "51b0804f2bc0ee327bfe8a06f12485e33cfacaea69ab7ce16995f0b77c2b2c29"
+      },
+      "verified_pdf": {
+        "name": "case012-Step59.pdf",
+        "sha256": "cbef2afaa14565c26701fb1fe16c391a03703e8066f85c3acebea36330aa4580"
+      },
+      "api_report_export_sha256": "2b8ad225e5918bb715949366fd8126d187b025427a947547d442c6be8eaec35c",
+      "findings": [
+        {
+          "issue_id": "issue-d7a6c9eb4dd92234",
+          "description": "visible hole in wall near ceiling",
+          "representative_frame_index": 0,
+          "timestamp_seconds": 0,
+          "source_image_dimensions": [
+            1920,
+            1080
+          ],
+          "source_image_pixel_digest_md5": "337c76fdb5ae08eb82aee5957f377dab",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.7188,
+            "y": 0.0562,
+            "width": 0.0563,
+            "height": 0.0562
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 4,
+          "verified_pdf_page": 3,
+          "image_rect_pdf_points": [
+            61.5,
+            28.5,
+            551.25,
+            303.7499694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            413.5323,
+            43.969048284912105,
+            441.105225,
+            59.43809656982422
+          ],
+          "observed_box_rect_pdf_points": [
+            413.5323181152344,
+            43.98222351074219,
+            441.105224609375,
+            59.464447021484375
+          ],
+          "max_edge_error_pdf_points": 0.026350451660157148,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        },
+        {
+          "issue_id": "issue-8d279062a9ac2c77",
+          "description": "significant paint flaking and discoloration on wall",
+          "representative_frame_index": 0,
+          "timestamp_seconds": 0,
+          "source_image_dimensions": [
+            1920,
+            1080
+          ],
+          "source_image_pixel_digest_md5": "337c76fdb5ae08eb82aee5957f377dab",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.1688,
+            "y": 0.6066,
+            "width": 0.225,
+            "height": 0.281
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 5,
+          "verified_pdf_page": 4,
+          "image_rect_pdf_points": [
+            61.5,
+            28.5,
+            551.25,
+            303.7499694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            144.1698,
+            195.4666314880371,
+            254.36355000000003,
+            272.81187291259766
+          ],
+          "observed_box_rect_pdf_points": [
+            144.1697998046875,
+            195.60882568359375,
+            254.3635711669922,
+            273.01995849609375
+          ],
+          "max_edge_error_pdf_points": 0.20808558349608575,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        },
+        {
+          "issue_id": "issue-9dc7a7af28a93169",
+          "description": "visible crack in wall surface",
+          "representative_frame_index": 0,
+          "timestamp_seconds": 0,
+          "source_image_dimensions": [
+            1920,
+            1080
+          ],
+          "source_image_pixel_digest_md5": "337c76fdb5ae08eb82aee5957f377dab",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0.7188,
+            "y": 0.2248,
+            "width": 0.0563,
+            "height": 0.1686
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 6,
+          "verified_pdf_page": 5,
+          "image_rect_pdf_points": [
+            61.5,
+            28.5,
+            551.25,
+            303.7499694824219
+          ],
+          "expected_box_rect_pdf_points": [
+            413.5323,
+            90.37619313964844,
+            441.105225,
+            136.78333799438474
+          ],
+          "observed_box_rect_pdf_points": [
+            413.5323181152344,
+            90.42889404296875,
+            441.105224609375,
+            136.87554931640625
+          ],
+          "max_edge_error_pdf_points": 0.09221132202151239,
+          "box_displayed": true,
+          "omission_reason": null,
+          "geometry_result": "PASS"
+        },
+        {
+          "issue_id": "issue-982b05c506644bfa",
+          "description": "Extensive paint loss and discoloration on walls and ceiling beams, with visible wood and structural elements exposed.",
+          "representative_frame_index": 2,
+          "timestamp_seconds": 12,
+          "source_image_dimensions": [
+            1920,
+            1080
+          ],
+          "source_image_pixel_digest_md5": "5ce19fd1c9d11c75a6c8b53c73092840",
+          "photo_matches_original": true,
+          "bbox": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 1
+          },
+          "bbox_and_frame_match_raw_prediction": true,
+          "original_pdf_page": 7,
+          "verified_pdf_page": 6,
+          "image_rect_pdf_points": [
+            61.5,
+            28.5,
+            551.25,
+            303.7499694824219
+          ],
+          "expected_box_rect_pdf_points": null,
+          "observed_box_rect_pdf_points": null,
+          "max_edge_error_pdf_points": null,
+          "box_displayed": false,
+          "omission_reason": "Existing area guard suppresses area >= 0.8",
+          "geometry_result": "PASS"
+        }
+      ]
+    }
+  ]
+}
