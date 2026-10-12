@@ -13,19 +13,20 @@ data class TvFinding(
     val roomId: String,
     val title: String,
     val severity: String,
-    val confidence: Double,
-    val timestampSeconds: Int,
+    val confidence: Double?,
+    val timestampSeconds: Int?,
     val description: String
 ) {
     fun timestampLabel(): String {
-        val hours = timestampSeconds / 3600
-        val minutes = (timestampSeconds % 3600) / 60
-        val seconds = timestampSeconds % 60
+        val timestamp = timestampSeconds ?: return "Not available"
+        val hours = timestamp / 3600
+        val minutes = (timestamp % 3600) / 60
+        val seconds = timestamp % 60
         return "%02d:%02d:%02d".format(hours, minutes, seconds)
     }
 
-    fun confidencePercent(): Int {
-        return (confidence * 100).toInt()
+    fun confidencePercent(): Int? {
+        return confidence?.let { (it * 100).toInt() }
     }
 }
 
@@ -156,8 +157,8 @@ data class TvInspection(
             require(findings.all {
                 it.roomId in roomIds &&
                     it.severity in setOf("HIGH", "MEDIUM", "LOW") &&
-                    it.confidence in 0.0..1.0 &&
-                    it.timestampSeconds >= 0
+                    (it.confidence == null || it.confidence in 0.0..1.0) &&
+                    (it.timestampSeconds == null || it.timestampSeconds >= 0)
             }) {
                 "Invalid finding metadata"
             }

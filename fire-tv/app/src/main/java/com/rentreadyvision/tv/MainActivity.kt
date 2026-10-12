@@ -1,16 +1,17 @@
 package com.rentreadyvision.tv
 
+import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import androidx.fragment.app.FragmentActivity
@@ -34,6 +35,10 @@ class MainActivity : FragmentActivity() {
     private lateinit var root: FrameLayout
     private lateinit var inspection: TvInspection
 
+    private var isLoading = false
+    private var loadError: String? = null
+    private var loadGeneration = 0
+
     private var currentPage = Page(Screen.INSPECTIONS)
     private val history = mutableListOf<Page>()
     private var backCallback: OnBackInvokedCallback? = null
@@ -53,8 +58,7 @@ class MainActivity : FragmentActivity() {
                     .commitNow()
             }
 
-        // Only bundled local JSON is loaded.
-        inspection = TvInspection.load(this)
+        // Select the data source after registering Back navigation.
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val callback = OnBackInvokedCallback {
@@ -68,10 +72,18 @@ class MainActivity : FragmentActivity() {
             backCallback = callback
         }
 
-        render()
+        if (isDebugBuild()) {
+            loadRealInspection()
+        } else {
+            // Release builds retain the packaged offline demo.
+            inspection = TvInspection.load(this)
+            render()
+        }
     }
 
     override fun onDestroy() {
+        loadGeneration += 1
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             backCallback?.let {
                 onBackInvokedDispatcher.unregisterOnBackInvokedCallback(it)
@@ -84,6 +96,58 @@ class MainActivity : FragmentActivity() {
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
         navigateBack()
+    }
+
+    private fun isDebugBuild(): Boolean {
+        return (
+            applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+        ) != 0
+    }
+
+    private fun loadRealInspection() {
+        if (isLoading) return
+
+        isLoading = true
+        loadError = null
+
+        val generation = ++loadGeneration
+
+        render()
+
+        Thread({
+            val result = runCatching {
+                TvApiClient.load(applicationContext)
+            }
+
+            runOnUiThread {
+                if (
+                    isFinishing ||
+                    isDestroyed ||
+                    generation != loadGeneration
+                ) {
+                    return@runOnUiThread
+                }
+
+                isLoading = false
+
+                result.onSuccess { loaded ->
+                    inspection = loaded
+                    currentPage = Page(Screen.INSPECTIONS)
+                    history.clear()
+                    loadError = null
+                }.onFailure { failure ->
+                    Log.e(
+                        "RentReadyTV",
+                        "Load failed: ${failure.javaClass.simpleName}"
+                    )
+                    loadError =
+                        "Could not load the approved inspection. " +
+                        "Check the Windows development bridge, then retry."
+                }
+
+                render()
+            }
+        }, "rentready-tv-bridge-loader").start()
     }
 
     private fun navigateTo(page: Page) {
@@ -219,6 +283,47 @@ class MainActivity : FragmentActivity() {
             )
         )
 
+        // Never silently substitute demo findings after a debug error.
+        if (
+            isDebugBuild() &&
+            (isLoading || !::inspection.isInitialized)
+        ) {
+            addText(column, "RENTREADY VISION", 40f, 28, true)
+
+            addText(
+                column,
+                if (isLoading) "LOADING REAL INSPECTION"
+                else "CONNECTION UNAVAILABLE",
+                27f,
+                24,
+                true
+            )
+
+            addText(
+                column,
+                if (isLoading)
+                    "Connecting to the local Mozart House inspection bridge..."
+                else
+                    loadError ?: "The local bridge is unavailable.",
+                21f,
+                30
+            )
+
+            val action = addAction(
+                column,
+                if (isLoading) "EXIT" else "RETRY CONNECTION"
+            ) {
+                if (isLoading) {
+                    finish()
+                } else {
+                    loadRealInspection()
+                }
+            }
+
+            action.post { action.requestFocus() }
+            return
+        }
+
         val firstAction = when (currentPage.screen) {
             Screen.INSPECTIONS -> showInspections(column)
             Screen.OVERVIEW -> showOverview(column)
@@ -273,7 +378,7 @@ class MainActivity : FragmentActivity() {
             true
         )
 
-        for (severity in listOf("HIGH", "MEDIUM", "LOW")) {
+        for (severity in listOf("HIGH", "MEDIUM", "LOW", "UNKNOWN")) {
             addText(
                 column,
                 "$severity       ${inspection.severityCount(severity)}",
@@ -288,7 +393,7 @@ class MainActivity : FragmentActivity() {
 
         for (room in inspection.rooms) {
             val count = inspection.findingsInRoom(room.id).size
-            val summary = if (count == 0) "Clear" else if (count == 1) "1 finding" else "$count findings"
+            val summary = if (count == 0) "No reported findings" else if (count == 1) "1 finding" else "$count findings"
 
             val action = addAction(
                 column,
@@ -316,7 +421,7 @@ class MainActivity : FragmentActivity() {
 
         addText(
             column,
-            if (findings.isEmpty()) "CLEAR - NO POTENTIAL FINDINGS"
+            if (findings.isEmpty()) "NO REPORTED FINDINGS"
             else if (findings.size == 1) "1 POTENTIAL FINDING" else "${findings.size} POTENTIAL FINDINGS",
             23f,
             28
@@ -360,6 +465,10 @@ class MainActivity : FragmentActivity() {
         addText(column, room.name.uppercase(), 28f, 16, true)
         addText(column, finding.title, 32f, 26, true)
 
+        val backToRoom = addAction(column, "BACK TO ROOM") {
+            navigateBack()
+        }
+
         addText(
             column,
             "Severity       ${finding.severity}",
@@ -367,9 +476,12 @@ class MainActivity : FragmentActivity() {
             12
         )
 
+        val confidenceLabel =
+            finding.confidencePercent()?.let { "$it%" } ?: "Not available"
+
         addText(
             column,
-            "Confidence     ${finding.confidencePercent()}%",
+            "Confidence     $confidenceLabel",
             22f,
             24
         )
@@ -383,7 +495,7 @@ class MainActivity : FragmentActivity() {
 
             addView(
                 TextView(this@MainActivity).apply {
-                    text = "LOCAL EVIDENCE PLACEHOLDER\nNo image bundled"
+                    text = "EVIDENCE IMAGE UNAVAILABLE\nNo image supplied to this TV preview"
                     textSize = 20f
                     setTextColor(Color.LTGRAY)
                     gravity = Gravity.CENTER
@@ -405,22 +517,29 @@ class MainActivity : FragmentActivity() {
             }
         )
 
+        val timestampLabel = finding.timestampLabel()
+
         addText(
             column,
-            "Detected at ${finding.timestampLabel()}",
+            if (timestampLabel == "Not available")
+                "Evidence time unavailable"
+            else
+                "Detected at $timestampLabel",
             20f,
             20
         )
 
         addText(column, finding.description, 21f, 26)
 
-        return addAction(column, "PLAY EVIDENCE") {
-            Toast.makeText(
-                this,
-                "Evidence video unavailable in this offline demo",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+        addText(
+            column,
+            "Evidence video unavailable in this TV preview.",
+            18f,
+            0,
+            tint = Color.LTGRAY
+        )
+
+        return backToRoom
     }
 
     private fun showBriefing(column: LinearLayout): TextView {
@@ -446,13 +565,15 @@ class MainActivity : FragmentActivity() {
             26
         )
 
-        addText(
-            column,
-            "Synthetic demo only - priorities require human confirmation.",
-            17f,
-            30,
-            tint = Color.LTGRAY
-        )
+        if (!isDebugBuild()) {
+            addText(
+                column,
+                "Synthetic demo only - priorities require human confirmation.",
+                17f,
+                30,
+                tint = Color.LTGRAY
+            )
+        }
 
         return addAction(column, "VIEW PRIORITY FINDINGS") {
             navigateTo(
