@@ -94,6 +94,27 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                             response = JSONResponse({"detail": detail}, status_code=code)
                     if response is not None:
                         log.warning("security_event=auth_denied")
+        # Fire TV API routes are always operator-protected at this stage.
+        # Public judging mode must never authorize these endpoints.
+        if (response is None and request.method != "OPTIONS"
+                and (request.url.path == "/api/tv"
+                     or request.url.path.startswith("/api/tv/"))):
+            auth = request.headers.get("authorization", "")
+            supplied = auth[7:] if auth.lower().startswith("bearer ") else ""
+
+            authorized = bool(self.token) and hmac.compare_digest(
+                hashlib.sha256(supplied.encode()).digest(),
+                hashlib.sha256(self.token.encode()).digest(),
+            )
+
+            if not authorized:
+                response = JSONResponse(
+                    {"detail": "TV API authorization required"},
+                    status_code=401,
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+                log.warning("security_event=tv_auth_denied")
+
         if response is None:
             context_token = public_context.set(public_value)
             try:

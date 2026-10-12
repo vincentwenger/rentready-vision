@@ -19,6 +19,7 @@ except ValidationError:
     raise RuntimeError("Application configuration invalid; verify settings before startup") from None
 operator_token = load_api_token(security_settings)
 from .routers.inspections import router as inspections_router
+from .routers.tv import router as tv_router
 demo_file = Path(__file__).resolve().parents[1] / "web" / "index.html"
 
 app = FastAPI(
@@ -44,6 +45,7 @@ app.add_middleware(SecurityMiddleware, settings=security_settings, token=operato
                    csp=content_security_policy(demo_file))
 
 app.include_router(inspections_router)
+app.include_router(tv_router)
 
 
 @app.exception_handler(ClientError)
