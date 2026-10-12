@@ -1,23 +1,42 @@
 package com.rentreadyvision.tv
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import android.view.Gravity
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.fragment.app.FragmentActivity
 
 class MainActivity : FragmentActivity() {
 
+    private enum class Screen {
+        INSPECTIONS,
+        OVERVIEW,
+        ROOM,
+        FINDING,
+        BRIEFING
+    }
+
+    private data class Page(
+        val screen: Screen,
+        val roomId: String? = null,
+        val findingId: String? = null
+    )
+
     private lateinit var root: FrameLayout
-    private var showingDemo = false
-    private var modernBackCallback: OnBackInvokedCallback? = null
+    private lateinit var inspection: TvInspection
+
+    private var currentPage = Page(Screen.INSPECTIONS)
+    private val history = mutableListOf<Page>()
+    private var backCallback: OnBackInvokedCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,55 +44,60 @@ class MainActivity : FragmentActivity() {
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.main_browse_fragment)
 
+        // Remove any old Leanback sample fragment.
+        supportFragmentManager
+            .findFragmentById(R.id.main_browse_fragment)
+            ?.let { fragment ->
+                supportFragmentManager.beginTransaction()
+                    .remove(fragment)
+                    .commitNow()
+            }
+
+        // Only bundled local JSON is loaded.
+        inspection = TvInspection.load(this)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val callback = OnBackInvokedCallback {
-                if (showingDemo) {
-                    showWelcome()
-                } else {
-                    finish()
-                }
+                navigateBack()
             }
 
             onBackInvokedDispatcher.registerOnBackInvokedCallback(
                 OnBackInvokedDispatcher.PRIORITY_DEFAULT,
                 callback
             )
-
-            modernBackCallback = callback
+            backCallback = callback
         }
 
-        // Remove a restored template fragment, if present.
-        val oldFragment =
-            supportFragmentManager.findFragmentById(
-                R.id.main_browse_fragment
-            )
-
-        if (oldFragment != null) {
-            supportFragmentManager.beginTransaction()
-                .remove(oldFragment)
-                .commitNow()
-        }
-
-        showWelcome()
+        render()
     }
 
     override fun onDestroy() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            modernBackCallback?.let {
+            backCallback?.let {
                 onBackInvokedDispatcher.unregisterOnBackInvokedCallback(it)
             }
-            modernBackCallback = null
+            backCallback = null
         }
-
         super.onDestroy()
     }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
-        if (showingDemo) {
-            showWelcome()
+        navigateBack()
+    }
+
+    private fun navigateTo(page: Page) {
+        history.add(currentPage)
+        currentPage = page
+        render()
+    }
+
+    private fun navigateBack() {
+        if (history.isNotEmpty()) {
+            currentPage = history.removeAt(history.lastIndex)
+            render()
         } else {
-            super.onBackPressed()
+            finish()
         }
     }
 
@@ -81,127 +105,362 @@ class MainActivity : FragmentActivity() {
         return (value * resources.displayMetrics.density + 0.5f).toInt()
     }
 
-    private fun buttonBackground(focused: Boolean): GradientDrawable {
+    private fun focusBackground(focused: Boolean): GradientDrawable {
         return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(14).toFloat()
-
+            cornerRadius = dp(12).toFloat()
             setColor(
-                if (focused) Color.rgb(36, 90, 150)
-                else Color.rgb(35, 55, 80)
+                if (focused) Color.rgb(38, 89, 148)
+                else Color.rgb(35, 52, 75)
             )
-
             setStroke(
                 dp(2),
-                if (focused) Color.rgb(108, 181, 255)
-                else Color.rgb(77, 104, 135)
+                if (focused) Color.rgb(105, 184, 255)
+                else Color.rgb(65, 86, 111)
             )
         }
     }
 
-    private fun renderScreen(
-        title: String,
-        subtitle: String,
-        buttonLabel: String,
-        onSelect: () -> Unit
+    private fun addText(
+        column: LinearLayout,
+        value: String,
+        size: Float,
+        bottom: Int = 18,
+        bold: Boolean = false,
+        tint: Int = Color.WHITE
     ) {
-        root.removeAllViews()
-        root.setBackgroundColor(Color.rgb(16, 28, 48))
-
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(dp(48), dp(48), dp(48), dp(48))
+        val view = TextView(this).apply {
+            text = value
+            textSize = size
+            setTextColor(tint)
+            typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
         }
 
-        val heading = TextView(this).apply {
-            text = title
-            textSize = 42f
+        column.addView(
+            view,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(bottom)
+            }
+        )
+    }
+
+    private fun addAction(
+        column: LinearLayout,
+        label: String,
+        action: () -> Unit
+    ): TextView {
+        val view = TextView(this).apply {
+            text = label
+            textSize = 22f
             setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-        }
-
-        content.addView(heading)
-
-        val description = TextView(this).apply {
-            text = subtitle
-            textSize = 23f
-            setTextColor(Color.rgb(195, 213, 239))
-            gravity = Gravity.CENTER
-        }
-
-        val descriptionParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply {
-            topMargin = dp(24)
-            bottomMargin = dp(48)
-        }
-
-        content.addView(description, descriptionParams)
-
-        val actionButton = Button(this).apply {
-            text = buttonLabel
-            textSize = 20f
-            isAllCaps = false
-
-            setTextColor(Color.WHITE)
-            setPadding(dp(32), dp(16), dp(32), dp(16))
-
-            minWidth = dp(320)
-            minHeight = dp(72)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(24), dp(16), dp(24), dp(16))
+            minHeight = dp(70)
 
             isFocusable = true
             isFocusableInTouchMode = true
+            isClickable = true
 
-            backgroundTintList = null
-            background = buttonBackground(false)
+            background = focusBackground(false)
 
-            setOnFocusChangeListener { view, focused ->
-                view.background = buttonBackground(focused)
-                view.scaleX = if (focused) 1.06f else 1f
-                view.scaleY = if (focused) 1.06f else 1f
+            setOnFocusChangeListener { item, focused ->
+                item.background = focusBackground(focused)
+                item.scaleX = if (focused) 1.015f else 1f
+                item.scaleY = if (focused) 1.015f else 1f
             }
 
             setOnClickListener {
-                onSelect()
+                action()
             }
         }
 
-        content.addView(actionButton)
+        column.addView(
+            view,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(12)
+            }
+        )
+
+        return view
+    }
+
+    private fun render() {
+        root.removeAllViews()
+        root.setBackgroundColor(Color.rgb(16, 28, 48))
+
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            isFocusable = false
+        }
+
+        val column = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(56), dp(42), dp(56), dp(60))
+        }
+
+        scroll.addView(
+            column,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
 
         root.addView(
-            content,
+            scroll,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
 
-        actionButton.requestFocus()
-    }
+        val firstAction = when (currentPage.screen) {
+            Screen.INSPECTIONS -> showInspections(column)
+            Screen.OVERVIEW -> showOverview(column)
+            Screen.ROOM -> showRoom(column)
+            Screen.FINDING -> showFinding(column)
+            Screen.BRIEFING -> showBriefing(column)
+        }
 
-    private fun showWelcome() {
-        showingDemo = false
-
-        renderScreen(
-            title = "RENTREADY VISION",
-            subtitle = "AI Property Inspection",
-            buttonLabel = "Open Demo Inspection"
-        ) {
-            showDemo()
+        // TV remote focus: no mouse required.
+        firstAction.post {
+            firstAction.requestFocus()
         }
     }
 
-    private fun showDemo() {
-        showingDemo = true
+    private fun showInspections(column: LinearLayout): TextView {
+        addText(column, "RENTREADY VISION", 40f, 28, true)
+        addText(column, "INSPECTIONS", 26f, 30, true)
 
-        renderScreen(
-            title = "Demo Inspection",
-            subtitle = "Local demonstration placeholder - no backend connected",
-            buttonLabel = "Back to Home"
+        return addAction(
+            column,
+            "${inspection.propertyName}\n" +
+                "${inspection.status}\n" +
+                "${inspection.findings.size} findings\n\n" +
+                "VIEW INSPECTION"
         ) {
-            showWelcome()
+            navigateTo(Page(Screen.OVERVIEW))
+        }
+    }
+
+    private fun showOverview(column: LinearLayout): TextView {
+        addText(
+            column,
+            inspection.propertyName.uppercase(),
+            38f,
+            8,
+            true
+        )
+
+        addText(
+            column,
+            "AI PROPERTY INSPECTION",
+            20f,
+            28,
+            tint = Color.LTGRAY
+        )
+
+        addText(
+            column,
+            "${inspection.findings.size} potential findings",
+            27f,
+            20,
+            true
+        )
+
+        for (severity in listOf("HIGH", "MEDIUM", "LOW")) {
+            addText(
+                column,
+                "$severity       ${inspection.severityCount(severity)}",
+                21f,
+                9
+            )
+        }
+
+        addText(column, "ROOMS", 27f, 18, true)
+
+        var first: TextView? = null
+
+        for (room in inspection.rooms) {
+            val count = inspection.findingsInRoom(room.id).size
+            val summary = if (count == 0) "Clear" else if (count == 1) "1 finding" else "$count findings"
+
+            val action = addAction(
+                column,
+                "${room.name}     $summary"
+            ) {
+                navigateTo(Page(Screen.ROOM, roomId = room.id))
+            }
+
+            if (first == null) first = action
+        }
+
+        val briefing = addAction(column, "VIEW PROPERTY BRIEFING") {
+            navigateTo(Page(Screen.BRIEFING))
+        }
+
+        return first ?: briefing
+    }
+
+    private fun showRoom(column: LinearLayout): TextView {
+        val roomId = requireNotNull(currentPage.roomId)
+        val room = inspection.findRoom(roomId)
+        val findings = inspection.findingsInRoom(roomId)
+
+        addText(column, room.name.uppercase(), 38f, 18, true)
+
+        addText(
+            column,
+            if (findings.isEmpty()) "CLEAR - NO POTENTIAL FINDINGS"
+            else if (findings.size == 1) "1 POTENTIAL FINDING" else "${findings.size} POTENTIAL FINDINGS",
+            23f,
+            28
+        )
+
+        if (findings.isEmpty()) {
+            return addAction(column, "BACK TO PROPERTY") {
+                navigateBack()
+            }
+        }
+
+        var first: TextView? = null
+
+        for (finding in findings) {
+            val action = addAction(
+                column,
+                "${finding.title}\n${finding.severity}"
+            ) {
+                navigateTo(
+                    Page(
+                        Screen.FINDING,
+                        roomId = roomId,
+                        findingId = finding.id
+                    )
+                )
+            }
+
+            if (first == null) first = action
+        }
+
+        return requireNotNull(first)
+    }
+
+    private fun showFinding(column: LinearLayout): TextView {
+        val roomId = requireNotNull(currentPage.roomId)
+        val findingId = requireNotNull(currentPage.findingId)
+
+        val room = inspection.findRoom(roomId)
+        val finding = inspection.findFinding(findingId)
+
+        addText(column, room.name.uppercase(), 28f, 16, true)
+        addText(column, finding.title, 32f, 26, true)
+
+        addText(
+            column,
+            "Severity       ${finding.severity}",
+            22f,
+            12
+        )
+
+        addText(
+            column,
+            "Confidence     ${finding.confidencePercent()}%",
+            22f,
+            24
+        )
+
+        val evidenceBox = FrameLayout(this).apply {
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(30, 44, 65))
+                cornerRadius = dp(12).toFloat()
+                setStroke(dp(1), Color.rgb(85, 105, 135))
+            }
+
+            addView(
+                TextView(this@MainActivity).apply {
+                    text = "LOCAL EVIDENCE PLACEHOLDER\nNo image bundled"
+                    textSize = 20f
+                    setTextColor(Color.LTGRAY)
+                    gravity = Gravity.CENTER
+                },
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+        }
+
+        column.addView(
+            evidenceBox,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(170)
+            ).apply {
+                bottomMargin = dp(24)
+            }
+        )
+
+        addText(
+            column,
+            "Detected at ${finding.timestampLabel()}",
+            20f,
+            20
+        )
+
+        addText(column, finding.description, 21f, 26)
+
+        return addAction(column, "PLAY EVIDENCE") {
+            Toast.makeText(
+                this,
+                "Evidence video unavailable in this offline demo",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun showBriefing(column: LinearLayout): TextView {
+        val briefing = inspection.briefing
+        val room = inspection.findRoom(briefing.priorityRoomId)
+
+        addText(
+            column,
+            briefing.title.uppercase(),
+            35f,
+            32,
+            true
+        )
+
+        addText(column, briefing.headline, 28f, 30, true)
+        addText(column, room.name, 25f, 12, true)
+        addText(column, briefing.priorityAction, 22f, 30)
+
+        addText(
+            column,
+            briefing.secondaryMessage,
+            22f,
+            26
+        )
+
+        addText(
+            column,
+            "Synthetic demo only - priorities require human confirmation.",
+            17f,
+            30,
+            tint = Color.LTGRAY
+        )
+
+        return addAction(column, "VIEW PRIORITY FINDINGS") {
+            navigateTo(
+                Page(
+                    Screen.ROOM,
+                    roomId = briefing.priorityRoomId
+                )
+            )
         }
     }
 }

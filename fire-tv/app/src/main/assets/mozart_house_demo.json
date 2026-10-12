@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "demoOnly": true,
+  "property": {
+    "id": "mozart-house",
+    "name": "Mozart House",
+    "status": "Completed"
+  },
+  "rooms": [
+    { "id": "bathroom", "name": "Bathroom" },
+    { "id": "kitchen", "name": "Kitchen" },
+    { "id": "bedroom", "name": "Bedroom" },
+    { "id": "living-room", "name": "Living Room" }
+  ],
+  "findings": [
+    {
+      "id": "bathroom-rim",
+      "roomId": "bathroom",
+      "title": "Damage near bathtub rim",
+      "severity": "MEDIUM",
+      "confidence": 0.87,
+      "timestampSeconds": 257,
+      "description": "Potential surface damage is visible along the bathtub rim."
+    },
+    {
+      "id": "bathroom-mount",
+      "roomId": "bathroom",
+      "title": "Possible mounting damage",
+      "severity": "MEDIUM",
+      "confidence": 0.81,
+      "timestampSeconds": 284,
+      "description": "Possible damage near a bathroom fixture mounting point."
+    },
+    {
+      "id": "bathroom-base",
+      "roomId": "bathroom",
+      "title": "Base displacement",
+      "severity": "LOW",
+      "confidence": 0.74,
+      "timestampSeconds": 310,
+      "description": "A bathroom base component appears slightly displaced."
+    },
+    {
+      "id": "kitchen-water",
+      "roomId": "kitchen",
+      "title": "Possible water damage under sink",
+      "severity": "HIGH",
+      "confidence": 0.91,
+      "timestampSeconds": 453,
+      "description": "Possible moisture-related damage is visible beneath the kitchen sink."
+    },
+    {
+      "id": "kitchen-counter",
+      "roomId": "kitchen",
+      "title": "Countertop surface damage",
+      "severity": "MEDIUM",
+      "confidence": 0.84,
+      "timestampSeconds": 497,
+      "description": "Possible localized surface damage is visible on the kitchen countertop."
+    },
+    {
+      "id": "bedroom-baseboard",
+      "roomId": "bedroom",
+      "title": "Baseboard scuffing",
+      "severity": "LOW",
+      "confidence": 0.79,
+      "timestampSeconds": 612,
+      "description": "Minor scuffing may be present along the bedroom baseboard."
+    }
+  ],
+  "evidence": {
+    "mode": "LOCAL_PLACEHOLDER",
+    "imageAvailable": false,
+    "videoAvailable": false
+  },
+  "briefing": {
+    "title": "Rental Readiness Briefing",
+    "headline": "1 HIGH-severity issue should be reviewed first",
+    "priorityRoomId": "kitchen",
+    "priorityFindingId": "kitchen-water",
+    "priorityAction": "Inspect possible water damage under the kitchen sink before turnover.",
+    "secondaryMessage": "3 medium-priority items should be reviewed before the next tenant."
+  }
+}
