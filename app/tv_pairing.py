@@ -108,6 +108,7 @@ def create_tv_pairing(
             "status": "PENDING",
             "issued_at": issued,
             "expires_at": expires,
+            "tv_ttl_epoch": expires,
         },
         ConditionExpression=(
             "attribute_not_exists(PK) AND "

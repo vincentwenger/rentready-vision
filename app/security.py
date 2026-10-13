@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from starlette.concurrency import run_in_threadpool
 
 from .public_mode import public_context
 from .tv_device_auth import TOKEN_PATTERN
+from .tv_pairing_client_rate import reserve_tv_client_pairing_attempt
 from .tv_device_scope import resolve_tv_device_scope
 from .tv_request_scope import current_tv_device_inspection
 
@@ -153,6 +155,49 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                         headers={"WWW-Authenticate": "Bearer"},
                     )
                     log.warning("security_event=tv_auth_denied")
+
+        # Reserve the per-client quota before the pairing endpoint
+        # reads or validates any request body. The endpoint separately
+        # reserves the existing global quota.
+        #
+        # request.client.host is supplied by the ASGI server. Never
+        # read X-Forwarded-For from arbitrary request headers here.
+        if (
+            response is None
+            and request.method == "POST"
+            and request.url.path == "/api/tv/pairings/redeem"
+            and os.environ.get(
+                "RENTREADY_TV_PAIRING_REDEMPTION_ENABLED", ""
+            ) == "true"
+        ):
+            try:
+                client_permitted = await run_in_threadpool(
+                    reserve_tv_client_pairing_attempt,
+                    self.tv_device_table,
+                    client_ip=(
+                        request.client.host
+                        if request.client is not None else None
+                    ),
+                    operator_secret=self.token,
+                )
+            except Exception:
+                response = JSONResponse(
+                    {"detail": "Pairing temporarily unavailable"},
+                    status_code=503,
+                )
+                log.error(
+                    "security_event=tv_pair_client_limit_unavailable"
+                )
+            else:
+                if not client_permitted:
+                    response = JSONResponse(
+                        {"detail": "Pairing temporarily unavailable"},
+                        status_code=429,
+                        headers={"Retry-After": "300"},
+                    )
+                    log.warning(
+                        "security_event=tv_pair_client_rate_limited"
+                    )
 
         if response is None:
             context_token = public_context.set(public_value)

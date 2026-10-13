@@ -53,7 +53,8 @@ def reserve_tv_pairing_attempt(
             UpdateExpression=(
                 "SET #entity = :entity, "
                 "#window = :window, "
-                "#expiry = :expiry "
+                "#expiry = :expiry, "
+                "#ttl = :expiry "
                 "ADD #attempts :one"
             ),
             ConditionExpression=(
@@ -64,6 +65,7 @@ def reserve_tv_pairing_attempt(
                 "#entity": "entity_type",
                 "#window": "window_start",
                 "#expiry": "expires_at",
+                "#ttl": "tv_ttl_epoch",
                 "#attempts": "attempts",
             },
             ExpressionAttributeValues={

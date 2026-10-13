@@ -91,6 +91,7 @@ def issue_tv_device_session(
             "status": "ACTIVE",
             "issued_at": issued_at,
             "expires_at": expires_at,
+            "tv_ttl_epoch": expires_at,
         },
         ConditionExpression=(
             "attribute_not_exists(PK) AND "
