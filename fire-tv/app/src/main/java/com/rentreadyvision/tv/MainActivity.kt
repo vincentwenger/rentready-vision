@@ -1,6 +1,6 @@
 package com.rentreadyvision.tv
 
-import android.content.pm.ApplicationInfo
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Typeface
@@ -81,13 +81,50 @@ class MainActivity : FragmentActivity() {
             backCallback = callback
         }
 
-        if (isDebugBuild()) {
-            loadRealInspection()
+        if (TvDeviceSessionStore.load(this) == null) {
+            requestDevicePairing()
         } else {
-            // Release builds retain the packaged offline demo.
-            inspection = TvInspection.load(this)
-            render()
+            loadRealInspection()
         }
+    }
+
+    private var pairingRequested = false
+
+    @Suppress("DEPRECATION")
+    private fun requestDevicePairing() {
+        if (pairingRequested) return
+
+        pairingRequested = true
+        startActivityForResult(
+            Intent(this, TvPairingActivity::class.java),
+            5601
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(
+            requestCode, resultCode, data
+        )
+
+        if (requestCode != 5601) return
+
+        pairingRequested = false
+
+        if (
+            resultCode != RESULT_OK ||
+            TvDeviceSessionStore.load(this) == null
+        ) {
+            finish()
+            return
+        }
+
+        // Continue using the inspection-scoped HTTPS session.
+        loadRealInspection()
     }
 
     override fun onDestroy() {
@@ -106,12 +143,6 @@ class MainActivity : FragmentActivity() {
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
         navigateBack()
-    }
-
-    private fun isDebugBuild(): Boolean {
-        return (
-            applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
-        ) != 0
     }
 
     private fun loadRealInspection() {
@@ -151,14 +182,23 @@ class MainActivity : FragmentActivity() {
                         "RentReadyTV",
                         "Load failed: ${failure.javaClass.simpleName}"
                     )
-                    loadError =
-                        "Could not load the approved inspection. " +
-                        "Check the Windows development bridge, then retry."
+                    loadError = if (
+                        failure is SecurityException
+                    ) {
+                        "TV session expired or revoked. Pair this TV again."
+                    } else {
+                        "Could not load the inspection over HTTPS. " +
+                            "Check the connection and retry."
+                    }
+
+                    if (failure is SecurityException) {
+                        requestDevicePairing()
+                    }
                 }
 
                 render()
             }
-        }, "rentready-tv-bridge-loader").start()
+        }, "rentready-tv-https-loader").start()
     }
 
     private fun clearEvidence() {
@@ -170,9 +210,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun loadEvidenceForFinding(findingId: String) {
-        // The standalone release client will use a separate
-        // authenticated HTTPS implementation.
-        if (!isDebugBuild() || evidenceFindingId == findingId) {
+        if (evidenceFindingId == findingId) {
             return
         }
 
@@ -376,10 +414,11 @@ class MainActivity : FragmentActivity() {
             )
         )
 
-        // Never silently substitute demo findings after a debug error.
+        // Never substitute offline demo data after HTTPS errors.
         if (
-            isDebugBuild() &&
-            (isLoading || !::inspection.isInitialized)
+            isLoading ||
+            loadError != null ||
+            !::inspection.isInitialized
         ) {
             addText(column, "RENTREADY VISION", 40f, 28, true)
 
@@ -395,9 +434,9 @@ class MainActivity : FragmentActivity() {
             addText(
                 column,
                 if (isLoading)
-                    "Connecting to the local Mozart House inspection bridge..."
+                    "Connecting securely to RentReady Vision..."
                 else
-                    loadError ?: "The local bridge is unavailable.",
+                    loadError ?: "The secure connection is unavailable.",
                 21f,
                 30
             )
@@ -555,9 +594,7 @@ class MainActivity : FragmentActivity() {
         val room = inspection.findRoom(roomId)
         val finding = inspection.findFinding(findingId)
 
-        if (isDebugBuild()) {
-            loadEvidenceForFinding(findingId)
-        }
+        loadEvidenceForFinding(findingId)
 
         addText(column, room.name.uppercase(), 28f, 16, true)
         addText(column, finding.title, 32f, 26, true)
@@ -596,7 +633,7 @@ class MainActivity : FragmentActivity() {
                 null
             }
 
-            if (isDebugBuild() && image != null) {
+            if (image != null) {
                 addView(
                     ImageView(this@MainActivity).apply {
                         setImageBitmap(image)
@@ -611,9 +648,6 @@ class MainActivity : FragmentActivity() {
                 )
             } else {
                 val message = when {
-                    !isDebugBuild() ->
-                        "EVIDENCE IMAGE UNAVAILABLE\nOffline demo preview"
-
                     evidenceLoading ->
                         "LOADING REAL EVIDENCE IMAGE..."
 
@@ -697,16 +731,6 @@ class MainActivity : FragmentActivity() {
             22f,
             26
         )
-
-        if (!isDebugBuild()) {
-            addText(
-                column,
-                "Synthetic demo only - priorities require human confirmation.",
-                17f,
-                30,
-                tint = Color.LTGRAY
-            )
-        }
 
         return addAction(column, "VIEW PRIORITY FINDINGS") {
             navigateTo(

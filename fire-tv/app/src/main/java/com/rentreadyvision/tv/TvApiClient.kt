@@ -1,14 +1,12 @@
 package com.rentreadyvision.tv
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Looper
 import android.util.Log
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.util.Locale
@@ -24,18 +22,18 @@ import javax.net.ssl.HttpsURLConnection
  */
 object TvApiClient {
 
-    private const val BASE_URL = "http://127.0.0.1:8765"
+    private const val BASE_URL = "https://rentreadyvision.com"
     private const val MAX_RESPONSE_BYTES = 1_000_000
     private const val MAX_IMAGE_BYTES = 8_000_000
     private const val MAX_IMAGE_WIDTH = 1920
     private const val MAX_IMAGE_HEIGHT = 1080
 
-    private fun getJson(path: String): JSONObject {
+    private fun getJson(context: Context, path: String): JSONObject {
         var lastTransportError: java.io.IOException? = null
 
         for (attempt in 1..3) {
             try {
-                return getJsonOnce(path)
+                return getJsonOnce(context, path)
             } catch (failure: java.io.IOException) {
                 lastTransportError = failure
 
@@ -56,14 +54,17 @@ object TvApiClient {
         ))
     }
 
-    private fun getJsonOnce(path: String): JSONObject {
+    private fun getJsonOnce(context: Context, path: String): JSONObject {
         require(path.startsWith("/api/tv/")) {
             "Unsupported TV API path"
         }
 
+        val session = TvDeviceSessionStore.load(context)
+            ?: throw SecurityException("TV pairing required")
+
         val connection = (
             URL(BASE_URL + path).openConnection()
-                as HttpURLConnection
+                as HttpsURLConnection
         )
 
         connection.requestMethod = "GET"
@@ -72,18 +73,32 @@ object TvApiClient {
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty(
+            "Authorization", "Bearer " + session.token
+        )
+        connection.setRequestProperty("Accept-Encoding", "identity")
 
         try {
             val status = connection.responseCode
 
-            check(status == 200) {
-                "TV bridge unavailable (HTTP $status)"
+            if (status == 401 || status == 403) {
+                TvDeviceSessionStore.clear(context)
+                throw SecurityException(
+                    "TV device authorization expired or revoked"
+                )
+            }
+
+            if (status != 200) {
+                throw java.io.IOException(
+                    "TV API request failed (HTTP $status)"
+                )
             }
 
             val declaredLength = connection.contentLengthLong
 
             require(
-                declaredLength in 1L..MAX_RESPONSE_BYTES.toLong()
+                declaredLength == -1L ||
+                    declaredLength in 1L..MAX_RESPONSE_BYTES.toLong()
             ) {
                 "Invalid TV response length"
             }
@@ -111,8 +126,14 @@ object TvApiClient {
 
             val bytes = output.toByteArray()
 
-            require(bytes.size.toLong() == declaredLength) {
-                "Incomplete TV HTTP response"
+            require(bytes.isNotEmpty()) {
+                "Empty TV response"
+            }
+
+            if (declaredLength >= 0L) {
+                require(bytes.size.toLong() == declaredLength) {
+                    "Incomplete TV HTTP response"
+                }
             }
 
             return JSONObject(String(bytes, Charsets.UTF_8))
@@ -125,7 +146,7 @@ object TvApiClient {
     /**
      * Download preserved evidence for one finding.
      *
-     * Development-only: requests a fresh image grant from the local bridge.
+     * Requests a fresh authenticated image grant over production HTTPS.
      * Never logs signed URLs or downloads on the Android main thread.
      */
     fun loadEvidenceImage(
@@ -133,13 +154,6 @@ object TvApiClient {
         inspectionId: String,
         findingId: String
     ): Bitmap {
-        check(
-            (context.applicationInfo.flags and
-                ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        ) {
-            "Development evidence access is disabled in release builds"
-        }
-
         check(Looper.myLooper() != Looper.getMainLooper()) {
             "Evidence must load off the UI thread"
         }
@@ -157,7 +171,7 @@ object TvApiClient {
                 "findings/$findingId/image-url"
         )
 
-        val grant = getJson(path)
+        val grant = getJson(context, path)
 
         require(grant.getInt("expires_in_seconds") in 1..120) {
             "Unexpected image grant duration"
@@ -310,21 +324,17 @@ object TvApiClient {
     }
 
     fun load(context: Context): TvInspection {
-        check(
-            (
-                context.applicationInfo.flags and
-                    ApplicationInfo.FLAG_DEBUGGABLE
-            ) != 0
-        ) {
-            "Local TV bridge is disabled outside debug builds"
-        }
-
         check(Looper.myLooper() != Looper.getMainLooper()) {
             "TV HTTP requests must run off the UI thread"
         }
 
-        // Discover the one explicitly approved inspection.
-        val listing = getJson("/api/tv/inspections")
+        val deviceSession = TvDeviceSessionStore.load(context)
+            ?: throw SecurityException("TV pairing required")
+
+        // Discover only the inspection approved for this device.
+        val listing = getJson(
+            context, "/api/tv/inspections"
+        )
         Log.i("RentReadyTV", "Stage 1: inspection list received")
         val cards = listing.getJSONArray("inspections")
 
@@ -339,15 +349,19 @@ object TvApiClient {
             "Invalid TV inspection identifier"
         }
 
+        require(inspectionId == deviceSession.inspectionId) {
+            "Device session inspection scope mismatch"
+        }
+
         val prefix = "/api/tv/inspections/$inspectionId"
 
-        val overview = getJson(prefix)
+        val overview = getJson(context, prefix)
         Log.i("RentReadyTV", "Stage 2: overview received")
-        val roomResponse = getJson("$prefix/rooms")
+        val roomResponse = getJson(context, "$prefix/rooms")
         Log.i("RentReadyTV", "Stage 3: rooms received")
-        val findingResponse = getJson("$prefix/findings")
+        val findingResponse = getJson(context, "$prefix/findings")
         Log.i("RentReadyTV", "Stage 4: findings received")
-        val briefingResponse = getJson("$prefix/briefing")
+        val briefingResponse = getJson(context, "$prefix/briefing")
         Log.i("RentReadyTV", "Stage 5: briefing received")
 
         require(
