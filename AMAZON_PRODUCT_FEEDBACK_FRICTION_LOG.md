@@ -3,7 +3,7 @@
 **Status:** WORKING DRAFT — user review required before submitting feedback.  
 **Observation window:** October **12–21, 2026**; created from verified development evidence available on October 13; **finalize October 21**.  
 **Primary track:** Fire TV | **Intended mini-challenge:** AWS Builder.  
-**Reference implementation:** [Step 5 Final](STEP5_FIRE_TV_FINAL.md).  
+**Reference implementation:** [Step 5 Final](STEP5_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP5_7_FIRE_TV_COMPATIBILITY.md).  
 **Submission deadline:** October 23, 2026, 12:00 PM PDT.
 
 ## Purpose and integrity rules
@@ -65,6 +65,22 @@ Evidence references are development-conversation console output/screenshots unle
 - **Evidence:** Step 5.5I `implicitDeny`, Step 5.5J `allowed`, Step 5.5K real download pass.
 - **Submission classification:** Appropriate **AWS integration/onboarding feedback**, clearly described as a configuration step rather than provider defect.
 
+### DEV-006 — Android SDK Command-line Tools prerequisite and TV image discovery (setup observation; NOT Amazon defect)
+- **Date:** October 13, 2026
+- **Tool/provider:** Android Studio / Google Android SDK Manager (`sdkmanager`) on Windows; **not the Fire TV/Vega simulator or Amazon SDK**.
+- **Task:** Investigate Android TV API 30 (Android 11) to provide an older runtime compatibility cross-check for an already working Android TV API 36 app.
+- **Steps taken:** Run the read-only catalog script; verify `cmdline-tools/latest/bin/sdkmanager.bat`; open Android Studio Settings > Android SDK > SDK Tools; select/install `Android SDK Command-line Tools (latest)`; verify file exists; query `sdkmanager --list --channel=0`, then `--include_obsolete`.
+- **Expected:** Tools available to query the catalog; ideally discover Android 11 TV system image.
+- **Actual:** The first query could not start because Command-line Tools were not installed. After installation the SDK catalog commands completed, but the specific PowerShell filters returned **zero Android 10/11 system-image entries and zero TV image entries**, including obsolete packages. The output does **not** prove an image is universally unavailable, nor establish a Google or Amazon SDK error.
+- **Severity:** **Low / setup prerequisite**. Resolved for CLI availability; no older TV image selected.
+- **Workaround and outcome:** Install the Command-line Tools via Android Studio; retain the proven API 36 TV AVD, stop further emulator-image investigation, and schedule optional platform-specific validation later.
+- **Suggested developer-experience improvement:** Make prerequisite Command-line Tools availability clear in emulator package-discovery workflows; surface available image names and platform support clearly in SDK Manager.
+- **What worked:** Android Studio installed the missing tools correctly; `sdkmanager.bat` became available, audit scripts completed, no project or production changes.
+- **Evidence:** Step 5.7D.1–D.3 PowerShell console output and Android Studio SDK Tools screenshots, October 13.
+- **Submission classification:** **Google Android tooling / our workstation setup**, not evidence of Amazon Fire TV documentation or simulator friction. **Do not submit as an Amazon complaint** unless independently justified; retain as internal product-feedback observation and positive onboarding notes.
+
+
+
 ## Engineering friction observed, **not** automatically Amazon product feedback
 
 These are verified incidents in **our implementation or test scripts**. Record for transparency and improvement, but **do not repurpose them as complaints about Amazon tooling**.
@@ -75,7 +91,8 @@ These are verified incidents in **our implementation or test scripts**. Record f
 | ENG-002 | Oct 13 | Source-edit validation counted only same-line `getJson(context,` calls and rejected valid Kotlin with a line-broken call. | Count whitespace-tolerantly; source writing had not begun, and a corrected recovery script succeeded. |
 | ENG-003 | Oct 13 | Pairing UI initially needed a scroll to expose buttons/status. | User verified remote navigation, DELETE and CLEAR. Consider a layout polish rather than calling it an emulator bug. |
 | ENG-004 | Oct 13 | Production device-session TTL cleanup was not configured on shared DynamoDB table. | Introduced TV-only `tv_ttl_epoch` attributes. The app enforces expiration without relying on asynchronous DynamoDB TTL. Decide activation separately. |
-| ENG-005 | Oct 13 | Android release artifact unsigned. | Build completed, but release signing and Fire TV/Vega runtime verification remain outstanding rather than claiming submission readiness. |
+| ENG-005 | Oct 13 | Android release artifact unsigned. | Build completed, but release signing and physical Fire OS behavior remain unverified; the hackathon FAQ accepts the Android TV emulator demo. |
+| ENG-006 | Oct 13 | SDK Command-line Tools initially absent, then installed; API 30 TV system image not discovered in filtered catalog results. | Local tooling prerequisite resolved. Do not attribute no-image results to Amazon or claim image unavailable everywhere; see DEV-006. |
 
 ## Tool-by-tool product-feedback inventory
 
@@ -84,9 +101,9 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 | Tool / API / SDK | Verified use and what worked | Genuine friction or status | Onboarding / revisit |
 | --- | --- | --- | --- |
 | **Fire TV documentation** | Android-based TV track selected; no specific Amazon documentation interaction or complaint substantiated in Step 5 evidence. | **No friction documented yet.** | Inspect official Fire TV/Vega setup and document any actual URL, missing step, expected/actual behavior. |
-| **Android Studio / Gradle / Android SDK** | Kotlin debug and release builds; API 36 emulator; remote-focused UI. | **FL-001** offline Lint dependency, resolved. | Debug build worked; release required online dependency retrieval. Reuse assessment: developer review. |
+| **Android Studio / Gradle / Android SDK** | Kotlin debug and release builds; API 36 emulator; remote-focused UI; SDK Command-line Tools installed successfully. | **FL-001** offline Lint dependency; **DEV-006** Command-line Tools setup prerequisite and inconclusive older-TV image discovery, not an Amazon issue. | Debug build worked; release required online dependency retrieval. Reuse assessment: developer review. |
 | **Android TV emulator (not official Fire TV/Vega simulator)** | Pairing, focus, screen navigation, real inspection, evidence and encrypted restart demonstrated. | **FL-002**, app layout scroll/discoverability. | Useful emulator iteration loop. **Official Fire TV/Vega simulator not yet tested.** |
-| **Fire TV/Vega simulator** | No verified launch or emulator session in this evidence. | **Not tested; no legitimate friction entry yet.** | This is a **Devpost video requirement**, verify compatibility before claiming submission readiness. |
+| **Fire TV/Vega simulator** | No verified launch or emulator session in this evidence. | **Not tested; no legitimate friction entry yet.** | [Official FAQ](https://amazonappdev2026.devpost.com/details/faqs) also accepts Android TV emulators for the Fire TV demo; physical Fire OS behavior remains unverified. |
 | **AWS Bedrock** | Existing RentReady backend uses model-assisted inspection through AWS Bedrock before the Fire TV work; TV briefing uses saved findings and no new model call. | **No new Bedrock friction confirmed in this log period.** | Document actual Bedrock API/model integrations for AWS Builder feedback; don't invent latency, quota or errors. |
 | **AWS SDK for Python (boto3)** | DynamoDB strongly consistent inspection/session reads and conditional writes; private S3 report/evidence access, 120-second URL signing; IAM/SSM tests. | No evidenced boto3 API defect; **FL-003** is IAM-policy provisioning workflow, not SDK malfunction. | AWS SDK operations succeeded after correct credentials/policy scope. Reuse assessment: developer review. |
 | **AWS credentials / IAM / SSM** | Operator credential securely read from SSM SecureString; EC2 uses instance role, no operator credential in TV APK. | **FL-003** least-privilege artifact permission initially absent; corrected with scoped grant. | Secure credential handling and role isolation verified. No unsupported onboarding complaint. |

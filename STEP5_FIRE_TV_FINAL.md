@@ -2,9 +2,9 @@
 
 **Project:** RentReady Vision | **Amazon development branch:** `amazon-2026`  
 **Engineering milestone:** Core end-to-end Step 5 demonstration verified on **Android TV emulator API 36**, October 13, 2026.  
-**Amazon Fire TV track acceptance:** **NOT YET VERIFIED** on a physical Fire TV or the official Fire TV/Vega simulator. See the submission blocker below.  
+**Demonstration platform:** Android TV API 36 emulator demonstrated; [official hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) explicitly accepts Android TV emulators. **Actual Fire OS hardware compatibility remains unverified.** See [Step 5.7](STEP5_7_FIRE_TV_COMPATIBILITY.md).  
 **Primary track being developed:** Fire TV | **Intended mini-challenge:** AWS Builder (submission requirements still to be completed).  
-**Related documents:** [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
+**Related documents:** [Fire TV compatibility precheck (Step 5.7)](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
 
 ## 1. Scope and attribution
 
@@ -109,7 +109,7 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 
 ## 8. Known limitations and blockers
 
-1. **Fire TV submission verification is outstanding.** Devpost requires the demo video to show an actual Fire TV device or the **Fire TV/Vega simulator**. An Android TV API 36 emulator is not automatically evidence of Fire OS/Vega compatibility. Validate and record the approved target before submission.
+1. **Platform nuance:** The official [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) accepts an **Android TV emulator** for Fire TV-track demonstration. Our API 36 Google emulator qualifies as an allowed *emulator type*, but **actual Fire OS device compatibility has not been verified** and should not be claimed. Capture the actual runtime honestly. See [Step 5.7](STEP5_7_FIRE_TV_COMPATIBILITY.md).
 2. Release APK is **unsigned**; no physical Fire TV run, Fire OS-specific test or app-store deployment verified.
 3. DynamoDB automatic TTL cleanup is not enabled as of the audit; `tv_ttl_epoch` is present and application authorization enforces expiry, but historical records may accumulate.
 4. The exact-object S3 IAM deployment permission is temporary and must be reconciled/removed at the appropriate point. Terraform state already contains separate historic/manual IAM-policy reconciliation cautions; do **not** blindly apply Terraform.
@@ -120,9 +120,9 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 
 ## 9. Remaining hackathon tasks (not Step 5 functionality)
 
-- Validate on Fire TV or the official Fire TV/Vega simulator and record proof. **This is a submission blocker, not an optional polish item.**
+- Rehearse on the accepted Android TV emulator and document its exact platform. Per [official FAQ](https://amazonappdev2026.devpost.com/details/faqs), physical Fire TV/Vega testing is not mandatory; real Fire OS behavior remains unverified.
 - Prepare signed/tested deliverable or judge-readable installation instructions appropriate to the chosen runtime.
-- Record an English public YouTube/Vimeo demo **under three minutes**, clearly showing the accepted Fire TV device/simulator.
+- Record a public YouTube/Vimeo demo **under three minutes** showing the actual supported TV emulator (or Fire TV/Vega target if later available), with runtime and platform accurately labeled.
 - Complete Devpost text, repo access for judging, pre-existing-vs-new development explanation, AWS Builder service usage and product feedback.
 - Continue [Product Feedback & Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md): observation period **October 12–21**; finalize **October 21** for the **October 23, 2026 12:00 PM PDT** submission deadline.
 - Remove/reconcile the temporary artifact IAM grant, assess DynamoDB TTL activation, and confirm any demo-specific credentials/access with least privilege.
