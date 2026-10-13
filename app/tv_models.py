@@ -84,6 +84,23 @@ class TvImageGrantResponse(TvResponse):
     expires_in_seconds: int = Field(ge=1, le=120)
 
 
+class TvPairingCodeIssueRequest(TvResponse):
+    inspection_id: str = Field(min_length=36, max_length=36)
+
+
+class TvPairingCodeIssueResponse(TvResponse):
+    code: str
+    inspection_id: str
+    expires_at: int = Field(ge=1)
+
+
+class TvPairingRedeemResponse(TvResponse):
+    device_id: str
+    inspection_id: str
+    token: str
+    expires_at: int = Field(ge=1)
+
+
 class TvBriefingResponse(TvResponse):
     inspection_id: str
     headline: str

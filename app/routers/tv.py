@@ -7,18 +7,28 @@ TV devices must never embed the privileged operator token.
 
 from __future__ import annotations
 
+import json
+import os
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
 from ..db import get_inspection
-from ..aws import s3
+from ..aws import s3, table
 from ..config import get_settings
 from ..services import load_issues_report
 from ..tv_media import create_tv_image_grant
-from ..tv_access import (
-    allowed_tv_inspection_ids,
-    require_allowed_tv_inspection,
+from ..tv_pairing import create_tv_pairing
+from ..tv_pairing_rate import reserve_tv_pairing_attempt
+from ..tv_pairing_redemption import (
+    PairingRejected,
+    PairingUnavailable,
+    _redeem_reserved_tv_pairing_code,
+)
+from ..tv_request_scope import (
+    request_allowed_tv_inspection_ids as allowed_tv_inspection_ids,
+    require_request_tv_inspection as require_allowed_tv_inspection,
 )
 from ..tv_adapter import TvProjection, project_completed_inspection
 from ..tv_models import (
@@ -26,6 +36,9 @@ from ..tv_models import (
     TvFindingDetail,
     TvFindingsResponse,
     TvImageGrantResponse,
+    TvPairingCodeIssueRequest,
+    TvPairingCodeIssueResponse,
+    TvPairingRedeemResponse,
     TvInspectionListResponse,
     TvInspectionOverview,
     TvRoomsResponse,
@@ -211,3 +224,148 @@ def get_tv_finding_image_url(
         ) from None
 
     return TvImageGrantResponse(**grant)
+
+@router.post(
+    "/pairing-codes",
+    response_model=TvPairingCodeIssueResponse,
+    status_code=201,
+)
+def issue_tv_pairing_code(
+    payload: TvPairingCodeIssueRequest,
+) -> TvPairingCodeIssueResponse:
+    """Create a short-lived pairing code for an approved inspection.
+
+    SecurityMiddleware permits POST /api/tv routes only to the
+    authenticated operator. Device tokens cannot issue codes.
+    Anonymous redemption is not enabled by this endpoint.
+
+    The raw pairing code is returned once and must not be logged.
+    """
+
+    # Authorization precedes any inspection database lookup.
+    require_allowed_tv_inspection(payload.inspection_id)
+
+    # A code must not be issued for an absent or incomplete report.
+    _load_tv_projection(payload.inspection_id)
+
+    pairing = create_tv_pairing(
+        table,
+        inspection_id=payload.inspection_id,
+    )
+
+    return TvPairingCodeIssueResponse(**pairing)
+
+@router.post(
+    "/pairings/redeem",
+    response_model=TvPairingRedeemResponse,
+)
+async def redeem_tv_pairing_http(
+    request: Request,
+) -> TvPairingRedeemResponse:
+    """Redeem a pairing code, only when explicitly enabled.
+
+    IMPORTANT: The rate reservation MUST precede request-body
+    reading, parsing, validation, and code lookup.
+    """
+
+    if os.environ.get(
+        "RENTREADY_TV_PAIRING_REDEMPTION_ENABLED", ""
+    ) != "true":
+        raise HTTPException(
+            status_code=404,
+            detail="Not found",
+        )
+
+    try:
+        allowed = await run_in_threadpool(
+            reserve_tv_pairing_attempt,
+            table,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Pairing temporarily unavailable",
+        ) from None
+
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Pairing temporarily unavailable",
+            headers={"Retry-After": "300"},
+        )
+
+    # No request content is read until the rate-limit reservation
+    # has succeeded, including for malformed JSON and large bodies.
+    media_type = request.headers.get(
+        "content-type", ""
+    ).split(";", 1)[0].strip().lower()
+
+    if media_type != "application/json":
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid pairing request",
+        )
+
+    declared_length = request.headers.get("content-length")
+
+    if declared_length is not None:
+        if not declared_length.isdecimal():
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid pairing request",
+            )
+
+        if int(declared_length) > 256:
+            raise HTTPException(
+                status_code=413,
+                detail="Pairing request too large",
+            )
+
+    body = bytearray()
+
+    try:
+        async for chunk in request.stream():
+            if len(body) + len(chunk) > 256:
+                raise HTTPException(
+                    status_code=413,
+                    detail="Pairing request too large",
+                )
+            body.extend(chunk)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid pairing request",
+        ) from None
+
+    try:
+        payload = json.loads(bytes(body).decode("utf-8"))
+    except (ValueError, UnicodeError):
+        payload = None
+
+    code = (
+        payload.get("code")
+        if isinstance(payload, dict)
+        and set(payload) == {"code"}
+        else None
+    )
+
+    try:
+        result = await run_in_threadpool(
+            _redeem_reserved_tv_pairing_code,
+            table,
+            code=code,
+        )
+    except PairingRejected:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid pairing code",
+        ) from None
+    except PairingUnavailable:
+        raise HTTPException(
+            status_code=503,
+            detail="Pairing temporarily unavailable",
+        ) from None
+
+    return TvPairingRedeemResponse(**result)

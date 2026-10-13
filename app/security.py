@@ -13,6 +13,9 @@ from starlette.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from .public_mode import public_context
+from .tv_device_auth import TOKEN_PATTERN
+from .tv_device_scope import resolve_tv_device_scope
+from .tv_request_scope import current_tv_device_inspection
 
 log = logging.getLogger("rentready.security")
 
@@ -52,9 +55,12 @@ def content_security_policy(page: Path) -> str:
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, *, settings, token, csp):
+    def __init__(
+        self, app, *, settings, token, csp, tv_device_table=None
+    ):
         super().__init__(app)
         self.settings, self.token, self.csp = settings, token, csp
+        self.tv_device_table = tv_device_table
 
     async def dispatch(self, request, call_next):
         secure = request.url.scheme == "https"
@@ -94,32 +100,69 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                             response = JSONResponse({"detail": detail}, status_code=code)
                     if response is not None:
                         log.warning("security_event=auth_denied")
-        # Fire TV API routes are always operator-protected at this stage.
-        # Public judging mode must never authorize these endpoints.
+        # TV GET requests may use either operator authentication
+        # or a restricted, server-validated device session.
+        # Client-supplied scope headers are never trusted.
+        tv_device_scope = None
+
         if (response is None and request.method != "OPTIONS"
                 and (request.url.path == "/api/tv"
-                     or request.url.path.startswith("/api/tv/"))):
+                     or request.url.path.startswith("/api/tv/"))
+                and not (
+                    request.method == "POST"
+                    and request.url.path == "/api/tv/pairings/redeem"
+                )):
             auth = request.headers.get("authorization", "")
-            supplied = auth[7:] if auth.lower().startswith("bearer ") else ""
+            supplied = (
+                auth[7:]
+                if auth.lower().startswith("bearer ")
+                else ""
+            )
 
-            authorized = bool(self.token) and hmac.compare_digest(
+            operator_authorized = bool(self.token) and hmac.compare_digest(
                 hashlib.sha256(supplied.encode()).digest(),
                 hashlib.sha256(self.token.encode()).digest(),
             )
 
-            if not authorized:
-                response = JSONResponse(
-                    {"detail": "TV API authorization required"},
-                    status_code=401,
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-                log.warning("security_event=tv_auth_denied")
+            if not operator_authorized:
+                if (request.method == "GET"
+                        and self.tv_device_table is not None
+                        and TOKEN_PATTERN.fullmatch(supplied)):
+                    try:
+                        tv_device_scope = await run_in_threadpool(
+                            resolve_tv_device_scope,
+                            self.tv_device_table,
+                            token=supplied,
+                        )
+                    except Exception:
+                        response = JSONResponse(
+                            {
+                                "detail":
+                                    "TV authorization temporarily unavailable"
+                            },
+                            status_code=503,
+                        )
+                        log.error(
+                            "security_event=tv_device_lookup_unavailable"
+                        )
+
+                if response is None and tv_device_scope is None:
+                    response = JSONResponse(
+                        {"detail": "TV API authorization required"},
+                        status_code=401,
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+                    log.warning("security_event=tv_auth_denied")
 
         if response is None:
             context_token = public_context.set(public_value)
+            tv_context_token = current_tv_device_inspection.set(
+                tv_device_scope
+            )
             try:
                 response = await call_next(request)
             finally:
+                current_tv_device_inspection.reset(tv_context_token)
                 public_context.reset(context_token)
         response.headers["Cache-Control"] = "no-store"
         response.headers["Referrer-Policy"] = "no-referrer"

@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from .config import get_settings
 from .security_config import get_security_settings
 from .security import SecurityMiddleware, load_api_token, content_security_policy
+from .aws import table as tv_device_table
 
 try:
     settings = get_settings()
@@ -41,8 +42,13 @@ app.add_middleware(
 app.add_middleware(TrustedHostMiddleware,
                    allowed_hosts=[host.strip() for host in security_settings.allowed_hosts.split(",") if host.strip()])
 # Outermost: TLS and response headers also cover CORS preflight / host errors.
-app.add_middleware(SecurityMiddleware, settings=security_settings, token=operator_token,
-                   csp=content_security_policy(demo_file))
+app.add_middleware(
+    SecurityMiddleware,
+    settings=security_settings,
+    token=operator_token,
+    csp=content_security_policy(demo_file),
+    tv_device_table=tv_device_table,
+)
 
 app.include_router(inspections_router)
 app.include_router(tv_router)
