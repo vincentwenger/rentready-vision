@@ -27,11 +27,11 @@ Evidence references are development-conversation console output/screenshots unle
 - **Date:** October 13, 2026
 - **Tool/provider:** Android Studio / Gradle / Android Gradle Plugin; **general Android tooling, not identified as an Amazon SDK issue**.
 - **Task:** Build both debug and release APKs for the standalone authenticated TV viewer.
-- **Steps taken:** Run \`gradlew.bat --offline --no-daemon --console=plain :app:assembleDebug :app:assembleRelease\` on Windows with Android Studio JBR and Gradle 9.6.0.
+- **Steps taken:** Run `gradlew.bat --offline --no-daemon --console=plain :app:assembleDebug :app:assembleRelease` on Windows with Android Studio JBR and Gradle 9.6.0.
 - **Expected:** Both APKs assemble using already-cached dependencies.
-- **Actual:** Release task \`:app:lintVitalAnalyzeRelease\` required \`com.android.tools.lint:lint-gradle:32.4.1\`, not present in the local Gradle cache. Build failed; a configuration-cache serialization error appeared as a secondary symptom. The earlier debug-only build had succeeded.
+- **Actual:** Release task `:app:lintVitalAnalyzeRelease` required `com.android.tools.lint:lint-gradle:32.4.1`, not present in the local Gradle cache. Build failed; a configuration-cache serialization error appeared as a secondary symptom. The earlier debug-only build had succeeded.
 - **Severity:** **Medium**, resolved.
-- **Workaround:** Allow dependency downloads and disable configuration cache for that invocation: \`--no-daemon --no-configuration-cache :app:assembleDebug :app:assembleRelease\`. Both succeeded; release artifact was \`app-release-unsigned.apk\`.
+- **Workaround:** Allow dependency downloads and disable configuration cache for that invocation: `--no-daemon --no-configuration-cache :app:assembleDebug :app:assembleRelease`. Both succeeded; release artifact was `app-release-unsigned.apk`.
 - **Actionable improvement:** Provide a clear offline-readiness/preflight task for the release Lint toolchain, with a missing-artifact message that distinguishes dependency availability from configuration-cache failures. Cache or document all release-only dependencies when recommending offline builds.
 - **What worked:** Online dependency resolution completed and both build variants compiled.
 - **Evidence:** Step 5.6E.3 output and Step 5.6E.3R successful retry, October 13.
@@ -41,7 +41,7 @@ Evidence references are development-conversation console output/screenshots unle
 - **Date:** October 13, 2026
 - **Tool/context:** Android TV API 36 emulator; the **RentReady Vision app's own** GridLayout + ScrollView / D-pad UI.
 - **Task:** Enter a ten-character pairing code and reach DELETE, CLEAR, PAIR TV and status text with a remote.
-- **Steps taken:** Launch \`TvPairingActivity\` on the emulator; navigate the character grid using D-pad; select characters and navigate down to the action row.
+- **Steps taken:** Launch `TvPairingActivity` on the emulator; navigate the character grid using D-pad; select characters and navigate down to the action row.
 - **Expected:** All essential controls and status text visible or clearly discoverable from the initial screen, with focus always visible.
 - **Actual:** The initial screenshot showed lower action buttons partly clipped and status text below the viewport. When focus/navigation moved downward, ScrollView revealed the action row and status. Character entry, DELETE and CLEAR worked, and pairing later succeeded.
 - **Severity:** **Low**, workaround verified; no proof of an emulator defect.
@@ -55,14 +55,14 @@ Evidence references are development-conversation console output/screenshots unle
 - **Date:** October 13, 2026
 - **Tool/provider:** AWS IAM, EC2 instance role, private S3, boto3.
 - **Task:** Stage and retrieve a new immutable Step 55 API ZIP from private S3 on the production EC2 host.
-- **Steps taken:** Upload the encrypted, SHA-256-pinned object; simulate \`s3:GetObject\` for the EC2 API role against the new exact object ARN; test download using the actual instance role.
+- **Steps taken:** Upload the encrypted, SHA-256-pinned object; simulate `s3:GetObject` for the EC2 API role against the new exact object ARN; test download using the actual instance role.
 - **Expected:** The production API role could read the approved release after an appropriate least-privilege grant.
-- **Actual:** Initially \`implicitDeny\` for the new object because existing deployment policies did not grant that specific artifact. This was **correct AWS least-privilege behavior, not an AWS service failure**.
+- **Actual:** Initially `implicitDeny` for the new object because existing deployment policies did not grant that specific artifact. This was **correct AWS least-privilege behavior, not an AWS service failure**.
 - **Severity:** **Medium** deployment workflow friction, resolved.
-- **Workaround:** Create a temporary inline policy granting \`s3:GetObject\` to **one exact ZIP object**; re-run IAM simulation (\`allowed\`) and real EC2 instance-role S3 checksum test (passed). Retain a cleanup/reconciliation task.
+- **Workaround:** Create a temporary inline policy granting `s3:GetObject` to **one exact ZIP object**; re-run IAM simulation (`allowed`) and real EC2 instance-role S3 checksum test (passed). Retain a cleanup/reconciliation task.
 - **Actionable improvement:** Provide a deployment-specific preflight/template showing how to provision exact-object read access at artifact publication, and an automated cleanup checklist once the release is installed. Avoid recommending wildcard artifact permissions.
 - **What worked:** AWS policy simulation, SSM inspection, exact-object permission and the instance-role download check were effective.
-- **Evidence:** Step 5.5I \`implicitDeny\`, Step 5.5J \`allowed\`, Step 5.5K real download pass.
+- **Evidence:** Step 5.5I `implicitDeny`, Step 5.5J `allowed`, Step 5.5K real download pass.
 - **Submission classification:** Appropriate **AWS integration/onboarding feedback**, clearly described as a configuration step rather than provider defect.
 
 ## Engineering friction observed, **not** automatically Amazon product feedback
@@ -71,10 +71,10 @@ These are verified incidents in **our implementation or test scripts**. Record f
 
 | ID | Date | Our task and observed issue | Fix / lesson |
 | --- | --- | --- | --- |
-| ENG-001 | Oct 13 | In-process FastAPI route checker enumerated top-level \`app.routes\`, reported nine TV routes missing, even though authenticated HTTP returned 200. | Inspect \`tv_router.routes\` and verify actual HTTP behavior; nine paths were confirmed. Test harness assumption was wrong. |
-| ENG-002 | Oct 13 | Source-edit validation counted only same-line \`getJson(context,\` calls and rejected valid Kotlin with a line-broken call. | Count whitespace-tolerantly; source writing had not begun, and a corrected recovery script succeeded. |
+| ENG-001 | Oct 13 | In-process FastAPI route checker enumerated top-level `app.routes`, reported nine TV routes missing, even though authenticated HTTP returned 200. | Inspect `tv_router.routes` and verify actual HTTP behavior; nine paths were confirmed. Test harness assumption was wrong. |
+| ENG-002 | Oct 13 | Source-edit validation counted only same-line `getJson(context,` calls and rejected valid Kotlin with a line-broken call. | Count whitespace-tolerantly; source writing had not begun, and a corrected recovery script succeeded. |
 | ENG-003 | Oct 13 | Pairing UI initially needed a scroll to expose buttons/status. | User verified remote navigation, DELETE and CLEAR. Consider a layout polish rather than calling it an emulator bug. |
-| ENG-004 | Oct 13 | Production device-session TTL cleanup was not configured on shared DynamoDB table. | Introduced TV-only \`tv_ttl_epoch\` attributes. The app enforces expiration without relying on asynchronous DynamoDB TTL. Decide activation separately. |
+| ENG-004 | Oct 13 | Production device-session TTL cleanup was not configured on shared DynamoDB table. | Introduced TV-only `tv_ttl_epoch` attributes. The app enforces expiration without relying on asynchronous DynamoDB TTL. Decide activation separately. |
 | ENG-005 | Oct 13 | Android release artifact unsigned. | Build completed, but release signing and Fire TV/Vega runtime verification remain outstanding rather than claiming submission readiness. |
 
 ## Tool-by-tool product-feedback inventory
@@ -112,7 +112,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 
 ### Copyable entry template
 
-\`\`\`markdown
+```markdown
 ### FL-XXX — [neutral summary]
 - Date / tool / exact version:
 - Task:
@@ -126,6 +126,6 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 - Evidence reference:
 - Classification (Amazon tool / other ecosystem / our app / our test harness):
 - Submission decision (include / exclude / await evidence):
-\`\`\`
+```
 
 **Do not add issues merely to fill categories.** If Fire TV documentation, the official simulator, Bedrock or SDK usage produces no friction, report what worked well or explicitly say “no issues observed” after genuine use. Remove speculative language from final submitted entries.
