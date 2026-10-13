@@ -8,6 +8,7 @@ The bridge does not require or disclose the operator API token.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -22,7 +23,7 @@ PORT = 8765
 INSPECTION_ID = "b2054cf1-2401-44df-b675-d01d28acffa9"
 
 
-def make_handler(projection):
+def make_handler(projection, *, image_grant=None):
     """Prepare a finite set of read-only routes from one TV projection."""
 
     inspection_id = projection.overview.id
@@ -108,6 +109,49 @@ def make_handler(projection):
                 self._send(200, health)
                 return
 
+            # Development-only temporary image grants.
+            # No privileged API token is placed in the TV APK.
+            image_prefix = (
+                f"{base}/inspections/{inspection_id}/findings/"
+            )
+
+            if (
+                image_grant is not None
+                and path.startswith(image_prefix)
+                and path.endswith("/image-url")
+            ):
+                suffix = path[len(image_prefix):]
+                finding_id = suffix[:-len("/image-url")]
+
+                if (
+                    self.path != path
+                    or not re.fullmatch(r"[0-9a-f]{32}", finding_id)
+                    or finding_id not in projection.details
+                ):
+                    self._send(404, b'{"detail":"Not found"}')
+                    return
+
+                try:
+                    from app.tv_models import TvImageGrantResponse
+
+                    grant = TvImageGrantResponse(
+                        **image_grant(finding_id)
+                    )
+                    encoded = json.dumps(
+                        grant.model_dump(mode="json"),
+                        separators=(",", ":"),
+                    ).encode("utf-8")
+                except LookupError:
+                    self._send(404, b'{"detail":"Image unavailable"}')
+                    return
+                except Exception:
+                    # Never disclose private S3 references or signed URLs.
+                    self._send(503, b'{"detail":"Image unavailable"}')
+                    return
+
+                self._send(200, encoded)
+                return
+
             body = payloads.get(path)
 
             if body is None:
@@ -133,7 +177,11 @@ def main():
 
     os.environ["AWS_EC2_METADATA_DISABLED"] = "true"
 
+    from app.aws import s3
+    from app.config import get_settings
     from app.db import get_inspection
+    from app.tv_evidence import preserved_image_keys_by_finding
+    from app.tv_media import create_tv_image_grant
     from app.services import load_issues_report
     from app.tv_adapter import project_completed_inspection
 
@@ -151,12 +199,30 @@ def main():
 
     projection = project_completed_inspection(inspection, report)
 
+    mapping = preserved_image_keys_by_finding(
+        INSPECTION_ID, report
+    )
+
+    if set(mapping) != set(projection.details):
+        raise SystemExit("Preserved image mapping incomplete")
+
+    bucket = get_settings().s3_bucket
+
+    def grant_for_finding(finding_id):
+        return create_tv_image_grant(
+            inspection_id=INSPECTION_ID,
+            finding_id=finding_id,
+            report=report,
+            bucket=bucket,
+            signer=s3,
+        )
+
     if projection.overview.id != INSPECTION_ID:
         raise SystemExit("Inspection mismatch")
 
     server = ThreadingHTTPServer(
         (HOST, PORT),
-        make_handler(projection)
+        make_handler(projection, image_grant=grant_for_finding)
     )
 
     print("Fire TV development bridge READY")
@@ -164,6 +230,8 @@ def main():
     print("Emulator address: http://10.0.2.2:8765")
     print("Rooms:", len(projection.rooms.rooms))
     print("Findings:", len(projection.findings.findings))
+    print("Preserved evidence mappings:", len(mapping))
+    print("Temporary image grants: ENABLED (120 seconds)")
     print("Original video downloaded: NO")
     print("Operator token exposed: NO")
     print("Press Ctrl+C to stop")

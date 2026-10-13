@@ -1,6 +1,7 @@
 package com.rentreadyvision.tv
 
 import android.content.pm.ApplicationInfo
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -38,6 +40,13 @@ class MainActivity : FragmentActivity() {
     private var isLoading = false
     private var loadError: String? = null
     private var loadGeneration = 0
+
+    // Keep at most one real evidence image in memory.
+    private var evidenceBitmap: Bitmap? = null
+    private var evidenceFindingId: String? = null
+    private var evidenceLoading = false
+    private var evidenceFailed = false
+    private var evidenceGeneration = 0
 
     private var currentPage = Page(Screen.INSPECTIONS)
     private val history = mutableListOf<Page>()
@@ -83,6 +92,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onDestroy() {
         loadGeneration += 1
+        clearEvidence()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             backCallback?.let {
@@ -131,6 +141,7 @@ class MainActivity : FragmentActivity() {
                 isLoading = false
 
                 result.onSuccess { loaded ->
+                    clearEvidence()
                     inspection = loaded
                     currentPage = Page(Screen.INSPECTIONS)
                     history.clear()
@@ -150,13 +161,95 @@ class MainActivity : FragmentActivity() {
         }, "rentready-tv-bridge-loader").start()
     }
 
+    private fun clearEvidence() {
+        evidenceGeneration += 1
+        evidenceBitmap = null
+        evidenceFindingId = null
+        evidenceLoading = false
+        evidenceFailed = false
+    }
+
+    private fun loadEvidenceForFinding(findingId: String) {
+        // The standalone release client will use a separate
+        // authenticated HTTPS implementation.
+        if (!isDebugBuild() || evidenceFindingId == findingId) {
+            return
+        }
+
+        clearEvidence()
+
+        val inspectionId = inspection.propertyId
+        evidenceFindingId = findingId
+        evidenceLoading = true
+
+        val generation = evidenceGeneration
+
+        Thread({
+            val result = runCatching {
+                TvApiClient.loadEvidenceImage(
+                    applicationContext,
+                    inspectionId,
+                    findingId
+                )
+            }
+
+            runOnUiThread {
+                // Never display a response for an older screen,
+                // inspection, or completed Activity instance.
+                if (
+                    isFinishing ||
+                    isDestroyed ||
+                    generation != evidenceGeneration ||
+                    evidenceFindingId != findingId ||
+                    currentPage.screen != Screen.FINDING ||
+                    currentPage.findingId != findingId ||
+                    inspection.propertyId != inspectionId
+                ) {
+                    return@runOnUiThread
+                }
+
+                evidenceLoading = false
+
+                result.onSuccess { bitmap ->
+                    evidenceBitmap = bitmap
+                    evidenceFailed = false
+                    Log.i(
+                        "RentReadyTV",
+                        "Real preserved evidence image loaded"
+                    )
+                }.onFailure { failure ->
+                    evidenceBitmap = null
+                    evidenceFailed = true
+
+                    // Never log image URLs or private storage keys.
+                    Log.w(
+                        "RentReadyTV",
+                        "Evidence load failed: " +
+                            failure.javaClass.simpleName
+                    )
+                }
+
+                render()
+            }
+        }, "rentready-tv-evidence-loader").start()
+    }
+
     private fun navigateTo(page: Page) {
+        if (
+            page.screen != Screen.FINDING ||
+            page.findingId != currentPage.findingId
+        ) {
+            clearEvidence()
+        }
+
         history.add(currentPage)
         currentPage = page
         render()
     }
 
     private fun navigateBack() {
+        clearEvidence()
+
         if (history.isNotEmpty()) {
             currentPage = history.removeAt(history.lastIndex)
             render()
@@ -462,6 +555,10 @@ class MainActivity : FragmentActivity() {
         val room = inspection.findRoom(roomId)
         val finding = inspection.findFinding(findingId)
 
+        if (isDebugBuild()) {
+            loadEvidenceForFinding(findingId)
+        }
+
         addText(column, room.name.uppercase(), 28f, 16, true)
         addText(column, finding.title, 32f, 26, true)
 
@@ -493,25 +590,61 @@ class MainActivity : FragmentActivity() {
                 setStroke(dp(1), Color.rgb(85, 105, 135))
             }
 
-            addView(
-                TextView(this@MainActivity).apply {
-                    text = "EVIDENCE IMAGE UNAVAILABLE\nNo image supplied to this TV preview"
-                    textSize = 20f
-                    setTextColor(Color.LTGRAY)
-                    gravity = Gravity.CENTER
-                },
-                FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
+            val image = if (evidenceFindingId == findingId) {
+                evidenceBitmap
+            } else {
+                null
+            }
+
+            if (isDebugBuild() && image != null) {
+                addView(
+                    ImageView(this@MainActivity).apply {
+                        setImageBitmap(image)
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        contentDescription =
+                            "Preserved inspection evidence image"
+                    },
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
                 )
-            )
+            } else {
+                val message = when {
+                    !isDebugBuild() ->
+                        "EVIDENCE IMAGE UNAVAILABLE\nOffline demo preview"
+
+                    evidenceLoading ->
+                        "LOADING REAL EVIDENCE IMAGE..."
+
+                    evidenceFailed ->
+                        "EVIDENCE IMAGE COULD NOT BE LOADED\n" +
+                            "Return to the room and reopen to retry."
+
+                    else ->
+                        "EVIDENCE IMAGE UNAVAILABLE"
+                }
+
+                addView(
+                    TextView(this@MainActivity).apply {
+                        text = message
+                        textSize = 20f
+                        setTextColor(Color.LTGRAY)
+                        gravity = Gravity.CENTER
+                    },
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
+            }
         }
 
         column.addView(
             evidenceBox,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(170)
+                dp(280)
             ).apply {
                 bottomMargin = dp(24)
             }

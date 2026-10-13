@@ -12,7 +12,10 @@ import re
 from fastapi import APIRouter, HTTPException
 
 from ..db import get_inspection
+from ..aws import s3
+from ..config import get_settings
 from ..services import load_issues_report
+from ..tv_media import create_tv_image_grant
 from ..tv_access import (
     allowed_tv_inspection_ids,
     require_allowed_tv_inspection,
@@ -22,6 +25,7 @@ from ..tv_models import (
     TvBriefingResponse,
     TvFindingDetail,
     TvFindingsResponse,
+    TvImageGrantResponse,
     TvInspectionListResponse,
     TvInspectionOverview,
     TvRoomsResponse,
@@ -153,3 +157,57 @@ def get_tv_finding(finding_id: str) -> TvFindingDetail:
         status_code=404,
         detail="Finding not available",
     )
+
+@router.get(
+    "/inspections/{inspection_id}/findings/{finding_id}/image-url",
+    response_model=TvImageGrantResponse,
+)
+def get_tv_finding_image_url(
+    inspection_id: str,
+    finding_id: str,
+) -> TvImageGrantResponse:
+    """Issue a short-lived image grant for an approved TV finding.
+
+    SecurityMiddleware must authenticate the request before this route.
+    Inspection authorization happens before any database lookup.
+    Never log the returned URL.
+    """
+
+    require_allowed_tv_inspection(inspection_id)
+
+    if not re.fullmatch(r"[0-9a-f]{32}", finding_id):
+        raise HTTPException(
+            status_code=404,
+            detail="Finding image unavailable",
+        )
+
+    projection = _load_tv_projection(inspection_id)
+
+    if finding_id not in projection.details:
+        raise HTTPException(
+            status_code=404,
+            detail="Finding image unavailable",
+        )
+
+    report = load_issues_report(inspection_id)
+
+    try:
+        grant = create_tv_image_grant(
+            inspection_id=inspection_id,
+            finding_id=finding_id,
+            report=report,
+            bucket=get_settings().s3_bucket,
+            signer=s3,
+        )
+    except LookupError:
+        raise HTTPException(
+            status_code=404,
+            detail="Finding image unavailable",
+        ) from None
+    except ValueError:
+        raise HTTPException(
+            status_code=409,
+            detail="Finding evidence is not TV-ready",
+        ) from None
+
+    return TvImageGrantResponse(**grant)

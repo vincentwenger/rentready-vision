@@ -2,14 +2,18 @@ package com.rentreadyvision.tv
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Looper
 import android.util.Log
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.util.Locale
 import java.util.UUID
+import javax.net.ssl.HttpsURLConnection
 
 /**
  * Development-only client for the loopback Fire TV emulator bridge.
@@ -22,6 +26,9 @@ object TvApiClient {
 
     private const val BASE_URL = "http://127.0.0.1:8765"
     private const val MAX_RESPONSE_BYTES = 1_000_000
+    private const val MAX_IMAGE_BYTES = 8_000_000
+    private const val MAX_IMAGE_WIDTH = 1920
+    private const val MAX_IMAGE_HEIGHT = 1080
 
     private fun getJson(path: String): JSONObject {
         var lastTransportError: java.io.IOException? = null
@@ -109,6 +116,184 @@ object TvApiClient {
             }
 
             return JSONObject(String(bytes, Charsets.UTF_8))
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+
+    /**
+     * Download preserved evidence for one finding.
+     *
+     * Development-only: requests a fresh image grant from the local bridge.
+     * Never logs signed URLs or downloads on the Android main thread.
+     */
+    fun loadEvidenceImage(
+        context: Context,
+        inspectionId: String,
+        findingId: String
+    ): Bitmap {
+        check(
+            (context.applicationInfo.flags and
+                ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        ) {
+            "Development evidence access is disabled in release builds"
+        }
+
+        check(Looper.myLooper() != Looper.getMainLooper()) {
+            "Evidence must load off the UI thread"
+        }
+
+        require(UUID.fromString(inspectionId).toString() == inspectionId) {
+            "Invalid inspection identifier"
+        }
+
+        require(Regex("[0-9a-f]{32}").matches(findingId)) {
+            "Invalid finding identifier"
+        }
+
+        val path = (
+            "/api/tv/inspections/$inspectionId/" +
+                "findings/$findingId/image-url"
+        )
+
+        val grant = getJson(path)
+
+        require(grant.getInt("expires_in_seconds") in 1..120) {
+            "Unexpected image grant duration"
+        }
+
+        val signedUrl = URI(grant.getString("url"))
+        val host = signedUrl.host?.lowercase(Locale.ROOT) ?: ""
+
+        val approvedHost = (
+            host == "s3.amazonaws.com" ||
+                host.matches(
+                    Regex("""s3[.-][a-z0-9-]+\.amazonaws\.com""")
+                ) ||
+                host.matches(
+                    Regex("""[a-z0-9][a-z0-9.-]*\.s3(?:[.-][a-z0-9-]+)?\.amazonaws\.com""")
+                )
+        )
+
+        require(
+            signedUrl.scheme == "https" &&
+                approvedHost &&
+                signedUrl.rawUserInfo == null &&
+                signedUrl.port in listOf(-1, 443) &&
+                signedUrl.rawFragment == null &&
+                signedUrl.rawQuery?.contains(
+                    "X-Amz-Signature="
+                ) == true
+        ) {
+            "Untrusted evidence URL"
+        }
+
+        val connection = (
+            signedUrl.toURL().openConnection()
+                as HttpsURLConnection
+        )
+
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 5_000
+        connection.readTimeout = 15_000
+        connection.instanceFollowRedirects = false
+        connection.useCaches = false
+        connection.setRequestProperty(
+            "Accept", "image/jpeg,image/png,image/webp"
+        )
+        connection.setRequestProperty("Accept-Encoding", "identity")
+
+        try {
+            check(connection.responseCode == 200) {
+                "Preserved image is unavailable"
+            }
+
+            val mediaType = connection.contentType
+                .substringBefore(";")
+                .trim()
+                .lowercase(Locale.ROOT)
+
+            require(
+                mediaType in setOf(
+                    "image/jpeg", "image/png", "image/webp"
+                )
+            ) {
+                "Unexpected evidence media type"
+            }
+
+            val declaredSize = connection.contentLengthLong
+
+            require(
+                declaredSize == -1L ||
+                    declaredSize in 1L..MAX_IMAGE_BYTES.toLong()
+            ) {
+                "Evidence image exceeds download limit"
+            }
+
+            val output = ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+
+            connection.inputStream.use { input ->
+                while (true) {
+                    val count = input.read(buffer)
+
+                    if (count < 0) break
+                    if (count == 0) continue
+
+                    require(
+                        output.size() + count <= MAX_IMAGE_BYTES
+                    ) {
+                        "Evidence image exceeds download limit"
+                    }
+
+                    output.write(buffer, 0, count)
+                }
+            }
+
+            val bytes = output.toByteArray()
+
+            require(bytes.isNotEmpty()) {
+                "Empty evidence image"
+            }
+
+            if (declaredSize >= 0L) {
+                require(bytes.size.toLong() == declaredSize) {
+                    "Incomplete evidence image"
+                }
+            }
+
+            val bounds = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+
+            BitmapFactory.decodeByteArray(
+                bytes, 0, bytes.size, bounds
+            )
+
+            require(
+                bounds.outWidth in 1..16_000 &&
+                    bounds.outHeight in 1..16_000
+            ) {
+                "Invalid evidence image dimensions"
+            }
+
+            var sample = 1
+
+            while (
+                bounds.outWidth / sample > MAX_IMAGE_WIDTH ||
+                    bounds.outHeight / sample > MAX_IMAGE_HEIGHT
+            ) {
+                sample *= 2
+            }
+
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = sample
+            }
+
+            return BitmapFactory.decodeByteArray(
+                bytes, 0, bytes.size, options
+            ) ?: error("Evidence image could not be decoded")
         } finally {
             connection.disconnect()
         }

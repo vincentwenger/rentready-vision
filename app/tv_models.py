@@ -79,6 +79,11 @@ class TvFindingDetail(TvFindingSummary):
     evidence_video_url: str | None = None
 
 
+class TvImageGrantResponse(TvResponse):
+    url: str
+    expires_in_seconds: int = Field(ge=1, le=120)
+
+
 class TvBriefingResponse(TvResponse):
     inspection_id: str
     headline: str
