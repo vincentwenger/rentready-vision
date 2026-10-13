@@ -4,6 +4,8 @@
 
 [Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md)
 
+> **Amazon Developer Hackathon — Fire TV work (`amazon-2026` branch):** [Step 5 engineering report](STEP5_FIRE_TV_FINAL.md) · [Implemented TV API](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log, October 12–21](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). A real authenticated, evidence-backed inspection was demonstrated on an **Android TV API 36 emulator**; testing on an actual Fire TV or the official Fire TV/Vega simulator remains required for the Amazon submission.
+
 RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
 
 **Current milestone: Step 54 (October 10, 2026)** — hosted application and report overlay improvements deployed; [implementation and limitations](STEP54_FINAL.md). Earlier engineering steps remain available in [Development history](DEVELOPMENT_HISTORY.md).
