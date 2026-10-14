@@ -3,7 +3,7 @@
 **Status:** WORKING DRAFT — user review required before submitting feedback.  
 **Observation window:** October **12–21, 2026**; created from verified development evidence available on October 13; **finalize October 21**.  
 **Primary track:** Fire TV | **Intended mini-challenge:** AWS Builder.  
-**Reference implementation:** [Step 5 Final](STEP5_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP5_7_FIRE_TV_COMPATIBILITY.md).  
+**Reference implementation:** [Step 5 Final](STEP5_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Step 6 remote navigation test record](STEP6_FIRE_TV_NAVIGATION.md).  
 **Submission deadline:** October 23, 2026, 12:00 PM PDT.
 
 ## Purpose and integrity rules
@@ -81,6 +81,22 @@ Evidence references are development-conversation console output/screenshots unle
 
 
 
+### FL-004 — Restored remote focus and evidence layout required extra work in our own TV UI
+- **Date:** October 13, 2026
+- **Tool/context:** RentReady Vision's **own Android/Kotlin TV UI** running on a Google Android TV API 36 emulator, **not** Amazon Fire TV SDK / Vega.
+- **Task:** Complete an inspection navigation session with D-pad/Center/Back, including returning to selected rooms/findings and reading a preserved evidence photograph.
+- **Repro steps:** Open Mozart inspection; Down from Bedroom to Garage; Center to open Garage; Back to overview. On the original detail layout, open a Garage finding and press Down three times.
+- **Expected:** Back returns to the **previously selected room/finding**; focus remains visible while all detail text/evidence are comfortably readable from TV distance.
+- **Actual:** Step 6.1 returned to Bedroom instead of Garage. Step 6.6A old vertically stacked finding screen scrolled to a lower section and UIAutomator returned **`[NO FOCUS]`** after three Down presses. Image was constrained to 280dp height.
+- **Severity:** **Medium** remote-navigation friction in our app; resolved for the tested screens.
+- **Workaround before fix:** Navigate Down again to the previously selected room; use manual scroll in the detail screen. This was inconvenient for a remote-driven demo.
+- **Resolution:** Capture per-page selected action by stable room/finding ID; restore focused control on Back; display image and details side-by-side; increase image area to 340dp; keep the detail screen's sole action focused during Up/Down.
+- **Retests:** Step 6.4 Garage restored; Step 6.5 second finding `Visible floor damage MEDIUM` restored at original bounds; Step 6.6D focus stayed on `BACK TO ROOM` after Down x3 and layout photo fit visibly; Step 6.7 complete current journey and Step 6.8 empty room / Left/Right all passed.
+- **Suggested improvement:** Within RentReady Vision, make stable focus restoration part of the TV-screen navigation abstraction; provide reusable side-by-side finding templates and regression tests for content of varying length. A generic TV-app sample could illustrate good focus restoration, **but we have not identified an Amazon toolkit defect**.
+- **What worked:** Android TV key events, `uiautomator dump`, screenshots and Android Keystore session reuse enabled repeatable local testing without restarting the server.
+- **Evidence:** Source commit `f4b437b`; [Step 6 test report](STEP6_FIRE_TV_NAVIGATION.md); developer's local Step6VisualAudit screenshots (not committed).
+- **Submission classification:** **Our application/UX bug; exclude from claims of Amazon tooling defects.** Include as a candid internal development/friction example only if appropriate to the feedback request.
+
 ## Engineering friction observed, **not** automatically Amazon product feedback
 
 These are verified incidents in **our implementation or test scripts**. Record for transparency and improvement, but **do not repurpose them as complaints about Amazon tooling**.
@@ -93,6 +109,8 @@ These are verified incidents in **our implementation or test scripts**. Record f
 | ENG-004 | Oct 13 | Production device-session TTL cleanup was not configured on shared DynamoDB table. | Introduced TV-only `tv_ttl_epoch` attributes. The app enforces expiration without relying on asynchronous DynamoDB TTL. Decide activation separately. |
 | ENG-005 | Oct 13 | Android release artifact unsigned. | Build completed, but release signing and physical Fire OS behavior remain unverified; the hackathon FAQ accepts the Android TV emulator demo. |
 | ENG-006 | Oct 13 | SDK Command-line Tools initially absent, then installed; API 30 TV system image not discovered in filtered catalog results. | Local tooling prerequisite resolved. Do not attribute no-image results to Amazon or claim image unavailable everywhere; see DEV-006. |
+| ENG-007 | Oct 13 | The original TV UI dropped the selected Garage focus on Back and the old vertically stacked detail could lose visible focus during Down. | Fixed the app's own navigation state and two-column evidence layout, validated in Steps 6.4–6.8; see FL-004. |
+| ENG-008 | Oct 13 | Step 6.9 safety script compared the OpenCV annotated tag's peeled commit to the original Amazon fork commit, and stopped before any Git writes. | Resolved against local/remote annotated tag object `f6d8e3d` and peeled target `e6a8fd2`; the newer target is documentation-only. No tags or `main` changed. |
 
 ## Tool-by-tool product-feedback inventory
 
@@ -102,7 +120,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 | --- | --- | --- | --- |
 | **Fire TV documentation** | Android-based TV track selected; no specific Amazon documentation interaction or complaint substantiated in Step 5 evidence. | **No friction documented yet.** | Inspect official Fire TV/Vega setup and document any actual URL, missing step, expected/actual behavior. |
 | **Android Studio / Gradle / Android SDK** | Kotlin debug and release builds; API 36 emulator; remote-focused UI; SDK Command-line Tools installed successfully. | **FL-001** offline Lint dependency; **DEV-006** Command-line Tools setup prerequisite and inconclusive older-TV image discovery, not an Amazon issue. | Debug build worked; release required online dependency retrieval. Reuse assessment: developer review. |
-| **Android TV emulator (not official Fire TV/Vega simulator)** | Pairing, focus, screen navigation, real inspection, evidence and encrypted restart demonstrated. | **FL-002**, app layout scroll/discoverability. | Useful emulator iteration loop. **Official Fire TV/Vega simulator not yet tested.** |
+| **Android TV emulator (not official Fire TV/Vega simulator)** | Pairing, focus, screen navigation, real inspection, evidence, encrypted restart and repeatable remote-only UI tests succeeded. | **FL-002** pairing layout and **FL-004** our own focus/detail UI issues; verified fixes for FL-004 on tested screens. | Useful emulator plus ADB keyevent / UIAutomator iteration loop. **Official Fire TV/Vega simulator not tested.** |
 | **Fire TV/Vega simulator** | No verified launch or emulator session in this evidence. | **Not tested; no legitimate friction entry yet.** | [Official FAQ](https://amazonappdev2026.devpost.com/details/faqs) also accepts Android TV emulators for the Fire TV demo; physical Fire OS behavior remains unverified. |
 | **AWS Bedrock** | Existing RentReady backend uses model-assisted inspection through AWS Bedrock before the Fire TV work; TV briefing uses saved findings and no new model call. | **No new Bedrock friction confirmed in this log period.** | Document actual Bedrock API/model integrations for AWS Builder feedback; don't invent latency, quota or errors. |
 | **AWS SDK for Python (boto3)** | DynamoDB strongly consistent inspection/session reads and conditional writes; private S3 report/evidence access, 120-second URL signing; IAM/SSM tests. | No evidenced boto3 API defect; **FL-003** is IAM-policy provisioning workflow, not SDK malfunction. | AWS SDK operations succeeded after correct credentials/policy scope. Reuse assessment: developer review. |

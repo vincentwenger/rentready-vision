@@ -92,3 +92,7 @@ For unsigned release: same launchable activity and label; resources packed under
 | End-to-end repeated demos | One walkthrough and restart verified, not five consecutive final runs | Step 10 |
 
 **Decision:** Step 5.7 is **closed as a preliminary, non-invasive precheck**. Do **not** describe it as complete Fire OS or Vega certification. Record actionable tool/onboarding friction separately without manufacturing Amazon-specific complaints: [Amazon product feedback log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md).
+
+## Post-precheck follow-up (October 13, 2026)
+
+The remote-only navigation, stable focus restoration, two-column finding evidence screen and empty-room/briefing tests have now been completed on the existing Android TV API 36 emulator. See [Step 6 — Fire TV Navigation](STEP6_FIRE_TV_NAVIGATION.md), Kotlin commit `f4b437b`. This does not constitute physical Fire OS validation; Step 7 video playback and later judge-ready testing remain separate.

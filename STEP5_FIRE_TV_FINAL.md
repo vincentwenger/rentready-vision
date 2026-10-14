@@ -4,11 +4,11 @@
 **Engineering milestone:** Core end-to-end Step 5 demonstration verified on **Android TV emulator API 36**, October 13, 2026.  
 **Demonstration platform:** Android TV API 36 emulator demonstrated; [official hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) explicitly accepts Android TV emulators. **Actual Fire OS hardware compatibility remains unverified.** See [Step 5.7](STEP5_7_FIRE_TV_COMPATIBILITY.md).  
 **Primary track being developed:** Fire TV | **Intended mini-challenge:** AWS Builder (submission requirements still to be completed).  
-**Related documents:** [Fire TV compatibility precheck (Step 5.7)](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
+**Related documents:** [Fire TV compatibility precheck (Step 5.7)](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Remote navigation implementation and tests (Step 6)](STEP6_FIRE_TV_NAVIGATION.md) · [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
 
 ## 1. Scope and attribution
 
-RentReady Vision was an existing browser-based property-inspection project before the Amazon hackathon. Development began August 26, 2026. The OpenCV submission is preserved at tag `opencv-2026-submission` (commit `104a9031bc229d9e07e52df7b0c9e9767f5ee39f`). Its pre-existing upload, OpenCV processing, detector, AWS worker, structured report, and repair-checklist features are **not** claimed as new Fire TV work.
+RentReady Vision was an existing browser-based property-inspection project before the Amazon hackathon. Development began August 26, 2026. The OpenCV submission is preserved at tag `opencv-2026-submission` (the Amazon branch was created from baseline commit `104a9031bc229d9e07e52df7b0c9e9767f5ee39f`; the OpenCV annotated submission tag now targets documentation-only successor `e6a8fd2df3f57d0d29035784ff482c2875306186`). Its pre-existing upload, OpenCV processing, detector, AWS worker, structured report, and repair-checklist features are **not** claimed as new Fire TV work.
 
 The `amazon-2026` branch adds the living-room client: a five-screen, remote-controlled TV inspection viewer; TV-only read APIs; bounded, inspection-scoped evidence grants; short-lived pairing; server-side device sessions; encrypted Android session persistence; pairing abuse protection; and integration with the existing production HTTPS/AWS infrastructure. The TV viewing flow does **not** upload or reprocess the walkthrough video and does **not** make new model-inference calls to construct its briefing.
 
@@ -100,11 +100,12 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 
 ## 7. Git checkpoints
 
-- Pre-Amazon/OpenCV snapshot: `104a9031` (frozen OpenCV tag).
+- Amazon branch fork point: `104a9031` (pre-Amazon code baseline). The annotated `opencv-2026-submission` tag currently resolves to `e6a8fd2`, a direct documentation-only successor to that fork point; it was not changed by Step 6.
 - TV API + evidence checkpoint: `6ecfd8f` (earlier prototype).
 - Scoped device authentication and pairing: `e6453fa`.
 - TV TTL and dual pairing rate limits: `0a9b0c6`.
 - Completed standalone Android client, HTTPS, Keystore, pairing UI: `e42a79a`.
+- Step 6 remote focus restoration and 340dp two-column finding evidence layout: `f4b437b` (tested and published); see [Step 6](STEP6_FIRE_TV_NAVIGATION.md).
 - This documentation is a follow-up on `amazon-2026`; it does not change `main` or the frozen OpenCV submission.
 
 ## 8. Known limitations and blockers

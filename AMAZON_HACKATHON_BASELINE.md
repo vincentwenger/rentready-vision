@@ -70,10 +70,19 @@ as of the baseline date.
 
 ## Development and attribution
 
-The `opencv-2026-submission` Git tag preserves
-the pre-Amazon-development source snapshot.
+The `amazon-2026` branch originally started from the
+pre-Amazon baseline commit `104a9031bc229d9e07e52df7b0c9e9767f5ee39f`.
 
-The `amazon-2026` branch starts from exactly that commit.
+At the October 13 Step 6.9A/6.9B verification, the annotated
+`opencv-2026-submission` tag pointed to the later commit
+`e6a8fd2df3f57d0d29035784ff482c2875306186`, whose single
+parent is the original baseline commit. GitHub comparison confirmed
+that successor changed **documentation only**: `README.md`,
+`DEVELOPMENT_HISTORY.md` and `STEP35_OPENCV_CONTRIBUTION.md`.
+
+This reconciles the historical branch starting point with the
+current annotated tag target. **The Amazon Step 6 work neither moved
+the OpenCV tag nor modified GitHub `main`.**
 
 Amazon-specific changes will be committed separately
 with descriptive commit messages.
@@ -94,8 +103,23 @@ infrastructure or external service configuration.
 Baseline source commit:
 104a9031bc229d9e07e52df7b0c9e9767f5ee39f
 
-OpenCV tag:
+OpenCV annotated tag:
 opencv-2026-submission
+
+Annotated tag object (verified October 13):
+f6d8e3d8263e9f62bda9382ceba5fdccf50776cf
+
+Current peeled tag target (verified October 13):
+e6a8fd2df3f57d0d29035784ff482c2875306186
+
+Later documentation-only revision from original baseline:
+e6a8fd2df3f57d0d29035784ff482c2875306186
+
+Amazon Step 6 implementation:
+f4b437b859bb8f8a98d51baf3f3adcb078db1d9a
+
+Step 6 documentation:
+[STEP6_FIRE_TV_NAVIGATION.md](STEP6_FIRE_TV_NAVIGATION.md)
 
 Amazon branch:
 amazon-2026
