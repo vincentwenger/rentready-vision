@@ -91,6 +91,18 @@ Step 41 adds an end-to-end structured CloudWatch lifecycle covering upload, Open
 
 ## Step 35 - OpenCV contribution and COOL benchmark results
 
+> **HISTORICAL DEVELOPMENT EVALUATION - NOT DETECTOR V4**
+>
+> The Step 35 measurements below belong to an earlier development ablation using a Step 34D-derived detector configuration. They do not measure the later deployed Detector v4.
+>
+> The historical Agentic + COOL configuration recorded **22.2% owner-reviewed interval recall** and **33.3% owner-reviewed issue precision**. These are development measurements, not the current detector's independently evaluated performance.
+>
+> **Detector v4 was separately evaluated in Step 48** on 18 frozen external holdout videos (9 defect, 9 clean). It achieved **94.4% accuracy, 100.0% precision, 88.9% recall, and 94.1% F1** for video-level defect-versus-clean classification. See [Step 48 results](STEP48_RESULTS.md).
+>
+> These evaluations use different datasets, configurations, and units. Their percentages cannot establish a controlled improvement from the Step 35 configuration to v4. The Step 48 metrics do not establish individual defect localization accuracy or general production reliability.
+>
+> The archived Step 35 development measurements were not independently re-audited from raw Step 35 runs. The separately specified credentialed Step 35 protocol remains documented in [Step 35](STEP35_OPENCV_CONTRIBUTION.md).
+
 RentReady Vision was evaluated on 21 development walkthrough clips using the same frozen detector configuration across three pipelines:
 
 ### Pipeline comparison

@@ -1,5 +1,17 @@
 # Step 35 — Measure OpenCV's contribution
 
+> **IMPORTANT - Historical detector evaluation, NOT Detector v4**
+>
+> This Step 35 protocol describes an earlier development ablation using a Step 34D-derived detector configuration. It is not an evaluation of the later deployed Detector v4.
+>
+> The archived Step 35 Agentic + COOL results (22.2% owner-reviewed interval recall and 33.3% owner-reviewed issue precision) are historical development measurements. They must not be presented as Detector v4 performance.
+>
+> **For the newer Detector v4 evaluation, see [Step 48 results](STEP48_RESULTS.md): 94.4% video-level accuracy, 100.0% precision, 88.9% recall, and 94.1% F1 on 18 frozen external holdout videos.**
+>
+> Step 35 and Step 48 use different configurations, datasets, and evaluation units. Their percentages cannot be interpreted as a controlled before/after improvement. The Step 48 results measure video-level defect-versus-clean classification, not individual finding correctness or localization.
+>
+> The pending status below refers to the separately specified credentialed Step 35 protocol. Archived development measurements are summarized in [Development history](DEVELOPMENT_HISTORY.md); they were not independently re-audited from raw Step 35 runs.
+
 **Status: implementation and local validation complete; credentialed development measurements and the same-hardware COOL benchmark are pending.** No Step 35 accuracy, speedup, or cost values are invented or copied from earlier steps.
 
 ## What is compared

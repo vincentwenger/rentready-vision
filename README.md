@@ -53,6 +53,10 @@ The API/backend and worker use versioned deployment packages. COOL runs from its
 
 ## Evaluation — interpreted with appropriate scope
 
+**Important detector-version distinction:** The current deployed detector is **Detector v4**. Its frozen Step 48 external holdout achieved **94.4% accuracy, 100.0% precision, 88.9% recall, and 94.1% F1** on 18 videos, measuring video-level defect-versus-clean classification.
+
+The earlier Step 35 results (22.2% owner-reviewed interval recall and 33.3% owner-reviewed issue precision) are **historical development-ablation measurements using a Step 34D-derived detector configuration, not Detector v4**. Step 35 and Step 48 use different configurations, datasets, and evaluation units. Their percentages are not a controlled before/after comparison, and neither establishes current end-to-end defect-localization accuracy.
+
 **Step 48: one-shot, frozen external Detector v4 holdout.** The unit is **one video's defect/clean classification**, not each visible defect or bounding box.
 
 | Ground truth / prediction | Defect | Clean |
