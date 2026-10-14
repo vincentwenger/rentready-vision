@@ -195,3 +195,37 @@ The backend video-grant feature is active in production, while the updated Andro
 Further work includes final source publication, competition-specific demo rehearsal and optional room-label corrections.
 
 This document records observed results and known limitations; it does not claim universal Fire TV compatibility or establish that every detector finding is correct.
+
+## 10. Step 7.18F — improved evidence videos (October 14, 2026)
+
+**Outcome:** The three previously approved video findings were re-edited as clearer *presentation excerpts* of the authorized walkthrough footage; the original saved inspection and source evidence were not replaced or reprocessed.
+
+| Finding (existing saved-report label) | New demo excerpt | Duration | Interpretation |
+| --- | --- | --- | --- |
+| Garage — Visible floor damage | `garage_floor_damage_demo.mp4` | 6.0 s | Concrete crack visible; severity/cause not independently established by clip |
+| Garage — Possible floor staining | `garage_floor_staining_demo.mp4` | 2.5 s | Dark floor discoloration; cause uncertain |
+| Bedroom 2 — Possible moisture-related wall staining | `bedroom2_wall_mark_demo.mp4` | 2.4 s | Small localized mark/scuff; **moisture damage is not confirmed** |
+
+All excerpts retain 1280×720 H.264 MP4 presentation output. The first is trimmed, and the remaining two are trimmed and cropped; they are not untouched primary evidence. The original three 12-second `tv-clips` S3 objects remain preserved and were independently backed up, with downloaded-byte SHA-256 matches. The new `tv-clips-v2` S3 objects were independently read back and byte-verified with their approval hashes. No new inference was run to produce these edits.
+
+### Versioned, access-controlled backend
+
+- `app/tv_video.py` now supports explicitly enumerated v1 and v2 approval tables, with finding-specific file sizes and SHA-256 metadata. The active production v2 release uses `evidence/tv-clips-v2/{finding_id}.mp4`; the old v1 release and original S3 objects remain available for rollback.
+- Existing checks remain: one allowlisted, completed inspection; authorized finding membership; allowed private S3 bucket/prefix; AES256 object encryption; expected ContentLength, media type, metadata and checksum receipt; bounded 120-second signed HTTPS GET.
+- The local development module was initially left on `ACTIVE_VIDEO_VERSION = "v1"` while an isolated, checksum-verified v2-only deployment overlay was prepared; production activation used the separately staged v2 module. Publishing source should reconcile this deliberate development-versus-deployed selector difference.
+- Regression tests: **60 passed, 1 nonblocking Starlette deprecation warning**, comprising the existing 39 video security tests and 21 additional versioning tests. All six v1/v2 grants worked with real S3 in the local test; staged production-instance tests independently verified all three v2 grants.
+- Production deployment: immutable v2 overlay was uploaded to private encrypted S3; an exact-artifact temporary IAM `s3:GetObject` permission was added to the API instance role for staging, tested, then **removed and its absence verified**. A protected, checksum-verified backup of the 190-file v1 production API release and its service/environment configurations was created; a separate 191-file v2 release was staged and checked. Controlled systemd activation returned `ACTIVATION=SUCCESS`, `V2_HEALTH=PASS`, `CADDY=ACTIVE`, `ROLLBACK=NOT_NEEDED`. The old release remains intact. A genuine rollback was not performed.
+
+### Android client acceptance
+
+The initial emulator test failed with the on-screen message *“Video evidence could not be loaded.”* This was traced to the **app's own** strict allowed S3 URL paths: the Kotlin video client accepted `tv-clips` but not `tv-clips-v2`. The developer added the two exact v2 paths while retaining v1, rebuilt the Android debug APK (Gradle BUILD SUCCESSFUL) and updated the existing TV emulator app with `adb install -r`, preserving app data.
+
+Authenticated pairing and the `Demo House` inspection (12 findings) were visible. Screenshots from the Google Android TV API 36 emulator then showed the correct video player and clip timeline for **each of the three v2 findings**: garage crack 0:04/0:06, garage discoloration 0:01/0:02 (rounded display for 2.5 s), and Bedroom 2 wall mark 0:01/0:02 (rounded display for 2.4 s). This confirms loading/playback in the tested emulator, **not** physical Fire OS compatibility. A full post-v2 replay/Back-focus test and final signed release distribution are separate checks.
+
+### Known limitations and evidence provenance
+
+- Bedroom 2's saved-report title still says *possible moisture-related wall staining*; the visible mark **does not prove moisture**, and the original AI report is not rewritten by presentation corrections.
+- The current TV client applies inspection-specific **display-only** Bathroom 2 / Bedroom 2 room corrections and the `Demo House` display name when its guarded preconditions hold; the source issue records remain unchanged.
+- The very short v2 clips may require replay/pausing for judges to see the marks. Video excerpts should be labeled as edited presentation footage, with original evidence preserved.
+- Screenshots and walkthrough clips are private development evidence and are **not included in the public-facing repository**. No raw operator/device tokens, pairing codes, signed S3 URLs, or original customer footage should be committed.
+- This section supersedes Step 7's historical statements that tighter editing, room display corrections and a separate full-screen evidence viewer were *not yet implemented* at the original Step 7 checkpoint; those statements remain above to preserve development history.
