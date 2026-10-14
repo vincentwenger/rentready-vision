@@ -164,3 +164,34 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 ```
 
 **Do not add issues merely to fill categories.** If Fire TV documentation, the official simulator, Bedrock or SDK usage produces no friction, report what worked well or explicitly say “no issues observed” after genuine use. Remove speculative language from final submitted entries.
+
+
+### ENG-009 - V2 video URL allowlist integration
+- **Date:** October 14, 2026.
+- **Category:** Our own Android/Kotlin integration, not an Amazon SDK defect.
+- **Task:** Display three improved S3 video excerpts on Android TV.
+- **Expected:** Successful authenticated video playback.
+- **Actual:** The app displayed "Video evidence could not be loaded" despite successful backend grant and S3 verification. The client allowlist recognized only the original `tv-clips` directory.
+- **Resolution:** Add narrowly scoped `tv-clips-v2` URL paths while preserving original paths; rebuild and reinstall the debug APK.
+- **Result:** All three v2 video players were confirmed in emulator screenshots.
+- **Suggested improvement:** Test backend resource-path migrations end to end against strict client URL allowlists.
+- **Classification:** Internal integration lesson; not an Amazon provider failure.
+
+### FL-003 follow-up - V2 artifact IAM access
+- **Date:** October 14, 2026.
+- **Task:** Retrieve an immutable private S3 backend deployment ZIP from EC2.
+- **Actual:** The EC2 role could read all three v2 videos but received HTTP 403 for the new deployment artifact. IAM simulation returned `implicitDeny` for the exact object.
+- **Resolution:** Apply a temporary, single-object `s3:GetObject` permission, verify EC2 access, stage the checksum-verified release, and remove the permission afterward.
+- **Additional observation:** AWS CLI was unavailable on EC2; the existing Python boto3 runtime provided a successful alternative.
+- **Suggested improvement:** Automate exact-artifact IAM provisioning, verification and post-staging cleanup.
+- **Classification:** Correct AWS least-privilege behavior with manual deployment friction, not an AWS service outage. Extends existing FL-003 rather than inventing a separate provider incident.
+
+### ENG-010 - Avoidable verification-script errors
+- **Date:** October 14, 2026.
+- **Actual:** An array-count assumption in Windows PowerShell and a Python indentation-based source-match error interrupted intermediate checks.
+- **Resolution:** Corrected scripts verified all three video hashes and applied the source patch safely.
+- **Lesson:** Consolidate deterministic validation and cross-platform source-edit preflights.
+- **Classification:** Our own scripts, not vendor defects.
+
+### October 14 positive development results
+The Google Android TV API 36 emulator successfully displayed Demo House, 12 inspection findings and all three improved video excerpts. AWS S3, IAM, EC2, Systems Manager and boto3 supported private versioned evidence playback, checked deployment and rollback preservation. This does not establish actual Fire OS hardware compatibility.

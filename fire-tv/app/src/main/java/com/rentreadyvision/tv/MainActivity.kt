@@ -62,7 +62,7 @@ class MainActivity : FragmentActivity() {
         "555f0443603ef3e57caaace06ea4bed5"
     )
 
-    private var playbackReturnFocusKey: String? = null
+    private var evidenceReturnFocusKey: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -142,8 +142,8 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
 
-        val focusKey = playbackReturnFocusKey ?: return
-        playbackReturnFocusKey = null
+        val focusKey = evidenceReturnFocusKey ?: return
+        evidenceReturnFocusKey = null
 
         val action = root.findViewWithTag<TextView>(focusKey)
             ?: return
@@ -432,6 +432,7 @@ class MainActivity : FragmentActivity() {
             if (
                 findingId != null &&
                 focusedKey in setOf(
+                    "view:$findingId",
                     "play:$findingId",
                     "back:$findingId"
                 )
@@ -797,6 +798,44 @@ class MainActivity : FragmentActivity() {
             20
         )
 
+        // Every saved demo finding may request its own
+        // preserved image using the existing secure endpoint.
+        val viewEvidence = addAction(
+            details,
+            "VIEW EVIDENCE",
+            focusKey = "view:${finding.id}"
+        ) {
+            evidenceReturnFocusKey = "view:${finding.id}"
+
+            // Pass finding identity only. Never send a signed
+            // image URL, private S3 key or device token.
+            startActivity(
+                Intent(
+                    this,
+                    EvidenceImageActivity::class.java
+                ).apply {
+                    putExtra(
+                        EvidenceImageActivity.EXTRA_INSPECTION_ID,
+                        inspection.propertyId
+                    )
+                    putExtra(
+                        EvidenceImageActivity.EXTRA_FINDING_ID,
+                        finding.id
+                    )
+                    putExtra(
+                        EvidenceImageActivity.EXTRA_TITLE,
+                        finding.title.take(120)
+                    )
+                }
+            )
+        }
+
+        // Prevent focus from escaping above the first action.
+        viewEvidence.setOnKeyListener { _, keyCode, _ ->
+            keyCode ==
+                android.view.KeyEvent.KEYCODE_DPAD_UP
+        }
+
         // Only three visually verified demo findings have
         // approved, inspection-scoped video evidence.
         val videoAvailable = (
@@ -804,13 +843,13 @@ class MainActivity : FragmentActivity() {
                 finding.id in videoFindingIds
         )
 
-        val playVideo = if (videoAvailable) {
+        if (videoAvailable) {
             addAction(
                 details,
                 "PLAY VIDEO EVIDENCE",
                 focusKey = "play:${finding.id}"
             ) {
-                playbackReturnFocusKey = "play:${finding.id}"
+                evidenceReturnFocusKey = "play:${finding.id}"
 
                 // The Intent contains no signed URL or token.
                 // PlaybackActivity obtains its own fresh grant.
@@ -833,16 +872,7 @@ class MainActivity : FragmentActivity() {
                         )
                     }
                 )
-            }.also { action ->
-                // Play is the upper action. Down must move
-                // naturally to BACK TO ROOM.
-                action.setOnKeyListener { _, keyCode, _ ->
-                    keyCode ==
-                        android.view.KeyEvent.KEYCODE_DPAD_UP
-                }
             }
-        } else {
-            null
         }
 
         val backToRoom = addAction(
@@ -853,17 +883,11 @@ class MainActivity : FragmentActivity() {
             navigateBack()
         }
 
-        // With a video action, Up must move from Back to Play.
-        // Without video, preserve the Step 6 single-button
-        // focus guard.
+        // Back is the final control. Up can move to Play,
+        // or directly to View when no video is available.
         backToRoom.setOnKeyListener { _, keyCode, _ ->
             keyCode ==
-                android.view.KeyEvent.KEYCODE_DPAD_DOWN ||
-                (
-                    playVideo == null &&
-                    keyCode ==
-                        android.view.KeyEvent.KEYCODE_DPAD_UP
-                )
+                android.view.KeyEvent.KEYCODE_DPAD_DOWN
         }
 
         content.addView(

@@ -39,6 +39,10 @@
             android:name=".DetailsActivity"
             android:exported="false" />
         <activity
+            android:name=".EvidenceImageActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
             android:name=".PlaybackActivity"
             android:exported="false" />
         <activity

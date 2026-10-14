@@ -382,7 +382,11 @@ object TvApiClient {
             "/rentready/inspections/$inspectionId/" +
                 "evidence/tv-clips/$findingId.mp4",
             "/inspections/$inspectionId/" +
-                "evidence/tv-clips/$findingId.mp4"
+                "evidence/tv-clips/$findingId.mp4",
+            "/rentready/inspections/$inspectionId/" +
+                "evidence/tv-clips-v2/$findingId.mp4",
+            "/inspections/$inspectionId/" +
+                "evidence/tv-clips-v2/$findingId.mp4"
         )
 
         require(
@@ -547,6 +551,89 @@ object TvApiClient {
             }
         }
 
+        // Step 7.18: presentation-only corrections supplied by
+        // the person reviewing this specific demo inspection.
+        // The backend report, source room assignments and finding
+        // identifiers remain unchanged.
+        val originalPropertyName =
+            overview.getString("property_name")
+
+        val step7DemoPresentation = (
+            inspectionId ==
+                "b2054cf1-2401-44df-b675-d01d28acffa9" &&
+                originalPropertyName == "Mozart 2026 v2"
+        )
+
+        if (step7DemoPresentation) {
+            // Stable public finding ID -> corrected TV room.
+            val roomCorrections = linkedMapOf(
+                "92f434406e0a9a5d67d0061ab7f4b268" to
+                    Pair("bathroom_2", "Bathroom 2"),
+                "555f0443603ef3e57caaace06ea4bed5" to
+                    Pair("bedroom_2", "Bedroom 2")
+            )
+
+            val safeToApply = roomCorrections.all {
+                (findingId, target) ->
+                findingToRoom[findingId] == "unknown" &&
+                    rooms.none { it.id == target.first }
+            }
+
+            if (safeToApply) {
+                for ((findingId, target) in roomCorrections) {
+                    findingToRoom[findingId] = target.first
+
+                    // Show Bathroom 2 after Bathroom, and
+                    // Bedroom 2 after Bedroom when available.
+                    val originalRoomId = when (target.first) {
+                        "bathroom_2" -> "bathroom"
+                        "bedroom_2" -> "bedroom"
+                        else -> error("Unexpected room correction")
+                    }
+
+                    val originalIndex = rooms.indexOfFirst {
+                        it.id == originalRoomId
+                    }
+
+                    val position = if (originalIndex >= 0) {
+                        originalIndex + 1
+                    } else {
+                        rooms.size
+                    }
+
+                    rooms.add(
+                        position,
+                        TvRoom(
+                            id = target.first,
+                            name = target.second
+                        )
+                    )
+                }
+
+                // Do not retain an empty Unknown group after
+                // relocating all of its findings.
+                if (findingToRoom.values.none {
+                        it == "unknown"
+                    }) {
+                    rooms.removeAll { it.id == "unknown" }
+                }
+            } else {
+                // Never apply stale overrides to changed data.
+                // Keep the original server mapping instead.
+                Log.w(
+                    "RentReadyTV",
+                    "Demo room corrections skipped: mapping changed"
+                )
+            }
+        }
+
+        val displayPropertyName =
+            if (step7DemoPresentation) {
+                "Demo House"
+            } else {
+                originalPropertyName
+            }
+
         val findingsJson = findingResponse.getJSONArray("findings")
         val findings = mutableListOf<TvFinding>()
 
@@ -666,7 +753,7 @@ object TvApiClient {
 
         val inspection = TvInspection(
             propertyId = inspectionId,
-            propertyName = overview.getString("property_name"),
+            propertyName = displayPropertyName,
             status = "COMPLETE",
             rooms = rooms,
             findings = findings,

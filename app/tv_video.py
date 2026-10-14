@@ -41,6 +41,30 @@ APPROVED_CLIPS = MappingProxyType({
 })
 
 
+# Step 7.18F.11B - Explicit versioned evidence approval.
+# V1 remains active until V2 verification is complete.
+ACTIVE_VIDEO_VERSION = "v1"
+
+APPROVED_CLIPS_V2 = MappingProxyType({
+    "877eec22117f6f9508a087d46ed59e43": (
+        1762755,
+        "2b1d2260bd1fb65d504926f0bf601c3b816ee807cda2fa279b1e2c563959edba",
+    ),
+    "c8ee6b7a97fca8b65ffba5192fd62ac8": (
+        987849,
+        "8469a65f2bd5b9f9de99caea5b5230d45e09a19a3eef67e843adb1f4d25fbea5",
+    ),
+    "555f0443603ef3e57caaace06ea4bed5": (
+        397496,
+        "74783be1f9900ab27424359319c859c02dda42bd1e48cfa093cde96f201e3223",
+    ),
+})
+
+VIDEO_CLIP_VERSIONS = MappingProxyType({
+    "v1": ("tv-clips", APPROVED_CLIPS),
+    "v2": ("tv-clips-v2", APPROVED_CLIPS_V2),
+})
+
 def _storage_root(inspection_id: str, source_key: str) -> str:
     """Derive the private inspection prefix from trusted metadata."""
 
@@ -123,10 +147,17 @@ def create_tv_video_grant(
     if inspection_id != INSPECTION_ID:
         raise LookupError("Finding video unavailable")
 
+    if ACTIVE_VIDEO_VERSION not in VIDEO_CLIP_VERSIONS:
+        raise ValueError("Unknown approved video version")
+
+    clip_directory, active_clips = VIDEO_CLIP_VERSIONS[
+        ACTIVE_VIDEO_VERSION
+    ]
+
     if (
         not isinstance(finding_id, str)
         or not re.fullmatch(r"[0-9a-f]{32}", finding_id)
-        or finding_id not in APPROVED_CLIPS
+        or finding_id not in active_clips
     ):
         raise LookupError("Finding video unavailable")
 
@@ -142,10 +173,10 @@ def create_tv_video_grant(
     root = _storage_root(inspection_id, original_s3_key)
 
     key = (
-        f"{root}/evidence/tv-clips/{finding_id}.mp4"
+        f"{root}/evidence/{clip_directory}/{finding_id}.mp4"
     )
 
-    expected_size, expected_sha256 = APPROVED_CLIPS[finding_id]
+    expected_size, expected_sha256 = active_clips[finding_id]
 
     try:
         head = signer.head_object(
