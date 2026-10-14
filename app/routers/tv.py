@@ -19,6 +19,7 @@ from ..aws import s3, table
 from ..config import get_settings
 from ..services import load_issues_report
 from ..tv_media import create_tv_image_grant
+from ..tv_video import create_tv_video_grant
 from ..tv_pairing import create_tv_pairing
 from ..tv_pairing_rate import reserve_tv_pairing_attempt
 from ..tv_pairing_redemption import (
@@ -36,6 +37,7 @@ from ..tv_models import (
     TvFindingDetail,
     TvFindingsResponse,
     TvImageGrantResponse,
+    TvVideoGrantResponse,
     TvPairingCodeIssueRequest,
     TvPairingCodeIssueResponse,
     TvPairingRedeemResponse,
@@ -224,6 +226,74 @@ def get_tv_finding_image_url(
         ) from None
 
     return TvImageGrantResponse(**grant)
+
+
+@router.get(
+    "/inspections/{inspection_id}/findings/{finding_id}/video-url",
+    response_model=TvVideoGrantResponse,
+)
+def get_tv_finding_video_url(
+    inspection_id: str,
+    finding_id: str,
+) -> TvVideoGrantResponse:
+    """Issue a short-lived grant for approved private video evidence.
+
+    SecurityMiddleware authenticates before the route is executed.
+    Never log signed S3 URLs or return internal object keys.
+    """
+
+    # Reject unauthorized inspections before any database or S3 read.
+    require_allowed_tv_inspection(inspection_id)
+
+    if not re.fullmatch(r"[0-9a-f]{32}", finding_id):
+        raise HTTPException(
+            status_code=404,
+            detail="Finding video unavailable",
+        )
+
+    projection = _load_tv_projection(inspection_id)
+
+    if finding_id not in projection.details:
+        raise HTTPException(
+            status_code=404,
+            detail="Finding video unavailable",
+        )
+
+    inspection = get_inspection(inspection_id)
+
+    if not inspection or inspection.get("status") != "COMPLETE":
+        raise HTTPException(
+            status_code=404,
+            detail="Inspection not available",
+        )
+
+    try:
+        grant = create_tv_video_grant(
+            inspection_id=inspection_id,
+            finding_id=finding_id,
+            authorized_finding_ids=projection.details.keys(),
+            original_s3_key=inspection.get("original_s3_key"),
+            bucket=get_settings().s3_bucket,
+            signer=s3,
+        )
+    except LookupError:
+        raise HTTPException(
+            status_code=404,
+            detail="Finding video unavailable",
+        ) from None
+    except ValueError:
+        raise HTTPException(
+            status_code=409,
+            detail="Finding video evidence is not TV-ready",
+        ) from None
+    except RuntimeError:
+        raise HTTPException(
+            status_code=503,
+            detail="Video playback temporarily unavailable",
+        ) from None
+
+    return TvVideoGrantResponse(**grant)
+
 
 @router.post(
     "/pairing-codes",

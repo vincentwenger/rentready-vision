@@ -53,6 +53,17 @@ class MainActivity : FragmentActivity() {
     private val history = mutableListOf<Page>()
     private var backCallback: OnBackInvokedCallback? = null
 
+    private val videoInspectionId =
+        "b2054cf1-2401-44df-b675-d01d28acffa9"
+
+    private val videoFindingIds = setOf(
+        "877eec22117f6f9508a087d46ed59e43",
+        "c8ee6b7a97fca8b65ffba5192fd62ac8",
+        "555f0443603ef3e57caaace06ea4bed5"
+    )
+
+    private var playbackReturnFocusKey: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -126,6 +137,26 @@ class MainActivity : FragmentActivity() {
 
         // Continue using the inspection-scoped HTTPS session.
         loadRealInspection()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val focusKey = playbackReturnFocusKey ?: return
+        playbackReturnFocusKey = null
+
+        val action = root.findViewWithTag<TextView>(focusKey)
+            ?: return
+
+        action.post {
+            if (
+                !isFinishing &&
+                !isDestroyed &&
+                action.isAttachedToWindow
+            ) {
+                action.requestFocus()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -393,6 +424,24 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun render() {
+        if (currentPage.screen == Screen.FINDING) {
+            val findingId = currentPage.findingId
+            val focusedKey =
+                (root.findFocus() as? TextView)?.tag as? String
+
+            if (
+                findingId != null &&
+                focusedKey in setOf(
+                    "play:$findingId",
+                    "back:$findingId"
+                )
+            ) {
+                currentPage = currentPage.copy(
+                    focusKey = focusedKey
+                )
+            }
+        }
+
         root.removeAllViews()
         root.setBackgroundColor(Color.rgb(16, 28, 48))
 
@@ -748,6 +797,54 @@ class MainActivity : FragmentActivity() {
             20
         )
 
+        // Only three visually verified demo findings have
+        // approved, inspection-scoped video evidence.
+        val videoAvailable = (
+            inspection.propertyId == videoInspectionId &&
+                finding.id in videoFindingIds
+        )
+
+        val playVideo = if (videoAvailable) {
+            addAction(
+                details,
+                "PLAY VIDEO EVIDENCE",
+                focusKey = "play:${finding.id}"
+            ) {
+                playbackReturnFocusKey = "play:${finding.id}"
+
+                // The Intent contains no signed URL or token.
+                // PlaybackActivity obtains its own fresh grant.
+                startActivity(
+                    Intent(
+                        this,
+                        PlaybackActivity::class.java
+                    ).apply {
+                        putExtra(
+                            PlaybackActivity.EXTRA_INSPECTION_ID,
+                            inspection.propertyId
+                        )
+                        putExtra(
+                            PlaybackActivity.EXTRA_FINDING_ID,
+                            finding.id
+                        )
+                        putExtra(
+                            PlaybackActivity.EXTRA_TITLE,
+                            finding.title.take(120)
+                        )
+                    }
+                )
+            }.also { action ->
+                // Play is the upper action. Down must move
+                // naturally to BACK TO ROOM.
+                action.setOnKeyListener { _, keyCode, _ ->
+                    keyCode ==
+                        android.view.KeyEvent.KEYCODE_DPAD_UP
+                }
+            }
+        } else {
+            null
+        }
+
         val backToRoom = addAction(
             details,
             "BACK TO ROOM",
@@ -756,12 +853,17 @@ class MainActivity : FragmentActivity() {
             navigateBack()
         }
 
-        // This detail screen has one selectable action.
-        // Keep it focused instead of moving into an
-        // unfocused ScrollView on UP/DOWN.
+        // With a video action, Up must move from Back to Play.
+        // Without video, preserve the Step 6 single-button
+        // focus guard.
         backToRoom.setOnKeyListener { _, keyCode, _ ->
-            keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP ||
-                keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN
+            keyCode ==
+                android.view.KeyEvent.KEYCODE_DPAD_DOWN ||
+                (
+                    playVideo == null &&
+                    keyCode ==
+                        android.view.KeyEvent.KEYCODE_DPAD_UP
+                )
         }
 
         content.addView(

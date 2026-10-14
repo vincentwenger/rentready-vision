@@ -84,6 +84,11 @@ class TvImageGrantResponse(TvResponse):
     expires_in_seconds: int = Field(ge=1, le=120)
 
 
+class TvVideoGrantResponse(TvResponse):
+    url: str
+    expires_in_seconds: int = Field(ge=1, le=120)
+
+
 class TvPairingCodeIssueRequest(TvResponse):
     inspection_id: str = Field(min_length=36, max_length=36)
 

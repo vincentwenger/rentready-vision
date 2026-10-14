@@ -313,6 +313,136 @@ object TvApiClient {
         }
     }
 
+    /**
+     * Request a fresh, inspection-scoped video evidence grant.
+     *
+     * This method does not download video bytes. It validates the
+     * signed S3 URL before handing it to the playback activity.
+     *
+     * Never call on the Android main thread or log the returned URL.
+     */
+    fun loadEvidenceVideoUrl(
+        context: Context,
+        inspectionId: String,
+        findingId: String
+    ): String {
+        check(Looper.myLooper() != Looper.getMainLooper()) {
+            "Video grant must load off the UI thread"
+        }
+
+        val session = TvDeviceSessionStore.load(context)
+            ?: throw SecurityException("TV pairing required")
+
+        require(
+            UUID.fromString(inspectionId).toString() == inspectionId &&
+                session.inspectionId == inspectionId
+        ) {
+            "TV video inspection scope mismatch"
+        }
+
+        require(Regex("[0-9a-f]{32}").matches(findingId)) {
+            "Invalid video finding identifier"
+        }
+
+        val path = (
+            "/api/tv/inspections/$inspectionId/" +
+                "findings/$findingId/video-url"
+        )
+
+        // Existing getJson uses HTTPS, the restricted device
+        // token, bounded JSON responses and no redirects.
+        val grant = getJson(context, path)
+
+        val expires = grant.getInt("expires_in_seconds")
+
+        require(expires in 1..120) {
+            "Unexpected video grant lifetime"
+        }
+
+        val url = grant.getString("url")
+
+        val parsed = try {
+            URI(url)
+        } catch (_: Exception) {
+            throw IllegalArgumentException(
+                "Invalid video evidence URL"
+            )
+        }
+
+        val bucket = "rentready-vision-dev-081087819788"
+        val host = parsed.host?.lowercase(Locale.ROOT) ?: ""
+
+        // Only the two expected S3 virtual-hosted forms.
+        val approvedHost = host in setOf(
+            "$bucket.s3.us-west-2.amazonaws.com",
+            "$bucket.s3.amazonaws.com"
+        )
+
+        val approvedPaths = setOf(
+            "/rentready/inspections/$inspectionId/" +
+                "evidence/tv-clips/$findingId.mp4",
+            "/inspections/$inspectionId/" +
+                "evidence/tv-clips/$findingId.mp4"
+        )
+
+        require(
+            parsed.scheme == "https" &&
+                approvedHost &&
+                parsed.rawUserInfo == null &&
+                parsed.port in listOf(-1, 443) &&
+                parsed.rawFragment == null &&
+                parsed.rawPath in approvedPaths
+        ) {
+            "Untrusted video evidence location"
+        }
+
+        val parts = parsed.rawQuery?.split("&")
+            ?: emptyList()
+
+        val parameters = mutableMapOf<String, String>()
+
+        for (part in parts) {
+            val separator = part.indexOf("=")
+
+            require(separator > 0) {
+                "Malformed video grant query"
+            }
+
+            val name = part.substring(0, separator)
+            val value = part.substring(separator + 1)
+
+            require(
+                value.isNotEmpty() &&
+                    parameters.put(name, value) == null
+            ) {
+                "Invalid video grant parameters"
+            }
+        }
+
+        require(
+            parameters["X-Amz-Algorithm"] ==
+                "AWS4-HMAC-SHA256" &&
+                parameters["X-Amz-Expires"] ==
+                    expires.toString() &&
+                parameters["X-Amz-SignedHeaders"] == "host" &&
+                parameters["X-Amz-Credential"]
+                    ?.isNotBlank() == true &&
+                parameters["X-Amz-Date"]
+                    ?.matches(
+                        Regex("[0-9]{8}T[0-9]{6}Z")
+                    ) == true &&
+                parameters["X-Amz-Signature"]
+                    ?.matches(
+                        Regex("[0-9a-fA-F]{64}")
+                    ) == true
+        ) {
+            "Unsigned or invalid video evidence grant"
+        }
+
+        // A short-lived bearer URL: do not persist or log it.
+        return url
+    }
+
     private fun optionalText(
         value: JSONObject,
         name: String
