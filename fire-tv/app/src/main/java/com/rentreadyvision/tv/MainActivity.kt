@@ -31,7 +31,8 @@ class MainActivity : FragmentActivity() {
     private data class Page(
         val screen: Screen,
         val roomId: String? = null,
-        val findingId: String? = null
+        val findingId: String? = null,
+        val focusKey: String? = null
     )
 
     private lateinit var root: FrameLayout
@@ -280,7 +281,12 @@ class MainActivity : FragmentActivity() {
             clearEvidence()
         }
 
-        history.add(currentPage)
+        val focusedKey =
+            (root.findFocus() as? TextView)?.tag as? String
+
+        history.add(
+            currentPage.copy(focusKey = focusedKey)
+        )
         currentPage = page
         render()
     }
@@ -344,10 +350,12 @@ class MainActivity : FragmentActivity() {
     private fun addAction(
         column: LinearLayout,
         label: String,
+        focusKey: String = label,
         action: () -> Unit
     ): TextView {
         val view = TextView(this).apply {
             text = label
+            tag = focusKey
             textSize = 22f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER_VERTICAL
@@ -464,9 +472,16 @@ class MainActivity : FragmentActivity() {
             Screen.BRIEFING -> showBriefing(column)
         }
 
-        // TV remote focus: no mouse required.
-        firstAction.post {
-            firstAction.requestFocus()
+        // Restore the previous selection when returning with Back.
+        // Stable IDs avoid collisions between repeated finding titles.
+        val target = currentPage.focusKey
+            ?.let { root.findViewWithTag<TextView>(it) }
+            ?: firstAction
+
+        target.post {
+            if (target.isAttachedToWindow) {
+                target.requestFocus()
+            }
         }
     }
 
@@ -529,7 +544,8 @@ class MainActivity : FragmentActivity() {
 
             val action = addAction(
                 column,
-                "${room.name}     $summary"
+                "${room.name}     $summary",
+                focusKey = "room:${room.id}"
             ) {
                 navigateTo(Page(Screen.ROOM, roomId = room.id))
             }
@@ -570,7 +586,8 @@ class MainActivity : FragmentActivity() {
         for (finding in findings) {
             val action = addAction(
                 column,
-                "${finding.title}\n${finding.severity}"
+                "${finding.title}\n${finding.severity}",
+                focusKey = "finding:${finding.id}"
             ) {
                 navigateTo(
                     Page(
@@ -596,35 +613,41 @@ class MainActivity : FragmentActivity() {
 
         loadEvidenceForFinding(findingId)
 
-        addText(column, room.name.uppercase(), 28f, 16, true)
-        addText(column, finding.title, 32f, 26, true)
+        // A compact TV-first layout avoids unnecessary vertical
+        // scrolling on ordinary finding-detail screens.
+        column.setPadding(
+            dp(40), dp(18), dp(40), dp(18)
+        )
 
-        val backToRoom = addAction(column, "BACK TO ROOM") {
-            navigateBack()
+        addText(
+            column,
+            room.name.uppercase(),
+            24f,
+            6,
+            true
+        )
+
+        addText(
+            column,
+            finding.title,
+            30f,
+            14,
+            true
+        )
+
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.TOP
         }
-
-        addText(
-            column,
-            "Severity       ${finding.severity}",
-            22f,
-            12
-        )
-
-        val confidenceLabel =
-            finding.confidencePercent()?.let { "$it%" } ?: "Not available"
-
-        addText(
-            column,
-            "Confidence     $confidenceLabel",
-            22f,
-            24
-        )
 
         val evidenceBox = FrameLayout(this).apply {
             background = GradientDrawable().apply {
                 setColor(Color.rgb(30, 44, 65))
                 cornerRadius = dp(12).toFloat()
-                setStroke(dp(1), Color.rgb(85, 105, 135))
+                setStroke(
+                    dp(1),
+                    Color.rgb(85, 105, 135)
+                )
             }
 
             val image = if (evidenceFindingId == findingId) {
@@ -652,8 +675,7 @@ class MainActivity : FragmentActivity() {
                         "LOADING REAL EVIDENCE IMAGE..."
 
                     evidenceFailed ->
-                        "EVIDENCE IMAGE COULD NOT BE LOADED\n" +
-                            "Return to the room and reopen to retry."
+                        "EVIDENCE IMAGE COULD NOT BE LOADED"
 
                     else ->
                         "EVIDENCE IMAGE UNAVAILABLE"
@@ -674,36 +696,89 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        column.addView(
+        content.addView(
             evidenceBox,
             LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(280)
+                0,
+                dp(340),
+                1.25f
             ).apply {
-                bottomMargin = dp(24)
+                rightMargin = dp(24)
             }
+        )
+
+        val details = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        addText(
+            details,
+            "Severity    ${finding.severity}",
+            22f,
+            14
+        )
+
+        val confidenceLabel =
+            finding.confidencePercent()?.let { "$it%" }
+                ?: "Not available"
+
+        addText(
+            details,
+            "Confidence    $confidenceLabel",
+            22f,
+            14
         )
 
         val timestampLabel = finding.timestampLabel()
 
         addText(
-            column,
+            details,
             if (timestampLabel == "Not available")
                 "Evidence time unavailable"
             else
                 "Detected at $timestampLabel",
             20f,
+            16
+        )
+
+        addText(
+            details,
+            finding.description,
+            21f,
             20
         )
 
-        addText(column, finding.description, 21f, 26)
+        val backToRoom = addAction(
+            details,
+            "BACK TO ROOM",
+            focusKey = "back:${finding.id}"
+        ) {
+            navigateBack()
+        }
 
-        addText(
-            column,
-            "Evidence video unavailable in this TV preview.",
-            18f,
-            0,
-            tint = Color.LTGRAY
+        // This detail screen has one selectable action.
+        // Keep it focused instead of moving into an
+        // unfocused ScrollView on UP/DOWN.
+        backToRoom.setOnKeyListener { _, keyCode, _ ->
+            keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP ||
+                keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN
+        }
+
+        content.addView(
+            details,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        column.addView(
+            content,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         )
 
         return backToRoom
