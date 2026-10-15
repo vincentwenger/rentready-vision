@@ -686,6 +686,21 @@ class MainActivity : FragmentActivity() {
             )
         }
 
+        if (DemoReviewerAssessment.applies(inspection)) {
+            addText(
+                column,
+                "HUMAN REVIEW: 5 CONFIRMED / 7 FALSE POSITIVES",
+                21f, 12, true,
+                Color.rgb(160, 195, 226)
+            )
+            addText(
+                column,
+                "Original AI detections are preserved. " +
+                    "These classifications come from a separate review.",
+                18f, 20, tint = Color.LTGRAY
+            )
+        }
+
         addText(column, "ROOMS", 27f, 18, true)
 
         var first: TextView? = null
@@ -736,6 +751,20 @@ class MainActivity : FragmentActivity() {
         var first: TextView? = null
 
         for (finding in findings) {
+            val reviewerStatus =
+                DemoReviewerAssessment.statusFor(inspection, finding)
+
+            if (reviewerStatus != null) {
+                addText(
+                    column,
+                    if (reviewerStatus == DemoReviewStatus.CONFIRMED)
+                        "HUMAN REVIEW: CONFIRMED"
+                    else
+                        "HUMAN REVIEW: FALSE POSITIVE",
+                    17f, 7, true,
+                    Color.rgb(160, 195, 226)
+                )
+            }
             val action = addAction(
                 column,
                 "${finding.title}\n${finding.severity}",
@@ -786,6 +815,21 @@ class MainActivity : FragmentActivity() {
             14,
             true
         )
+
+        val reviewStatus =
+            DemoReviewerAssessment.statusFor(inspection, finding)
+
+        if (reviewStatus != null) {
+            addText(
+                column,
+                if (reviewStatus == DemoReviewStatus.CONFIRMED)
+                    "HUMAN REVIEW: CONFIRMED FINDING"
+                else
+                    "HUMAN REVIEW: FALSE POSITIVE - NOT CONFIRMED",
+                18f, 12, true,
+                Color.rgb(160, 195, 226)
+            )
+        }
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -1034,7 +1078,209 @@ class MainActivity : FragmentActivity() {
     }
 
 
+    private fun showReviewedDemoBriefing(
+        column: LinearLayout
+    ): TextView {
+        loadBedrockIfNeeded()
+
+        addText(
+            column,
+            "RENTAL READINESS BRIEFING",
+            35f, 12, true
+        )
+
+        addText(
+            column,
+            "HUMAN REVIEW - NOT MODEL OUTPUT",
+            19f, 16, true,
+            Color.rgb(160, 195, 226)
+        )
+
+        addText(
+            column,
+            "12 original AI findings: 5 reviewer-confirmed " +
+                "and 7 marked false positive.",
+            24f, 18, true
+        )
+
+        addText(
+            column,
+            "Four Garage findings and one Bedroom 2 finding " +
+                "were confirmed during human review. " +
+                "The original inspection remains unchanged.",
+            19f, 22, tint = Color.LTGRAY
+        )
+
+        addText(
+            column,
+            "REVIEWER-CONFIRMED EVIDENCE",
+            25f, 16, true
+        )
+
+        var firstAction: TextView? = null
+
+        for (finding in DemoReviewerAssessment.featured(inspection)) {
+            val room = inspection.findRoom(finding.roomId)
+
+            addText(
+                column,
+                room.name.uppercase() + " - " + finding.title,
+                21f, 12, true
+            )
+
+            val action = addAction(
+                column,
+                "VIEW CONFIRMED FINDING AND EVIDENCE",
+                focusKey = "review:${finding.id}"
+            ) {
+                navigateTo(
+                    Page(
+                        Screen.FINDING,
+                        roomId = finding.roomId,
+                        findingId = finding.id
+                    )
+                )
+            }
+
+            if (firstAction == null) firstAction = action
+        }
+
+        addText(
+            column,
+            "All original findings, including the other " +
+                "confirmed Garage findings, remain available " +
+                "through the property rooms.",
+            17f, 22, tint = Color.LTGRAY
+        )
+
+        val ai = bedrockBriefing
+
+        if (ai == null) {
+            addText(
+                column,
+                if (bedrockLoading)
+                    "Checking for the saved Bedrock briefing..."
+                else
+                    "BRIEFING UNAVAILABLE",
+                21f, 12, true
+            )
+
+            if (!bedrockLoading) {
+                addText(
+                    column,
+                    bedrockStatusMessage ?:
+                        "The original AI response is not available.",
+                    18f, 12, tint = Color.LTGRAY
+                )
+
+                addAction(
+                    column,
+                    "RETRY BRIEFING",
+                    focusKey = "bedrock:retry"
+                ) {
+                    loadBedrockIfNeeded(force = true)
+                    render()
+                }
+            }
+
+            return requireNotNull(firstAction)
+        }
+
+        addText(
+            column,
+            "AMAZON BEDROCK - ORIGINAL PRE-REVIEW OUTPUT",
+            20f, 14, true,
+            Color.rgb(129, 190, 245)
+        )
+
+        addText(
+            column,
+            "The saved Bedrock response was generated before " +
+                "human review. Two of its three priorities were " +
+                "subsequently marked false positive.",
+            19f, 16, tint = Color.LTGRAY
+        )
+
+        addText(
+            column,
+            "ORIGINAL AI HEADLINE - NOT REVIEWER-ENDORSED",
+            16f, 6, true
+        )
+
+        addText(column, ai.headline, 22f, 20)
+
+        for ((index, item) in ai.priorities.withIndex()) {
+            val finding = inspection.findFinding(item.findingId)
+            val room = inspection.findRoom(finding.roomId)
+
+            val confirmed =
+                DemoReviewerAssessment.statusFor(
+                    inspection, finding
+                ) == DemoReviewStatus.CONFIRMED
+
+            addText(
+                column,
+                "BEDROCK PRIORITY ${index + 1}: " +
+                    room.name.uppercase(),
+                20f, 8, true
+            )
+
+            addText(
+                column,
+                if (confirmed)
+                    "HUMAN REVIEW: CONFIRMED"
+                else
+                    "HUMAN REVIEW: FALSE POSITIVE - REJECTED",
+                19f, 9, true,
+                Color.rgb(160, 195, 226)
+            )
+
+            addText(column, finding.title, 21f, 8, true)
+            addText(column, item.reason, 18f, 10)
+
+            addText(
+                column,
+                if (confirmed)
+                    "ORIGINAL AI SUGGESTION - REQUIRES REVIEW"
+                else
+                    "ORIGINAL AI SUGGESTION - NOT ENDORSED",
+                16f, 6, true
+            )
+
+            addText(
+                column, item.recommendedAction,
+                18f, 12
+            )
+
+            addAction(
+                column,
+                "VIEW ORIGINAL FINDING AND EVIDENCE",
+                focusKey = "bedrock:${finding.id}"
+            ) {
+                navigateTo(
+                    Page(
+                        Screen.FINDING,
+                        roomId = finding.roomId,
+                        findingId = finding.id
+                    )
+                )
+            }
+        }
+
+        addText(
+            column,
+            ai.disclaimer,
+            17f, 12, tint = Color.LTGRAY
+        )
+
+        return requireNotNull(firstAction)
+    }
+
     private fun showBriefing(column: LinearLayout): TextView {
+        if (DemoReviewerAssessment.applies(inspection)) {
+            return showReviewedDemoBriefing(column)
+        }
+
         if (inspection.findings.isEmpty()) {
             addText(
                 column,

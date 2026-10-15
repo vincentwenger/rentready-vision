@@ -232,3 +232,12 @@ Amazon Bedrock generated a real briefing from 12 saved Demo House findings. The 
 
 ### October 15 Step 9 positive results
 The restricted TV client recovered from severe simulated network degradation without a visible crash. Retrying reloaded the approved inspection, original evidence photograph and cached Amazon Bedrock briefing. The TV did not initiate a new Bedrock generation. Production AWS services and existing evidence were not changed.
+
+
+### ENG-015 - Demo finding accuracy and human review
+- **Date:** October 15, 2026.
+- **Observation:** A reviewer classified five of twelve Demo House findings as true positives and seven as false positives. Two of the three cached Bedrock priorities corresponded to rejected findings.
+- **Resolution:** Added a guarded, demo-specific human-review presentation that prioritizes confirmed evidence and labels the original Bedrock output as pre-review. No original results were rewritten.
+- **Result:** The Android TV emulator displayed five confirmed and seven rejected classifications, featured Garage and Bedroom 2 evidence, and correctly labeled the Bedroom, Garage and Kitchen Bedrock priorities.
+- **Learning:** Separate detector outputs, reviewer decisions and model-generated recommendations. Future products should support per-finding feedback and reviewer-aware prioritization.
+- **Classification:** Model quality and product usability limitation, not an AWS service incident.
