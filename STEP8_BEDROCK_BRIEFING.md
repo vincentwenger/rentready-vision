@@ -1,4 +1,4 @@
-# Step 8 ? Amazon Bedrock Rental Readiness Briefing
+# Step 8 — Amazon Bedrock Rental Readiness Briefing
 
 **Verified:** October 15, 2026
 **Branch:** `amazon-2026`
@@ -17,13 +17,13 @@ briefing generation or invent additional property defects.
 ## Implementation
 
 The briefing uses:
-- `app/tv_bedrock_briefing.py` ? structured finding preparation,
+- `app/tv_bedrock_briefing.py` — structured finding preparation,
   Converse API integration, forced tool use and response validation.
-- `app/tv_bedrock_cache.py` ? DynamoDB fingerprint-based caching
+- `app/tv_bedrock_cache.py` — DynamoDB fingerprint-based caching
   and conditional generation reservations.
-- `app/routers/tv.py` ? authenticated briefing API routes.
-- `app/tv_models.py` ? validated public response schemas.
-- Fire TV Kotlin client and UI ? cached briefing retrieval,
+- `app/routers/tv.py` — authenticated briefing API routes.
+- `app/tv_models.py` — validated public response schemas.
+- Fire TV Kotlin client and UI — cached briefing retrieval,
   three priority cards and navigation to original findings.
 
 The generation endpoint is:
@@ -77,9 +77,9 @@ Successful generation usage:
 - No original walkthrough video was sent for briefing generation.
 
 Selected findings:
-1. Bedroom ? visible door-edge fixture or mounting damage.
-2. Garage ? visible concrete floor cracks.
-3. Kitchen ? two small visible backsplash-area wall holes.
+1. Bedroom — visible door-edge fixture or mounting damage.
+2. Garage — visible concrete floor cracks.
+3. Kitchen — two small visible backsplash-area wall holes.
 
 Actual Bedrock headline:
 "Three high-priority defects require repair before leasing."
