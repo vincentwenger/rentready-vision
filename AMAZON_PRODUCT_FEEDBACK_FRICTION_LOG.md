@@ -195,3 +195,22 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 
 ### October 14 positive development results
 The Google Android TV API 36 emulator successfully displayed Demo House, 12 inspection findings and all three improved video excerpts. AWS S3, IAM, EC2, Systems Manager and boto3 supported private versioned evidence playback, checked deployment and rollback preservation. This does not establish actual Fire OS hardware compatibility.
+
+
+### ENG-011 - Bedrock briefing generation and validation
+- **Date:** October 15, 2026.
+- **Task:** Generate an evidence-grounded Rental Readiness Briefing using Amazon Nova 2 Lite.
+- **Observed friction:** The first live request returned HTTP 502 after generation reservation, leaving a FAILED cache record without precise failure diagnostics.
+- **Resolution:** Introduced constrained tool output, retained strict finding-ID checks and preserved the original failed record. A separate corrected generation succeeded and was cached.
+- **Learning:** Test structured-output compatibility, improve non-sensitive failure diagnostics and require explicit approval before paid retries.
+- **Classification:** Internal integration and response-validation issue; no confirmed AWS service outage.
+
+### ENG-012 - Cross-platform deployment and verification
+- **Date:** October 15, 2026.
+- **Observed friction:** Linux shell differences, staged-release ownership, Python import paths, FastAPI route inspection assumptions, Windows/Linux newline differences and verification-script errors interrupted checks.
+- **Resolution:** Used isolated, checksum-verified releases, service-user validation, protected production rollback and precise cache-state checks.
+- **Learning:** Standardize cross-platform packaging and production smoke tests.
+- **Classification:** Internal development and deployment friction.
+
+### October 15 AWS Builder positive results
+Amazon Bedrock generated a real briefing from 12 saved Demo House findings. The backend restricted priority references to existing finding IDs and cached the validated response. The Android TV application displayed all three priorities, navigated to their original evidence and showed the human-review disclaimer. The verification used a Google Android TV API 36 emulator, not a physical Fire TV device.

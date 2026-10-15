@@ -42,6 +42,11 @@ class MainActivity : FragmentActivity() {
     private var loadError: String? = null
     private var loadGeneration = 0
 
+    private var bedrockBriefing: TvBedrockBriefing? = null
+    private var bedrockLoading = false
+    private var bedrockUnavailable = false
+    private var bedrockGeneration = 0
+
     // Keep at most one real evidence image in memory.
     private var evidenceBitmap: Bitmap? = null
     private var evidenceFindingId: String? = null
@@ -161,6 +166,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onDestroy() {
         loadGeneration += 1
+        bedrockGeneration += 1
         clearEvidence()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -205,6 +211,10 @@ class MainActivity : FragmentActivity() {
 
                 result.onSuccess { loaded ->
                     clearEvidence()
+                    bedrockGeneration += 1
+                    bedrockBriefing = null
+                    bedrockLoading = false
+                    bedrockUnavailable = false
                     inspection = loaded
                     currentPage = Page(Screen.INSPECTIONS)
                     history.clear()
@@ -304,7 +314,73 @@ class MainActivity : FragmentActivity() {
         }, "rentready-tv-evidence-loader").start()
     }
 
+
+    private fun loadBedrockIfNeeded(force: Boolean = false) {
+        if (
+            bedrockLoading ||
+            bedrockBriefing != null ||
+            (bedrockUnavailable && !force)
+        ) {
+            return
+        }
+
+        val inspectionId = inspection.propertyId
+        val generation = ++bedrockGeneration
+
+        bedrockLoading = true
+
+        Thread({
+            val result = runCatching {
+                TvApiClient.loadCachedBedrockBriefing(
+                    applicationContext, inspection
+                )
+            }
+
+            runOnUiThread {
+                if (
+                    isFinishing ||
+                    isDestroyed ||
+                    generation != bedrockGeneration ||
+                    inspection.propertyId != inspectionId ||
+                    currentPage.screen != Screen.BRIEFING
+                ) {
+                    return@runOnUiThread
+                }
+
+                bedrockLoading = false
+
+                result.onSuccess { briefing ->
+                    bedrockBriefing = briefing
+                    bedrockUnavailable = briefing == null
+                }.onFailure { failure ->
+                    bedrockBriefing = null
+                    bedrockUnavailable = true
+
+                    Log.w(
+                        "RentReadyTV",
+                        "Cached briefing load failed: " +
+                            failure.javaClass.simpleName
+                    )
+
+                    if (failure is SecurityException) {
+                        requestDevicePairing()
+                    }
+                }
+
+                render()
+            }
+        }, "rentready-tv-bedrock-cache").start()
+    }
+
     private fun navigateTo(page: Page) {
+        // Invalidate an in-flight briefing response when leaving.
+        if (
+            currentPage.screen == Screen.BRIEFING &&
+                page.screen != Screen.BRIEFING
+        ) {
+            bedrockGeneration += 1
+            bedrockLoading = false
+        }
         if (
             page.screen != Screen.FINDING ||
             page.findingId != currentPage.findingId
@@ -323,6 +399,12 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun navigateBack() {
+        // Back must also release an abandoned loading state.
+        if (currentPage.screen == Screen.BRIEFING) {
+            bedrockGeneration += 1
+            bedrockLoading = false
+        }
+
         clearEvidence()
 
         if (history.isNotEmpty()) {
@@ -910,30 +992,150 @@ class MainActivity : FragmentActivity() {
         return backToRoom
     }
 
+
     private fun showBriefing(column: LinearLayout): TextView {
+        loadBedrockIfNeeded()
+
+        val ai = bedrockBriefing
+
+        if (ai != null) {
+            addText(
+                column,
+                "RENTAL READINESS BRIEFING",
+                35f, 12, true
+            )
+
+            addText(
+                column,
+                "GENERATED WITH AMAZON BEDROCK",
+                19f, 25, true,
+                Color.rgb(129, 190, 245)
+            )
+
+            addText(column, ai.headline, 29f, 27, true)
+
+            var firstAction: TextView? = null
+
+            for ((index, item) in ai.priorities.withIndex()) {
+                val finding = inspection.findFinding(
+                    item.findingId
+                )
+
+                val room = inspection.findRoom(finding.roomId)
+
+                addText(
+                    column,
+                    "${index + 1}. ${room.name.uppercase()}  |  " +
+                        finding.severity,
+                    19f, 9, true,
+                    Color.rgb(160, 195, 226)
+                )
+
+                addText(
+                    column, finding.title, 25f, 15, true
+                )
+
+                addText(
+                    column, "WHY REVIEW THIS FINDING",
+                    16f, 5, true, Color.LTGRAY
+                )
+
+                addText(column, item.reason, 20f, 14)
+
+                addText(
+                    column, "SUGGESTED NEXT STEP",
+                    16f, 5, true, Color.LTGRAY
+                )
+
+                addText(
+                    column, item.recommendedAction,
+                    20f, 16
+                )
+
+                val action = addAction(
+                    column,
+                    "VIEW SAVED FINDING AND EVIDENCE",
+                    focusKey = "bedrock:${finding.id}"
+                ) {
+                    navigateTo(
+                        Page(
+                            Screen.FINDING,
+                            roomId = finding.roomId,
+                            findingId = finding.id
+                        )
+                    )
+                }
+
+                if (firstAction == null) {
+                    firstAction = action
+                }
+            }
+
+            addText(
+                column, ai.disclaimer,
+                17f, 12, tint = Color.LTGRAY
+            )
+
+            return requireNotNull(firstAction)
+        }
+
+        // Keep the previously working deterministic
+        // briefing when the Bedrock cache is unavailable.
         val briefing = inspection.briefing
-        val room = inspection.findRoom(briefing.priorityRoomId)
+        val room = inspection.findRoom(
+            briefing.priorityRoomId
+        )
 
         addText(
             column,
             briefing.title.uppercase(),
-            35f,
-            32,
-            true
+            35f, 20, true
         )
 
-        addText(column, briefing.headline, 28f, 30, true)
-        addText(column, room.name, 25f, 12, true)
-        addText(column, briefing.priorityAction, 22f, 30)
+        if (bedrockLoading) {
+            addText(
+                column,
+                "Checking for a saved Bedrock briefing...",
+                19f, 16, tint = Color.LTGRAY
+            )
+        } else if (bedrockUnavailable) {
+            addText(
+                column,
+                "AI-generated briefing not available yet. " +
+                    "Showing the saved inspection summary.",
+                19f, 16, tint = Color.LTGRAY
+            )
+        } else {
+            addText(
+                column,
+                "SAVED INSPECTION SUMMARY",
+                19f, 16, tint = Color.LTGRAY
+            )
+        }
+
+        addText(
+            column, briefing.headline,
+            28f, 30, true
+        )
+
+        addText(
+            column, room.name, 25f, 12, true
+        )
+
+        addText(
+            column, briefing.priorityAction,
+            22f, 30
+        )
 
         addText(
             column,
             briefing.secondaryMessage,
-            22f,
-            26
+            22f, 26
         )
 
-        return addAction(column, "VIEW PRIORITY FINDINGS") {
+        val firstAction = addAction(
+            column, "VIEW PRIORITY FINDINGS"
+        ) {
             navigateTo(
                 Page(
                     Screen.ROOM,
@@ -941,5 +1143,19 @@ class MainActivity : FragmentActivity() {
                 )
             )
         }
+
+        if (!bedrockLoading) {
+            addAction(
+                column,
+                "RETRY BEDROCK BRIEFING",
+                focusKey = "bedrock:retry"
+            ) {
+                loadBedrockIfNeeded(force = true)
+                render()
+            }
+        }
+
+        return firstAction
     }
+
 }

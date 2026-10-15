@@ -11,11 +11,12 @@ import json
 import os
 import re
 
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
 from ..db import get_inspection
-from ..aws import s3, table
+from ..aws import s3, table, bedrock_runtime
 from ..config import get_settings
 from ..services import load_issues_report
 from ..tv_media import create_tv_image_grant
@@ -32,8 +33,13 @@ from ..tv_request_scope import (
     require_request_tv_inspection as require_allowed_tv_inspection,
 )
 from ..tv_adapter import TvProjection, project_completed_inspection
+from ..tv_bedrock_briefing import BriefingRejected
+from ..tv_bedrock_cache import (
+    BriefingPending, get_cached, generate_once,
+)
 from ..tv_models import (
     TvBriefingResponse,
+    TvBedrockBriefingResponse,
     TvFindingDetail,
     TvFindingsResponse,
     TvImageGrantResponse,
@@ -136,6 +142,112 @@ def get_tv_findings(inspection_id: str) -> TvFindingsResponse:
 )
 def get_tv_briefing(inspection_id: str) -> TvBriefingResponse:
     return _load_tv_projection(inspection_id).briefing
+
+
+
+
+def _require_bedrock_briefing_enabled() -> None:
+    """Disabled by default; deployment must opt in explicitly."""
+    if os.environ.get(
+        "RENTREADY_TV_BEDROCK_BRIEFING_ENABLED", ""
+    ) != "true":
+        raise HTTPException(
+            status_code=404,
+            detail="Bedrock briefing feature unavailable",
+        )
+
+
+def _public_bedrock_result(
+    result: dict,
+) -> TvBedrockBriefingResponse:
+    """Expose only TV-safe fields, not model usage or cache metadata."""
+    return TvBedrockBriefingResponse(
+        inspection_id=result["inspection_id"],
+        source=result["source"],
+        headline=result["headline"],
+        priority_findings=result["priority_findings"],
+        disclaimer=result["disclaimer"],
+    )
+
+
+@router.get(
+    "/inspections/{inspection_id}/bedrock-briefing",
+    response_model=TvBedrockBriefingResponse,
+)
+def get_tv_bedrock_briefing(
+    inspection_id: str,
+) -> TvBedrockBriefingResponse:
+    """Read an existing briefing; NEVER invoke the model.
+
+    The paired device may read only its approved inspection.
+    """
+    _require_bedrock_briefing_enabled()
+    require_allowed_tv_inspection(inspection_id)
+
+    projection = _load_tv_projection(inspection_id)
+
+    try:
+        result = get_cached(projection, table)
+    except (BriefingPending, BriefingRejected):
+        raise HTTPException(
+            status_code=503,
+            detail="Bedrock briefing temporarily unavailable",
+        ) from None
+    except (ClientError, BotoCoreError):
+        raise HTTPException(
+            status_code=503,
+            detail="Briefing storage temporarily unavailable",
+        ) from None
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Bedrock briefing not generated",
+        )
+
+    return _public_bedrock_result(result)
+
+
+@router.post(
+    "/inspections/{inspection_id}/bedrock-briefing",
+    response_model=TvBedrockBriefingResponse,
+)
+def generate_tv_bedrock_briefing(
+    inspection_id: str,
+) -> TvBedrockBriefingResponse:
+    """Generate once or reuse cache. SecurityMiddleware restricts
+    every TV POST request to operator authentication.
+    Device credentials cannot trigger generation.
+    """
+    _require_bedrock_briefing_enabled()
+    require_allowed_tv_inspection(inspection_id)
+
+    projection = _load_tv_projection(inspection_id)
+
+    try:
+        result = generate_once(
+            projection, table, bedrock_runtime
+        )
+    except BriefingPending:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Briefing generation already reserved; "
+                "operator review required"
+            ),
+        ) from None
+    except BriefingRejected:
+        raise HTTPException(
+            status_code=502,
+            detail="Bedrock briefing failed validation",
+        ) from None
+    except (ClientError, BotoCoreError):
+        raise HTTPException(
+            status_code=503,
+            detail="Briefing generation temporarily unavailable",
+        ) from None
+
+    return _public_bedrock_result(result)
 
 
 @router.get(

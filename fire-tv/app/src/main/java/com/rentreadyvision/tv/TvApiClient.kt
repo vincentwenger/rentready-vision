@@ -457,6 +457,148 @@ object TvApiClient {
             .takeIf { it.isNotEmpty() }
     }
 
+
+    /**
+     * Read an existing, validated Bedrock briefing only.
+     *
+     * A paired device cannot trigger model inference.
+     * A missing/disabled cache returns null, preserving
+     * the existing inspection briefing.
+     */
+    fun loadCachedBedrockBriefing(
+        context: Context,
+        inspection: TvInspection
+    ): TvBedrockBriefing? {
+        check(Looper.myLooper() != Looper.getMainLooper()) {
+            "Briefing HTTP requests must run off the UI thread"
+        }
+
+        val session = TvDeviceSessionStore.load(context)
+            ?: throw SecurityException("TV pairing required")
+
+        val inspectionId = inspection.propertyId
+
+        require(
+            UUID.fromString(inspectionId).toString() == inspectionId &&
+                session.inspectionId == inspectionId
+        ) {
+            "Briefing inspection scope mismatch"
+        }
+
+        val path =
+            "/api/tv/inspections/$inspectionId/bedrock-briefing"
+
+        val response = try {
+            getJson(context, path)
+        } catch (_: java.io.IOException) {
+            // Covers disabled feature, missing cache and
+            // temporary transport/provider unavailability.
+            // Never pretend fallback content came from Bedrock.
+            return null
+        }
+
+        require(
+            response.getString("inspection_id") == inspectionId &&
+                response.getString("source") == "amazon-bedrock"
+        ) {
+            "Unexpected Bedrock briefing source"
+        }
+
+        val headline = response.getString("headline").trim()
+        val disclaimer = response.getString("disclaimer").trim()
+
+        require(
+            headline.length in 1..150 &&
+                disclaimer.length in 1..800 &&
+                disclaimer.contains(
+                    "human review", ignoreCase = true
+                )
+        ) {
+            "Invalid Bedrock briefing text"
+        }
+
+        val approved = inspection.findings.associateBy { it.id }
+        val array = response.getJSONArray("priority_findings")
+
+        require(array.length() in 1..3) {
+            "Unexpected Bedrock priority count"
+        }
+
+        val priorities = mutableListOf<TvBedrockPriorityFinding>()
+        val seen = mutableSetOf<String>()
+
+        for (index in 0 until array.length()) {
+            val item = array.getJSONObject(index)
+            val findingId = item.getString("finding_id")
+
+            require(
+                Regex("[0-9a-f]{32}").matches(findingId) &&
+                    seen.add(findingId)
+            ) {
+                "Invalid or duplicate priority ID"
+            }
+
+            val finding = approved[findingId]
+                ?: error("Bedrock referenced unknown finding")
+
+            // Server metadata must match the already-approved
+            // inspection loaded over the restricted TV session.
+            // Display room names come from the TV inspection,
+            // which may contain demo-only display corrections.
+            require(
+                item.getString("title") == finding.title &&
+                    item.getString("severity")
+                        .uppercase(Locale.ROOT) == finding.severity
+            ) {
+                "Briefing finding metadata mismatch"
+            }
+
+            val timestamp = if (
+                item.isNull("timestamp_seconds")
+            ) {
+                null
+            } else {
+                item.getDouble("timestamp_seconds").also {
+                    require(
+                        it.isFinite() &&
+                            it >= 0.0 &&
+                            it <= Int.MAX_VALUE.toDouble()
+                    )
+                }.toInt()
+            }
+
+            require(timestamp == finding.timestampSeconds) {
+                "Briefing evidence timestamp mismatch"
+            }
+
+            val reason = item.getString("reason").trim()
+            val action = item.getString(
+                "recommended_action"
+            ).trim()
+
+            require(
+                reason.length in 1..240 &&
+                    action.length in 1..280
+            ) {
+                "Invalid Bedrock priority text"
+            }
+
+            priorities.add(
+                TvBedrockPriorityFinding(
+                    findingId = findingId,
+                    reason = reason,
+                    recommendedAction = action
+                )
+            )
+        }
+
+        return TvBedrockBriefing(
+            headline = headline,
+            priorities = priorities,
+            disclaimer = disclaimer
+        )
+    }
+
     fun load(context: Context): TvInspection {
         check(Looper.myLooper() != Looper.getMainLooper()) {
             "TV HTTP requests must run off the UI thread"

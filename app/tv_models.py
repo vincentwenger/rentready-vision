@@ -114,3 +114,23 @@ class TvBriefingResponse(TvResponse):
     recommended_action: str | None = None
     medium_count: int = Field(ge=0)
     disclaimer: str
+
+
+class TvBedrockPriorityFinding(TvResponse):
+    finding_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    room: str
+    severity: TvSeverity
+    title: str
+    timestamp_seconds: float | None = Field(default=None, ge=0)
+    reason: str = Field(min_length=1, max_length=240)
+    recommended_action: str = Field(min_length=1, max_length=280)
+
+
+class TvBedrockBriefingResponse(TvResponse):
+    inspection_id: str
+    source: Literal["amazon-bedrock"]
+    headline: str = Field(min_length=1, max_length=150)
+    priority_findings: list[TvBedrockPriorityFinding] = Field(
+        min_length=1, max_length=3
+    )
+    disclaimer: str
