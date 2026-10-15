@@ -28,6 +28,10 @@ object TvApiClient {
     private const val MAX_IMAGE_WIDTH = 1920
     private const val MAX_IMAGE_HEIGHT = 1080
 
+    private class TvApiStatusException(
+        val statusCode: Int
+    ) : java.io.IOException("TV API HTTP $statusCode")
+
     private fun getJson(context: Context, path: String): JSONObject {
         var lastTransportError: java.io.IOException? = null
 
@@ -35,6 +39,14 @@ object TvApiClient {
             try {
                 return getJsonOnce(context, path)
             } catch (failure: java.io.IOException) {
+                // Do not retry a permanent HTTP client error.
+                if (
+                    failure is TvApiStatusException &&
+                    failure.statusCode in 400..499
+                ) {
+                    throw failure
+                }
+
                 lastTransportError = failure
 
                 Log.w(
@@ -89,9 +101,7 @@ object TvApiClient {
             }
 
             if (status != 200) {
-                throw java.io.IOException(
-                    "TV API request failed (HTTP $status)"
-                )
+                throw TvApiStatusException(status)
             }
 
             val declaredLength = connection.contentLengthLong
@@ -490,11 +500,12 @@ object TvApiClient {
 
         val response = try {
             getJson(context, path)
-        } catch (_: java.io.IOException) {
-            // Covers disabled feature, missing cache and
-            // temporary transport/provider unavailability.
-            // Never pretend fallback content came from Bedrock.
-            return null
+        } catch (failure: TvApiStatusException) {
+            // A missing or disabled cache is not a network outage.
+            if (failure.statusCode == 404) {
+                return null
+            }
+            throw failure
         }
 
         require(
@@ -874,15 +885,20 @@ object TvApiClient {
             briefingResponse, "priority_finding_id"
         )
 
-        // This five-screen prototype expects an actionable priority.
-        // A future version will also handle reports without findings.
-        require(priorityId != null) {
-            "TV briefing has no priority finding"
+        // No findings is a valid completed-inspection result.
+        // A missing priority is acceptable only for an empty report.
+        val priorityFinding = if (findings.isEmpty()) {
+            require(priorityId == null) {
+                "Empty inspection has an unexpected priority"
+            }
+            null
+        } else {
+            require(priorityId != null) {
+                "TV briefing has no priority finding"
+            }
+            findings.firstOrNull { it.id == priorityId }
+                ?: error("Unknown briefing priority finding")
         }
-
-        val priorityFinding = findings.firstOrNull {
-            it.id == priorityId
-        } ?: error("Unknown briefing priority finding")
 
         val headline = briefingResponse.getString("headline")
         val action = optionalText(
@@ -907,8 +923,8 @@ object TvApiClient {
             briefing = TvBriefing(
                 title = "Rental Readiness Briefing",
                 headline = headline,
-                priorityRoomId = priorityFinding.roomId,
-                priorityFindingId = priorityId,
+                priorityRoomId = priorityFinding?.roomId ?: "",
+                priorityFindingId = priorityFinding?.id ?: "",
                 priorityAction = action,
                 secondaryMessage = disclaimer
             )

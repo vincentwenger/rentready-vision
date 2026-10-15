@@ -45,6 +45,7 @@ class MainActivity : FragmentActivity() {
     private var bedrockBriefing: TvBedrockBriefing? = null
     private var bedrockLoading = false
     private var bedrockUnavailable = false
+    private var bedrockStatusMessage: String? = null
     private var bedrockGeneration = 0
 
     // Keep at most one real evidence image in memory.
@@ -215,6 +216,7 @@ class MainActivity : FragmentActivity() {
                     bedrockBriefing = null
                     bedrockLoading = false
                     bedrockUnavailable = false
+                    bedrockStatusMessage = null
                     inspection = loaded
                     currentPage = Page(Screen.INSPECTIONS)
                     history.clear()
@@ -328,6 +330,7 @@ class MainActivity : FragmentActivity() {
         val generation = ++bedrockGeneration
 
         bedrockLoading = true
+        bedrockStatusMessage = null
 
         Thread({
             val result = runCatching {
@@ -352,9 +355,23 @@ class MainActivity : FragmentActivity() {
                 result.onSuccess { briefing ->
                     bedrockBriefing = briefing
                     bedrockUnavailable = briefing == null
+                    bedrockStatusMessage = if (briefing == null) {
+                        "No saved Bedrock briefing is available. " +
+                            "Showing the inspection summary."
+                    } else {
+                        null
+                    }
                 }.onFailure { failure ->
                     bedrockBriefing = null
                     bedrockUnavailable = true
+                    bedrockStatusMessage = if (
+                        failure is SecurityException
+                    ) {
+                        "TV authorization expired. Pair again."
+                    } else {
+                        "Network or briefing service unavailable. " +
+                            "Showing the saved inspection summary."
+                    }
 
                     Log.w(
                         "RentReadyTV",
@@ -651,7 +668,10 @@ class MainActivity : FragmentActivity() {
 
         addText(
             column,
-            "${inspection.findings.size} potential findings",
+            if (inspection.findings.isEmpty())
+                "No findings reported"
+            else
+                "${inspection.findings.size} potential findings",
             27f,
             20,
             true
@@ -807,7 +827,7 @@ class MainActivity : FragmentActivity() {
                         "LOADING REAL EVIDENCE IMAGE..."
 
                     evidenceFailed ->
-                        "EVIDENCE IMAGE COULD NOT BE LOADED"
+                        "EVIDENCE UNAVAILABLE - SELECT RETRY"
 
                     else ->
                         "EVIDENCE IMAGE UNAVAILABLE"
@@ -918,6 +938,27 @@ class MainActivity : FragmentActivity() {
                 android.view.KeyEvent.KEYCODE_DPAD_UP
         }
 
+        if (
+            evidenceFailed &&
+            evidenceFindingId == findingId &&
+            !evidenceLoading
+        ) {
+            addAction(
+                details,
+                "RETRY EVIDENCE IMAGE",
+                focusKey = "retry-evidence:$findingId"
+            ) {
+                // A retry starts one new authorized image fetch.
+                // Never persist or display signed S3 URLs.
+                clearEvidence()
+                currentPage = currentPage.copy(
+                    focusKey = "view:$findingId"
+                )
+                loadEvidenceForFinding(findingId)
+                render()
+            }
+        }
+
         // Only three visually verified demo findings have
         // approved, inspection-scoped video evidence.
         val videoAvailable = (
@@ -994,6 +1035,41 @@ class MainActivity : FragmentActivity() {
 
 
     private fun showBriefing(column: LinearLayout): TextView {
+        if (inspection.findings.isEmpty()) {
+            addText(
+                column,
+                "RENTAL READINESS BRIEFING",
+                35f, 24, true
+            )
+
+            addText(
+                column,
+                "NO FINDINGS REPORTED",
+                29f, 20, true
+            )
+
+            addText(
+                column,
+                "The saved inspection analysis did not report " +
+                    "potential issues. This does not certify that " +
+                    "the property is clear. Human review is still " +
+                    "recommended.",
+                22f, 24
+            )
+
+            addText(
+                column,
+                inspection.briefing.secondaryMessage,
+                19f, 26,
+                tint = Color.LTGRAY
+            )
+
+            // No Bedrock request is made for an empty report.
+            return addAction(column, "BACK TO PROPERTY") {
+                navigateBack()
+            }
+        }
+
         loadBedrockIfNeeded()
 
         val ai = bedrockBriefing
@@ -1101,7 +1177,12 @@ class MainActivity : FragmentActivity() {
         } else if (bedrockUnavailable) {
             addText(
                 column,
-                "AI-generated briefing not available yet. " +
+                "BRIEFING UNAVAILABLE",
+                22f, 8, true
+            )
+            addText(
+                column,
+                bedrockStatusMessage ?:
                     "Showing the saved inspection summary.",
                 19f, 16, tint = Color.LTGRAY
             )
@@ -1147,7 +1228,7 @@ class MainActivity : FragmentActivity() {
         if (!bedrockLoading) {
             addAction(
                 column,
-                "RETRY BEDROCK BRIEFING",
+                "RETRY BRIEFING",
                 focusKey = "bedrock:retry"
             ) {
                 loadBedrockIfNeeded(force = true)

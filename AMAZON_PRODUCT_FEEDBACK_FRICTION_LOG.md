@@ -214,3 +214,21 @@ The Google Android TV API 36 emulator successfully displayed Demo House, 12 insp
 
 ### October 15 AWS Builder positive results
 Amazon Bedrock generated a real briefing from 12 saved Demo House findings. The backend restricted priority references to existing finding IDs and cached the validated response. The Android TV application displayed all three priorities, navigated to their original evidence and showed the human-review disclaimer. The verification used a Google Android TV API 36 emulator, not a physical Fire TV device.
+
+
+### ENG-013 - TV emulator network failure simulation
+- **Date:** October 15, 2026.
+- **Observation:** An unreachable Android global HTTP proxy did not reliably interrupt the native HTTPS client. The emulator used `eth0`, and ordinary ADB shell access could not administer that interface.
+- **Resolution:** Used emulator console network delay (20 seconds) and speed (1 Kbit/s), then restored the defaults after every test.
+- **Result:** Inspection, evidence and briefing failure screens were visibly reproduced, followed by successful user-triggered recovery.
+- **Classification:** Internal testing and emulator networking friction, not an AWS service outage.
+
+### ENG-014 - TV failure state and retry improvements
+- **Date:** October 15, 2026.
+- **Observation:** Empty inspections previously required an actionable priority. Evidence failure lacked an inline retry control, and unavailable cached briefing retrieval needed clearer error text.
+- **Resolution:** Added an advisory zero-findings state, evidence retry, clearer briefing fallback, and network/service status handling.
+- **Result:** Local source tests and APK build passed. Network, evidence and briefing recovery were visually verified on the Android TV emulator. The zero-finding screen has not yet been demonstrated using a real empty inspection.
+- **Classification:** Application resilience and judge usability improvement.
+
+### October 15 Step 9 positive results
+The restricted TV client recovered from severe simulated network degradation without a visible crash. Retrying reloaded the approved inspection, original evidence photograph and cached Amazon Bedrock briefing. The TV did not initiate a new Bedrock generation. Production AWS services and existing evidence were not changed.
