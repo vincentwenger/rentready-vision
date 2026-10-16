@@ -42,8 +42,8 @@ APPROVED_CLIPS = MappingProxyType({
 
 
 # Step 7.18F.11B - Explicit versioned evidence approval.
-# V1 remains active until V2 verification is complete.
-ACTIVE_VIDEO_VERSION = "v1"
+# V2 is the verified production default; V1 is retained for rollback.
+ACTIVE_VIDEO_VERSION = "v2"
 
 APPROVED_CLIPS_V2 = MappingProxyType({
     "877eec22117f6f9508a087d46ed59e43": (

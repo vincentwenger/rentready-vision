@@ -1,139 +1,242 @@
-# RentReady Vision
+# RentReady Vision for Fire TV
 
-**Walk through once. Know what to fix before you rent.**
+**Walk through once. Review the evidence together.**
 
-[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md)
+RentReady Vision brings saved, AI-assisted rental-property inspections to a television. Review rooms, potential issues, preserved photographs, short evidence clips, human-review decisions, and an Amazon Bedrock-powered rental-readiness briefing with a remote control.
 
-> **Amazon Developer Hackathon — Fire TV work (`amazon-2026` branch):** [Step 5 engineering report](STEP5_FIRE_TV_FINAL.md) · [Step 5.7 compatibility audit](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Step 6 TV navigation tests](STEP6_FIRE_TV_NAVIGATION.md) · [Implemented TV API](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log, October 12–21](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). A real authenticated, evidence-backed inspection was demonstrated on an **Android TV API 36 emulator**; the [official hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) permits Android TV emulator demos, while physical Fire OS and Vega compatibility have not been tested.
+**Amazon Developer Hackathon 2026** · Fire TV category · AWS Builder mini-challenge (intended) · Kotlin/Android · [`amazon-2026` branch](https://github.com/vincentwenger/rentready-vision/tree/amazon-2026)
 
-RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
+> **Platform evidence:** The application was tested on a **Google Android TV API 36 emulator**, a category of emulator explicitly permitted by the [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs). It has **not** been tested on physical Fire TV hardware, an Amazon Fire OS image, or Vega OS. Emulator acceptance does not certify compatibility with every Fire OS device.
 
-**Current milestone: Step 54 (October 10, 2026)** — hosted application and report overlay improvements deployed; [implementation and limitations](STEP54_FINAL.md). Earlier engineering steps remain available in [Development history](DEVELOPMENT_HISTORY.md).
+### Quick Start — For Judges
 
-> **Human review is required.** Issue descriptions and rectangular highlights are AI-generated and may be inaccurate. RentReady Vision is not a licensed property inspection, hazard diagnosis, mold/asbestos assessment, structural determination, or electrical-safety certification.
+**Method 1: Offline Demo (recommended)**
 
-## What judges can see
+Download the prebuilt signed APK from [GitHub Releases](https://github.com/vincentwenger/rentready-vision/releases) after publication. Start one Android TV emulator (API 36 tested). In PowerShell, from the APK download folder:
 
-- **Video-to-report workflow:** browser upload, processing progress, scene/keyframe selection, potential defect detection, evidence images, issue timestamps, priorities and repair checklist.
-- **Current report:** Step 54 highlights AI-estimated issue locations with responsive red rectangles; overly large rectangles (covering 80% or more of an image) are hidden, original evidence is preserved, and the UI warns users to verify localization visually.
-- **Operational controls:** processing progress uses measured counts where available ([Step 50](STEP50_REAL_PROGRESS.md)); safe cancellation is available ([Step 53](STEP53_CANCEL_INSPECTION.md)); the COOL worker starts on demand and has guarded idle shutdown ([Step 49](STEP49_ON_DEMAND_WORKER.md)).
-- **Large-video protection:** bounded Bedrock image batching ([Step 52](STEP52_BEDROCK_INPUT_GUARD.md)), disk-space safeguards ([Step 51](STEP51_STORAGE_SAFETY.md)), and one batch request for retained-frame URLs ([Step 52 report optimization](STEP52_REPORT_BATCH_OPTIMIZATION.md)).
+```powershell
+$adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
+& $adb install ".\RentReadyVision-FireTV-v1.0-judge.apk"
+& $adb shell am start -n "com.rentreadyvision.tv/.MainActivity"
+```
 
-The hosted demo uses authenticated inspection operations. **The public URL alone does not grant access to private videos or reports.** Judge credentials/access will be provided separately through an approved, limited method; no bearer tokens belong in this repository or Devpost's public project story.
+Select **Open Demo Inspection — Offline**. Explore three synthetic findings, images, videos and the sample briefing. No pairing or AWS credentials required.
 
-## Why OpenCV matters
+**Method 2: Live AWS Inspection**
 
-OpenCV 5 is not simply a video decoder here. It evaluates frame quality (sharpness, illumination, motion), detects scene changes (color similarity and feature geometry), removes redundant frames, and selects useful timestamped evidence. An agentic follow-up path can request more frames from a relevant time interval, crop or enhance a region, evaluate another angle, and record the resulting decision or need for human review.
+Install the same APK and select **Open Live AWS Inspection — Pairing Required**. Enter the restricted judge pairing code once production access is provisioned. This mode retrieves the real saved Demo House inspection and cached Bedrock output. Live judge access is not yet activated or verified.
 
-**Production/judge architecture (simplified):**
+**Build from source:** Follow the Windows instructions below instead of downloading the APK.
+
+### Quick start — Windows (verified build / install / launch)
+
+**Install once:** [Git](https://git-scm.com/), [Android Studio](https://developer.android.com/studio) with its bundled JDK, Android SDK Platform **37** and Platform-Tools, and an **Android TV API 36 emulator**. In Android Studio's **Device Manager**, start the TV emulator and allow it to finish booting. Connect only that emulator. Access to this private repository is required until reviewer permissions are arranged.
+
+From **Windows PowerShell**:
+
+```powershell
+git clone --branch amazon-2026 --single-branch https://github.com/vincentwenger/rentready-vision.git
+cd rentready-vision
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1
+```
+
+The launcher detects Android Studio's Java and Android SDK, builds with the included Gradle wrapper, verifies that exactly one booted **Android TV emulator** is connected, installs the debug APK, and issues the app launch command. Build without installing using `-BuildOnly`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1 -BuildOnly
+```
+
+**Authentication is a separate step.** The application opens without AWS credentials on the TV, but a new installation needs an **operator-issued, short-lived pairing code** to read the protected Demo House inspection. There is currently **no independent self-service judge provisioning**. Do not assume that a successful APK launch makes the inspection accessible. The judge-specific access procedure must be verified before final submission; never distribute an operator API token, AWS credentials, device bearer token, or signed evidence URL.
+
+## What it does
+
+The pre-existing RentReady Vision web/backend platform processes a consenting property's walkthrough video using OpenCV frame sampling, scene selection, evidence extraction, detector/agent analysis, and an evidence-linked inspection report and repair checklist. Its findings are **candidates for human review**, not definitive safety diagnoses.
+
+The Amazon Fire TV-oriented application provides a living-room review of **saved** inspections: property and room navigation, finding details, original evidence photographs, selected approved evidence videos, reviewer-confirmed/rejected findings, and an Amazon Bedrock briefing. The TV app **does not upload or reprocess** the walkthrough video when opening a saved inspection.
+
+## Why Fire TV
+
+A large screen and D-pad remote let owners, property managers, maintenance teams, and reviewers discuss inspection evidence together. Full-screen photographs and focused clips make the review experience useful in a living room or shared meeting space, rather than simply mirroring the web upload interface.
+
+## Demo
+
+The verified Android TV judge journey was:
+
+1. Launch the app and open the authorized Demo House inspection.
+2. Explore rooms and potential findings with the D-pad and Back controls.
+3. Inspect a Bathroom 2 evidence photograph at full-screen size.
+4. Review the Garage floor-damage finding and play its approved six-second evidence excerpt.
+5. Open the Rental Readiness Briefing, inspect reviewer-confirmed/rejected findings, and view the **cached** Amazon Bedrock recommendations linked to original findings.
+
+[Step 10](STEP10_JUDGE_JOURNEY.md) records **five consecutive operator-observed end-to-end successes** on Android TV API 36, including an emulator cold boot. This is not a claim of physical Fire OS testing or a fresh-install, independently authenticated judge run. The separate three-minute submission video is handled in Step 14; no unverified video link is included here.
+
+## Architecture
 
 ```text
-Browser / HTTPS website
-        |
-        v
-Authenticated FastAPI application
-        |             |
-        |             +--> DynamoDB: inspection, job, issue state
-        +--> private S3: walkthrough, frames, evidence, reports
-        |
-        v
-Amazon SQS (durable processing queue / DLQ)
-        |
-        v
-On-demand EC2 Graviton4 worker (m8g.4xlarge)
-  official OpenCV COOL runtime on Arm64
-  OpenCV 5 perception and targeted evidence processing
-  Detector v4 + Bedrock model-assisted inspection
-        |
-        v
-Evidence-linked report / review / checklist
+Existing browser video-upload application
+    |
+    v
+FastAPI / OpenCV inspection pipeline
+    |                       |
+    v                       v
+S3 private media       SQS -> on-demand EC2 Graviton4
+DynamoDB records              OpenCV COOL worker + analysis
+    |                       |
+    +-----------+-----------+
+                |
+       Saved inspection findings
+                |
+         Bedrock (new TV briefing)
+         validated + cached in DynamoDB
+                |
+       HTTPS / FastAPI TV read API
+       restricted inspection-scoped pairing
+                |
+       Kotlin / Android TV application
+       rooms -> findings -> evidence -> briefing
 ```
 
-The API/backend and worker use versioned deployment packages. COOL runs from its supplied `/opt/cool` environment; **do not install a pip OpenCV wheel into the COOL worker environment**. The older local fallback is for development only.
+See the [technical report](TECHNICAL_REPORT.md), [existing deployment notes](COOL_AWS_LAUNCH.md), and [implemented TV API contract](fire-tv/TV_API_CONTRACT.md). The existing API and worker infrastructure predate the Amazon-specific TV work.
 
-**Worker runtime verification:** The EC2 Graviton4 worker uses the **official OpenCV COOL AWS Marketplace runtime**. Run [`scripts/verify_runtime.py`](scripts/verify_runtime.py) in the provisioned worker environment as described in the [COOL launch runbook](COOL_AWS_LAUNCH.md) to validate its runtime identity. The local pip-installed OpenCV build is separate from COOL.
+## Amazon Hackathon additions
 
-## Evaluation — interpreted with appropriate scope
+The `amazon-2026` branch adds a standalone remote-operated TV client, Android TV launcher integration, D-pad focus/Back handling, read-only TV API projections, expiring device pairing and encrypted session storage, authorized evidence-photo/video grants, curated human-review status presentation, retry/error states, and a new cached **Amazon Bedrock rental-readiness briefing**. The Android TV emulator acceptance and scripted build/launch are also part of Amazon-specific validation.
 
-**Step 48: one-shot, frozen external Detector v4 holdout.** The unit is **one video's defect/clean classification**, not each visible defect or bounding box.
+These are additions **to** the existing OpenCV rental-inspection pipeline, not claims that the original detector or web uploader were first developed for this hackathon.
 
-| Ground truth / prediction | Defect | Clean |
-| --- | ---: | ---: |
-| Actual defect | 8 TP | 1 FN |
-| Actual clean | 0 FP | 9 TN |
+## Fire TV implementation
 
-Across **18 videos** (9 defect, 9 clean), measured accuracy was **94.4%**, precision **100%**, recall **88.9%**, and F1 **94.1%**. The missed case was a **dripping faucet**. This small, pre-frozen holdout is encouraging but does **not** establish general performance on all properties, leaks, lighting conditions, exact defect localization, or unseen populations.
-
-[Step 48 protocol](STEP48_PROTOCOL.md) · [Step 48 results and confusion matrix](STEP48_RESULTS.md) · [Machine-readable metrics](evaluation/step48/final_metrics.json)
-
-Other evidence is scoped separately:
-
-- [Step 35](STEP35_OPENCV_CONTRIBUTION.md): development ablation design for frame-selection, detector, agentic follow-up and COOL benchmarking; see [Development history](DEVELOPMENT_HISTORY.md) for recorded measurements and their limitations.
-- [Step 12](STEP12_COOL_VALIDATION.md) and [Step 13](STEP13_BENCHMARK.md): same-hardware stock OpenCV vs COOL equivalence and runtime methodology.
-- [Steps 18–23](STEP18_AGENTIC_VISION.md): targeted interval, crop, enhancement, alternate angle, decision policy and action tracing. [Step 36](STEP36_AGENTIC_VERIFICATION.md) describes the agent-verification experiment.
-- [Step 37](STEP37_FAILURE_CASES.md): documented missed detections and other failures.
-- [Step 54](STEP54_FINAL.md): visual localization limits, responsive overlays, test results and deployed status.
-
-Historical evaluation evidence must not be silently reused as a measurement of today's complete Step 54 product.
-
-## Reproduce the local OpenCV pipeline (no AWS needed)
-
-Prerequisites: Python **3.12** (recommended for alignment with the cloud runtime), Git, and a **consented or synthetic** MP4/MOV. Local commands use your own test video; the repository does not distribute private property walkthroughs.
-
-```bash
-git clone https://github.com/vincentwenger/rentready-vision.git
-cd rentready-vision
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m pytest -q tests/test_video_processor.py
-python -m scripts.process_local path/to/consented-test-video.mp4 --out local-output
-```
-
-Local OpenCV output is **not** the complete authenticated AWS/Bedrock report. Installing locked requirements provides the stock development OpenCV build, not the official COOL runtime. To run broader offline tests, use `python -m pytest -q`; historically, two evaluation-oriented modules have been excluded from some published regression counts, so do not interpret selected-suite counts as an unconditional all-tests pass. AWS and model calls require separate access and can incur charges.
-
-## Browser regression tests (optional test tooling)
-
-Step 54's real Chromium overlay test and Step 52's report-batching browser test require Playwright. These tools are **not** needed in the production API or COOL worker environment. In a clean Python 3.12 virtual environment, run:
-
-```bash
-python -m pip install -r requirements-browser-tests.txt
-python -m playwright install chromium
-python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test_step52_report_browser.py tests/test_step54_report_rectangles.py
-```
-
-[`requirements-browser-tests.txt`](requirements-browser-tests.txt) specifies Playwright 1.62.0, pyee 13.0.1 and greenlet 3.5.6 on top of the application's hash-bearing lock. **Step 56.11A** confirmed the video-processor and Step 54 subset (19 tests passed on Python 3.12.10); the combined command above, which also includes Step 52, still needs a fresh run. The browser install downloads a matching Chromium build to the local Playwright browser cache. Browser tests use synthetic fixture images and locally intercepted network requests, not paid AWS inference.
-
-## Dependencies and reproducible cloud setup
-
-- [`requirements.in`](requirements.in) specifies direct Python dependency versions; [`requirements.txt`](requirements.txt) references the fully pinned, hash-bearing [`requirements.lock.txt`](requirements.lock.txt).
-- [`requirements-cool.txt`](requirements-cool.txt) pins direct worker dependencies and intentionally omits a pip OpenCV package so the Marketplace COOL build stays authoritative. It is **not** a fully hash-locked transitive dependency set; review this before claiming bit-for-bit worker environment reproduction.
-- [Terraform provider lock](infra/terraform/.terraform.lock.hcl) records selected provider versions/hashes. Real provisioning needs your own account-specific values, authorized credentials, paid AWS resources and careful state review.
-- [COOL AWS launch and deployment runbook](COOL_AWS_LAUNCH.md), [Step 38 worker hardening](STEP38_AWS_COOL_HARDENING.md), [Step 40 hosting](STEP40_HOSTING.md), and [Step 49 worker lifecycle](STEP49_ON_DEMAND_WORKER.md) document deployment operations.
-- **Do not blindly apply Terraform to an existing deployment.** [Step 54](STEP54_FINAL.md) records IAM policies requiring import/state reconciliation before a future apply.
-
-## Documentation index
-
-| Topic | Evidence |
+| Component | Implementation |
 | --- | --- |
-| Technical report | [RentReady Vision technical report](TECHNICAL_REPORT.md) |
-| Architecture / COOL runtime | [COOL launch](COOL_AWS_LAUNCH.md), [deployment hardening](STEP38_AWS_COOL_HARDENING.md), [hosting](STEP40_HOSTING.md) |
-| Evaluation / holdout | [Step 48 results](STEP48_RESULTS.md), [protocol](STEP48_PROTOCOL.md), [Step 35 contribution](STEP35_OPENCV_CONTRIBUTION.md), [Step 37 failures](STEP37_FAILURE_CASES.md) |
-| Agentic Vision / human control | [Steps 18](STEP18_AGENTIC_VISION.md), [22](STEP22_DECISION_POLICY.md), [23](STEP23_AGENT_ACTION_LOG.md), [36](STEP36_AGENTIC_VERIFICATION.md) |
-| Deployment / operations | [Step 49](STEP49_ON_DEMAND_WORKER.md), [Step 50](STEP50_REAL_PROGRESS.md), [Step 51](STEP51_STORAGE_SAFETY.md), [Step 52](STEP52_BEDROCK_INPUT_GUARD.md), [Step 53](STEP53_CANCEL_INSPECTION.md), [Step 54](STEP54_FINAL.md) |
-| Security / data retention | [Step 39](STEP39_S3_STORAGE.md), [Step 40 security](STEP40_SECURITY.md) |
-| Full engineering history | [Historical README](DEVELOPMENT_HISTORY.md) |
+| Source | [`fire-tv/`](fire-tv/) |
+| Language and UI | Kotlin/Android; AndroidX Leanback and Android views |
+| App ID | `com.rentreadyvision.tv` |
+| `minSdk` | 28 |
+| `targetSdk` / `compileSdk` | 37 / 37 |
+| TV intent | `android.intent.category.LEANBACK_LAUNCHER` |
+| Touchscreen | Not required |
+| Remote controls | D-pad selection, focus restoration, Back navigation |
+| Network | HTTPS to `https://rentreadyvision.com` |
+| Authentication | Restricted bearer session, encrypted locally via Android Keystore |
+| Evidence | Expiring authenticated S3 URL grants; bounded image/video handling |
+| Tested | Google Android TV emulator, API 36 |
+| Build | Checked-in Gradle wrapper; debug APK |
 
-## Security, privacy and known limits
+The app does not directly declare Google Play Services as a dependency. The debug APK has been built from an isolated checkout; an independently tested **signed release distribution** and actual Fire OS runtime validation remain outstanding. See [compatibility assessment](STEP5_7_FIRE_TV_COMPATIBILITY.md).
 
-Storage is private by default, upload/evidence links are time-limited, and hosted inspection operations require authentication. API tokens are stored outside tracked code, with runtime-secret mechanisms described in [Step 40 security](STEP40_SECURITY.md). Do not place tokens, presigned links, private media, AWS credentials or real tenant details in issues, pull requests, sample configuration, screenshots or Devpost attachments.
+## AWS Builder implementation
 
-- The repository is currently **private**. Public release or judge access is **pending a separate tracked-content and Git-history review**, including image/evaluation artifacts and infrastructure identifiers. The presence of `.gitignore` does not remove previously committed files.
-- The development tree has contained tracked Python `__pycache__` files and screenshot artifacts. These need review before public release; do not mistake their presence for a completed privacy audit.
-- Bounding boxes can be inaccurate even when small enough to display; a human must confirm any highlighted issue.
-- The holdout has one missed leak-related positive, and a sample size too small for broad reliability claims.
-- [Step 54](STEP54_FINAL.md) reports the hosted site and frontend checks as passing, but does **not** claim a new authenticated end-to-end report-browser run after its final quality adjustment.
-- Large-video handling and certain cancellation/idle-shutdown edge cases have separately documented validation limits.
+An authorized operator previously generated a structured **Amazon Bedrock / Amazon Nova 2 Lite** briefing from existing completed inspection findings. The backend validates that the selected priorities reference saved finding IDs and limits the result to three priorities. A fingerprint-based **DynamoDB cache** stores the validated answer. The paired TV client retrieves it over a **read-only authenticated GET**; viewing the briefing does **not** initiate a new model invocation.
 
-**Status:** Documentation prepared for judge review; **full privacy audit and judge-access verification remain outstanding**. No cloud resources or production service are changed by this documentation.
+The original AI-generated priorities are presented distinctly from later human-review decisions. In the verified demo, one Bedrock-selected Garage finding was confirmed and the Bedroom and Kitchen selections were rejected by the human reviewer. The model's urgency/repair language remains advisory and must be checked against visual evidence.
+
+Technical details and evidence: [Step 8 — Bedrock briefing](STEP8_BEDROCK_BRIEFING.md).
+
+## AWS services used
+
+| AWS service | Role |
+| --- | --- |
+| Amazon EC2 / Graviton | Existing hosted API/processing infrastructure; on-demand Graviton4 worker |
+| Amazon S3 | Private walkthroughs, inspection evidence and reports |
+| Amazon SQS | Existing asynchronous inspection jobs |
+| Amazon DynamoDB | Inspection state, pairing/session scope and Bedrock briefing cache |
+| Amazon Bedrock | Existing analysis and newly added TV-focused briefing generation |
+| Amazon CloudWatch | Existing operational logs and observability |
+| AWS IAM | Constrained access for deployed API, processing and private evidence |
+
+The **AWS Builder** addition is the Bedrock-backed TV review experience and its secure integration, not a claim that all underlying infrastructure was created during this hackathon.
+
+## Running the backend
+
+**Recommended path for judges:** Do **not** deploy an AWS backend merely to launch the Android TV app. The checked-in client targets the existing hosted `https://rentreadyvision.com` API. Once authorized, it retrieves saved inspection projections and cached recommendations; it does not require a judge-owned AWS account, Bedrock quota, or fresh model generation.
+
+**Advanced development/self-hosting (not the quick-start path):** The backend is a Python 3.12 FastAPI application under [`app/`](app/). With separately provisioned AWS services, appropriate IAM permissions and required secrets/configuration, a developer can prepare a virtual environment and install the locked development dependencies:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+# Configure .env and required AWS resources before starting the API.
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+**This is not a standalone/offline demo**: a clean local API without configured AWS services and operator authentication will not reproduce the hosted inspection flow. Also, the current TV client continues to call the hosted HTTPS endpoint, not `localhost`; a custom test backend needs an intentional client endpoint change and retesting. See [.env.example](.env.example), [deployment notes](COOL_AWS_LAUNCH.md), and [security notes](STEP40_SECURITY.md). Never commit `.env` or credentials.
+
+## Running the Fire TV application
+
+**Windows (verified):** Open Android Studio, install Android SDK Platform 37, Platform-Tools and an Android TV API 36 image, and start one TV emulator in Device Manager. From the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1
+```
+
+For the APK only:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1 -BuildOnly
+```
+
+The debug APK is generated at `fire-tv/app/build/outputs/apk/debug/app-debug.apk`. The script protects against accidentally installing onto a phone or non-TV emulator. It does not provision a backend or device credential. If pairing appears, obtain a permitted short-lived code from the authorized demo operator; independent judge provisioning must be finalized before review.
+
+**macOS/Linux manual alternative (not separately acceptance-tested):** With the appropriate Android SDK, compatible Java runtime, and a running Android TV emulator:
+
+```bash
+cd fire-tv
+chmod +x ./gradlew
+./gradlew :app:assembleDebug
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n com.rentreadyvision.tv/.MainActivity
+```
+
+Target the intended emulator explicitly with `adb -s <emulator-serial>` if more than one ADB device exists; the Windows launcher already enforces a single verified TV emulator.
+
+## Running in the Fire TV simulator
+
+The **tested route** uses the **Android TV emulator in Android Studio**, explicitly accepted by the hackathon FAQ as an alternative to a physical device. It is **not** Amazon's separate Fire TV/Vega simulator.
+
+1. In Android Studio, open **Device Manager** and start an Android TV **API 36** virtual device.
+2. Allow Android to boot fully; connect exactly one emulator.
+3. From the repository root, run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1`.
+4. Use D-pad/Select/Back to navigate; a fresh install requires authorized inspection pairing.
+
+The test record covers a Google Android TV API 36 emulator, including an emulator cold boot. It does **not** establish physical Fire OS compatibility.
+
+## Demo inspection
+
+The authenticated production demo used an approved completed inspection displayed as **Demo House**. It has **12 saved potential findings**, including **five human-confirmed** and **seven human-rejected** review outcomes, an original evidence-photo viewer, and three permitted edited evidence-video excerpts (not substitutes for the original preserved footage). The tested playback route uses the Garage floor-damage excerpt.
+
+A cached Bedrock briefing selects three original candidate findings. Each remains traceable to its source; human review may disagree with the AI recommendation. The app requires restricted device pairing to access this private inspection. The checked-in illustrative asset `fire-tv/app/src/main/assets/mozart_house_demo.json` should not be mistaken for proof that fresh installations can access the full production demo without authentication.
+
+## Security
+
+- Pairing codes are one-time use and expire after **five minutes**; issuance is operator-authorized.
+- Restricted device sessions expire after **24 hours** and are inspection-scoped.
+- Session data is encrypted locally using **Android Keystore AES-GCM**; server-side session records store token hashes.
+- Evidence is accessed using authenticated, short-lived URL grants; operator tokens and AWS credentials are **not** bundled in the APK.
+- A restricted TV token cannot upload a walkthrough, delete reports, or generate new Bedrock recommendations.
+- Raw tokens, signed URLs, pairing codes, private footage, personal details, and `.env` must not be published in this README, GitHub issues, Devpost materials or logs.
+
+Previous limited source/path scans found no flagged secret-pattern values, but **full Git-history, binary artifact and personal-data clearance is not established**. The repository remains private pending authorized reviewer access and release checks. See [Step 9](STEP9_JUDGE_DEMO_HARDENING.md) and [Step 11](STEP11_FIRE_TV_SUBMISSION_READINESS.md).
+
+## Known limitations
+
+- Fire OS hardware and Amazon Fire TV/Vega simulator compatibility have not been independently tested; the demonstrated runtime is Google Android TV API 36.
+- The debug APK is intended for emulator testing; the release APK previously built unsigned and has not been independently distributed/tested as a signed release.
+- **Independent judge access is not yet ready:** valid pairing currently requires operator-issued, five-minute codes; sessions last 24 hours. Code issuance and renewal must be made practical for judges without granting operator privileges.
+- The checked-in `app/tv_video.py` selects evidence-video **v1**, while the verified hosted production release uses **v2**. Reconcile release source and production before reproducing or redeploying the backend; do not blindly flip the selector.
+- The working TV demonstration depends on the hosted API, stored inspection/evidence and connectivity; it is not a fully offline demo.
+- Some clips are deliberately edited/short presentation excerpts; not every finding has playable video.
+- The small detector holdout, model judgments and bounding boxes cannot establish universal accuracy, safety, code compliance or professional inspection conclusions.
+- The macOS/Linux installation path and a full fresh-AWS-account backend deployment have not been independently verified.
+
+## Product feedback
+
+Developer experience observations are maintained in [Amazon Product Feedback and Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). The log distinguishes Amazon-specific development issues from Android Studio/tooling, OpenCV, and other project friction. Reviewing and completing its final entry set belongs to **Step 13**; it is not presented as already finalized here.
+
+## OpenCV baseline vs Amazon version
+
+RentReady Vision development began in August 2026, **before** Amazon-specific hackathon work. The earlier OpenCV baseline included video upload, scene/keyframe selection, evidence extraction, detector/agent logic, the web report/checklist, and existing AWS processing infrastructure.
+
+The **Amazon `amazon-2026` branch** adds the television review client, remote-first navigation, restricted TV API/device pairing, evidence viewing/playback, and a new cached Amazon Bedrock rental-readiness briefing. It does **not** claim pre-existing inspection components as newly built for Amazon.
+
+See the [Amazon baseline](AMAZON_HACKATHON_BASELINE.md), [Fire TV implementation](STEP5_FIRE_TV_FINAL.md), [Step 8 Bedrock integration](STEP8_BEDROCK_BRIEFING.md), [OpenCV technical report](TECHNICAL_REPORT.md), and preserved OpenCV submission tag `opencv-2026-submission`.

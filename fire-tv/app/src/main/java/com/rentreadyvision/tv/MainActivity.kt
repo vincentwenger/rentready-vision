@@ -73,6 +73,16 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // The launcher opens a fully offline sample by default.
+        // Explicit live mode keeps the existing protected HTTPS/pairing flow.
+        if (!intent.getBooleanExtra(
+                "com.rentreadyvision.tv.EXTRA_LIVE_MODE", false
+            )) {
+            startActivity(Intent(this, DemoLandingActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.main_browse_fragment)
 

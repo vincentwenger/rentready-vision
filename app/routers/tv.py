@@ -22,6 +22,7 @@ from ..services import load_issues_report
 from ..tv_media import create_tv_image_grant
 from ..tv_video import create_tv_video_grant
 from ..tv_pairing import create_tv_pairing
+from ..tv_judge_access import create_judge_pairing, judge_pairing_enabled
 from ..tv_pairing_rate import reserve_tv_pairing_attempt
 from ..tv_pairing_redemption import (
     PairingRejected,
@@ -436,6 +437,30 @@ def issue_tv_pairing_code(
     )
 
     return TvPairingCodeIssueResponse(**pairing)
+
+@router.post(
+    "/judge-pairing-codes",
+    response_model=TvPairingCodeIssueResponse,
+    status_code=201,
+)
+def issue_tv_judge_pairing_code(
+    payload: TvPairingCodeIssueRequest,
+) -> TvPairingCodeIssueResponse:
+    """Operator-only issuance; judge code shown once and never logged."""
+    if not judge_pairing_enabled():
+        raise HTTPException(status_code=404, detail="Not found")
+    require_allowed_tv_inspection(payload.inspection_id)
+    _load_tv_projection(payload.inspection_id)
+    try:
+        issued = create_judge_pairing(
+            table, inspection_id=payload.inspection_id
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Judge pairing unavailable") from None
+    except Exception:
+        raise HTTPException(status_code=503, detail="Judge pairing unavailable") from None
+    return TvPairingCodeIssueResponse(**issued)
+
 
 @router.post(
     "/pairings/redeem",

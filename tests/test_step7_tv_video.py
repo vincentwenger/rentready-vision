@@ -15,6 +15,12 @@ from app.tv_video import (
 )
 
 
+@pytest.fixture(autouse=True)
+def use_original_v1_video_receipts(monkeypatch):
+    monkeypatch.setattr(
+        "app.tv_video.ACTIVE_VIDEO_VERSION", "v1"
+    )
+
 GARAGE_DAMAGE = "877eec22117f6f9508a087d46ed59e43"
 GARAGE_STAIN = "c8ee6b7a97fca8b65ffba5192fd62ac8"
 BEDROOM_WALL = "555f0443603ef3e57caaace06ea4bed5"

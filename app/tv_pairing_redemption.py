@@ -15,10 +15,13 @@ No public HTTP endpoint is created by this module.
 
 from __future__ import annotations
 
+import time
+
 from botocore.exceptions import ClientError
 
 from .tv_access import allowed_tv_inspection_ids
 from .tv_device_store import issue_tv_device_session
+from .tv_judge_access import lookup_judge_pairing
 from .tv_pairing import consume_tv_pairing
 from .tv_pairing_rate import reserve_tv_pairing_attempt
 
@@ -87,25 +90,31 @@ def _redeem_reserved_tv_pairing_code(
     if not isinstance(code, str):
         raise PairingRejected("Invalid pairing code")
 
+    judge_expires_at = None
     try:
         inspection_id = consume_tv_pairing(
             table,
             code=code,
             now_epoch=now_epoch,
         )
-    except ValueError:
-        raise PairingRejected("Invalid pairing code") from None
-    except ClientError as exc:
-        error = exc.response.get("Error", {}).get("Code", "")
-
-        if error == "ConditionalCheckFailedException":
-            raise PairingRejected(
-                "Invalid pairing code"
+    except (ValueError, ClientError) as exc:
+        if isinstance(exc, ClientError):
+            error = exc.response.get("Error", {}).get("Code", "")
+            if error != "ConditionalCheckFailedException":
+                raise PairingUnavailable(
+                    "Pairing temporarily unavailable"
+                ) from None
+        try:
+            judge_record = lookup_judge_pairing(
+                table, code=code, now_epoch=now_epoch
+            )
+        except Exception:
+            raise PairingUnavailable(
+                "Pairing temporarily unavailable"
             ) from None
-
-        raise PairingUnavailable(
-            "Pairing temporarily unavailable"
-        ) from None
+        if judge_record is None:
+            raise PairingRejected("Invalid pairing code") from None
+        inspection_id, judge_expires_at = judge_record
     except Exception:
         raise PairingUnavailable(
             "Pairing temporarily unavailable"
@@ -123,11 +132,19 @@ def _redeem_reserved_tv_pairing_code(
     if inspection_id not in approved:
         raise PairingRejected("Invalid pairing code")
 
+    # Do not let judge-issued device sessions outlive the event deadline.
+    lifetime = 24 * 60 * 60
+    if judge_expires_at is not None:
+        now = int(time.time()) if now_epoch is None else now_epoch
+        lifetime = min(lifetime, judge_expires_at - now)
+        if lifetime <= 0:
+            raise PairingRejected("Invalid pairing code")
+
     try:
         session = issue_tv_device_session(
             table,
             inspection_id=inspection_id,
-            lifetime_seconds=24 * 60 * 60,
+            lifetime_seconds=lifetime,
             now_epoch=now_epoch,
         )
     except Exception:

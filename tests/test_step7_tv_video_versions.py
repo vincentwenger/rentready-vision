@@ -72,8 +72,8 @@ def issue_grant(signer, finding_id, inspection_id=INSPECTION_ID,
     )
 
 
-def test_v1_remains_default():
-    assert tv_video.ACTIVE_VIDEO_VERSION == "v1"
+def test_v2_is_default_with_v1_still_available():
+    assert tv_video.ACTIVE_VIDEO_VERSION == "v2"
     assert tv_video.VIDEO_CLIP_VERSIONS["v1"][0] == "tv-clips"
     assert tv_video.VIDEO_CLIP_VERSIONS["v2"][0] == "tv-clips-v2"
 
