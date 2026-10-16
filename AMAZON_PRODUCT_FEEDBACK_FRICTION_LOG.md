@@ -241,3 +241,16 @@ The restricted TV client recovered from severe simulated network degradation wit
 - **Result:** The Android TV emulator displayed five confirmed and seven rejected classifications, featured Garage and Bedroom 2 evidence, and correctly labeled the Bedroom, Garage and Kitchen Bedrock priorities.
 - **Learning:** Separate detector outputs, reviewer decisions and model-generated recommendations. Future products should support per-finding feedback and reviewer-aware prioritization.
 - **Classification:** Model quality and product usability limitation, not an AWS service incident.
+
+
+### ENG-016 - Judge journey restart and pairing verification
+- **Date:** October 16, 2026.
+- **Task:** Validate five consecutive end-to-end judge journeys on the Android TV emulator.
+- **Observation:** An earlier preliminary rehearsal required re-pairing after a computer restart; its cause was not established.
+- **Resolution:** Re-paired securely and performed the formal acceptance sequence, including a full emulator cold boot without wiping or reinstalling.
+- **Result:** Five consecutive runs passed. The restricted TV pairing survived the formal cold boot; evidence images, six-second Garage video, navigation and cached Bedrock briefing worked.
+- **Learning:** Preserve app data and verify paired-session persistence as part of judge acceptance testing.
+- **Classification:** Successful emulator acceptance test with an earlier unresolved session interruption, not an established AWS service incident.
+
+### October 16 Step 10 acceptance result
+The operator confirmed five consecutive successful end-to-end judge journeys. Each included Bathroom 2 image evidence, Garage image and six-second video evidence, return navigation, reviewer labels and cached Amazon Bedrock briefing. One formal run included a full Android TV emulator cold boot. No additional model generation or infrastructure modification was requested by the test workflow.
