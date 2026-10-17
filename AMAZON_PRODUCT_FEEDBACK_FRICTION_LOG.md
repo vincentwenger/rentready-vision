@@ -6,6 +6,65 @@
 **Reference implementation:** [Step 64 Final](STEP64_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP64_7_FIRE_TV_COMPATIBILITY.md) · [Step 65 remote navigation test record](STEP65_FIRE_TV_NAVIGATION.md).
 **Submission deadline:** October 23, 2026, 12:00 PM PDT.
 
+## Chronological index
+
+The detailed log below remains grouped by development phase so related
+observations, fixes and lessons stay together. This index provides a
+date-ordered view for judge review.
+
+| Date observed | ID | Step / phase | Short observation | Classification |
+| --- | --- | --- | --- | --- |
+| Sep 5-6 | ENG-042 | Historical Step 12 | Benchmark configuration drift complicated baseline reproduction | Our benchmark/version-control discipline |
+| Sep 5-6 | ENG-043 | Historical Step 12 | COOL activation and inherited environment paths could contaminate stock-vs-COOL comparison | Runtime/environment integration |
+| Sep 5-6 | ENG-044 | Historical Step 12 | Late S3 benchmark-report permission failure temporarily marked a successful COOL run failed | IAM coordination + runner error-state design |
+| Oct 12 | ENG-034 | Step 61 | Windows hypervisor/emulator prerequisite | Local workstation setup |
+| Oct 12 | ENG-035 | Step 61 | Kotlin Back API dependency mismatch | Android/Kotlin integration |
+| Oct 12 | ENG-036 | Step 62 | Incorrect Android LayoutParams type | App source error |
+| Oct 12 | ENG-037 | Step 63 | Intermittent local API/ADB transport | Local network/test workflow |
+| Oct 12 | ENG-038 | Step 63 | Nested shell quoting broke an ADB HTTP probe | PowerShell/ADB test harness |
+| Oct 13 | FL-001 | Step 64 | Offline release build missing Android Lint dependency | Android/Gradle tooling |
+| Oct 13 | FL-002 | Step 64 | Pairing-screen controls initially below visible viewport | App TV UX |
+| Oct 13 | FL-003 | Step 64 | Exact deployment artifact initially denied by least-privilege IAM | AWS IAM deployment workflow |
+| Oct 13 | DEV-006 | Step 64.7 | Android SDK Command-line Tools prerequisite / older TV image discovery | Google Android tooling |
+| Oct 13 | FL-004 | Step 65 | Focus restoration and evidence-layout friction | App TV UX |
+| Oct 13 | ENG-001 | Step 64 | Route checker inspected wrong FastAPI route level | Test harness |
+| Oct 13 | ENG-002 | Step 64 | Source-edit validation assumed same-line Kotlin call formatting | Test harness |
+| Oct 13 | ENG-003 | Step 64 | Pairing UI needed scrolling to expose controls | App TV UX |
+| Oct 13 | ENG-004 | Step 64 | Device-session TTL cleanup not configured | App/backend operations |
+| Oct 13 | ENG-005 | Step 64 | Release artifact initially unsigned | Release engineering |
+| Oct 13 | ENG-006 | Step 64.7 | SDK command-line tooling initially absent | Workstation/tooling setup |
+| Oct 13 | ENG-007 | Step 65 | Back navigation lost selected room/finding focus | App TV UX |
+| Oct 13 | ENG-008 | Step 65 | Safety script compared wrong Git tag target form | Git/test script |
+| Oct 13 | ENG-039 | Step 64 | Emulator temporarily absent from ADB | Test orchestration |
+| Oct 14 | ENG-009 | Step 66 | Client URL allowlist omitted new v2 evidence path | App/backend integration |
+| Oct 14 | FL-003 follow-up | Step 66 | New deployment ZIP required exact-object S3 permission | AWS IAM deployment workflow |
+| Oct 14 | ENG-010 | Step 66 | PowerShell/Python verification-script errors | Test harness |
+| Oct 14 | ENG-027 | Step 66 | S3 report audit assumed a status field that did not exist | Test assumption |
+| Oct 14 | ENG-028 | Step 66 | Auth test fixture confused invalid token with storage outage | Test fixture |
+| Oct 14 | ENG-029 | Step 66 | IAM preflight script used wrong instance-profile ARN form | Test/IAM verification |
+| Oct 14 | ENG-030 | Step 66 | JAVA_HOME / JBR not available in shell | Workstation setup |
+| Oct 14 | ENG-031 | Step 66 | Two findings needed finding-specific room corrections for demo clarity | Model-output presentation |
+| Oct 14 | ENG-032 | Step 66 | High zoom cropped evidence and separators rendered badly | App TV UX |
+| Oct 14 | ENG-033 | Step 66 | Evidence clips were not optimally framed for judging | Demo/evidence UX |
+| Oct 15 | ENG-011 | Step 67 | First Bedrock briefing generation returned HTTP 502 / failed cache record | Bedrock integration |
+| Oct 15 | ENG-012 | Step 67 | Cross-platform deployment and runtime-path differences interrupted checks | Deployment/test workflow |
+| Oct 15 | ENG-013 | Step 68 | Emulator proxy did not reliably simulate native HTTPS failure | Emulator test workflow |
+| Oct 15 | ENG-014 | Step 68 | Failure/retry states needed clearer TV behavior | App resilience |
+| Oct 15 | ENG-015 | Step 68 | Reviewer rejected 7/12 findings; 2/3 Bedrock priorities were rejected findings | Model/product quality |
+| Oct 16 | ENG-016 | Step 69 | Preliminary restart required re-pairing before formal runs | Session/judge workflow |
+| Oct 17 | ENG-040 | Steps 67-69 retrospective | Documentation encoding and brittle source-edit checks | Documentation/test tooling |
+| Oct 17 | ENG-041 | Step 68 retrospective | Security test mock bypassed the real authorization boundary | Security test fixture |
+| Oct 17 | ENG-017 | Step 71 | Minified release APK hit Kotlin IllegalAccessError | Android release build |
+| Oct 17 | ENG-018 | Step 71 | SSM staging ran under `/bin/sh`, rejecting Bash-only `pipefail` | Shell portability |
+| Oct 17 | ENG-019 | Step 71 | PowerShell/Python quoting and regex replacement errors interrupted checks | Verification scripts |
+| Oct 17 | ENG-020 | Step 71 | Regression check used wrong Python interpreter | Deployment/test environment |
+| Oct 17 | ENG-021 | Step 71 | Java 25 apksigner stderr warnings tripped PowerShell stop behavior | Java/Android/PowerShell tooling |
+| Oct 17 | ENG-022 | Step 71 | Short-lived pairing design was unsuitable for unattended judging | Product/judge access design |
+| Oct 17 | ENG-023 | Step 71 | Source hashes differed despite semantic equivalence | Source/deployment lineage |
+| Oct 17 | ENG-024 | Step 71 | Gitleaks summary undercounted findings because of report parsing | Security audit workflow |
+| Oct 17 | ENG-025 | Step 71 | Inherited template artwork was unsuitable for public/original branding | Asset provenance |
+| Oct 17 | ENG-026 | Step 71 | Documentation patch failed because of stale exact-text match | Documentation tooling |
+
 ## Purpose and integrity rules
 
 The [official hackathon rules](https://amazonappdev2026.devpost.com/rules) require product feedback on tools/APIs/SDKs used. Optional friction-log entries with **specific task, steps taken, expectation, actual result, severity, workaround and actionable improvement** may earn **up to a 10% judging bonus**, not a guaranteed bonus. An [organizer reply](https://amazonappdev2026.devpost.com/forum_topics/45430-inquiry-about-submission-mechanics) indicates that linking a log is acceptable and keeping it in the repository can aid judge review.
