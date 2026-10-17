@@ -174,7 +174,7 @@ class TvPairingActivity : Activity() {
         content.addView(
             label(
                 "Enter the code provided by the operator. " +
-                    "Codes expire after five minutes.",
+                    "Standard codes expire after five minutes. Judge demo codes use their stated expiration date.",
                 18f,
                 Color.LTGRAY
             )

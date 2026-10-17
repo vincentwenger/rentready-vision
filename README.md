@@ -12,11 +12,11 @@ RentReady Vision brings saved, AI-assisted rental-property inspections to a tele
 
 **Method 1: Offline Demo (recommended)**
 
-Download the prebuilt signed APK from [GitHub Releases](https://github.com/vincentwenger/rentready-vision/releases) after publication. Start one Android TV emulator (API 36 tested). In PowerShell, from the APK download folder:
+Download the verified signed APK from [GitHub Releases](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.1). Start one Android TV emulator (API 36 tested). In PowerShell, from the APK download folder:
 
 ```powershell
 $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
-& $adb install ".\RentReadyVision-FireTV-v1.0-judge.apk"
+& $adb install ".\RentReadyVision-FireTV-v1.0.1-judge.apk"
 & $adb shell am start -n "com.rentreadyvision.tv/.MainActivity"
 ```
 
@@ -24,7 +24,7 @@ Select **Open Demo Inspection — Offline**. Explore three synthetic findings, i
 
 **Method 2: Live AWS Inspection**
 
-Install the same APK and select **Open Live AWS Inspection — Pairing Required**. Enter the restricted judge pairing code once production access is provisioned. This mode retrieves the real saved Demo House inspection and cached Bedrock output. Live judge access is not yet activated or verified.
+Install the same APK and select **Open Live AWS Inspection — Pairing Required**. Enter the restricted reusable judge pairing code from the final reviewer instructions. This mode retrieves the real Demo House inspection, approved evidence and cached Bedrock output. Live AWS access was successfully verified on a clean Android TV API 36 emulator. The code expires December 20, 2026, at 11:59:59 PM PST.
 
 **Build from source:** Follow the Windows instructions below instead of downloading the APK.
 
@@ -46,7 +46,7 @@ The launcher detects Android Studio's Java and Android SDK, builds with the incl
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Start-FireTV.ps1 -BuildOnly
 ```
 
-**Authentication is a separate step.** The application opens without AWS credentials on the TV, but a new installation needs an **operator-issued, short-lived pairing code** to read the protected Demo House inspection. There is currently **no independent self-service judge provisioning**. Do not assume that a successful APK launch makes the inspection accessible. The judge-specific access procedure must be verified before final submission; never distribute an operator API token, AWS credentials, device bearer token, or signed evidence URL.
+**Live AWS authentication:** Offline mode requires no pairing or AWS credentials. Live AWS mode requires a restricted pairing code on first use. The reusable Demo House judge code was successfully tested on a clean emulator, including session persistence. The code will be supplied through the final reviewer instructions. Never distribute operator API tokens, AWS credentials, device bearer tokens or signed evidence URLs.
 
 ## What it does
 
@@ -122,7 +122,7 @@ These are additions **to** the existing OpenCV rental-inspection pipeline, not c
 | Tested | Google Android TV emulator, API 36 |
 | Build | Checked-in Gradle wrapper; debug APK |
 
-The app does not directly declare Google Play Services as a dependency. The debug APK has been built from an isolated checkout; an independently tested **signed release distribution** and actual Fire OS runtime validation remain outstanding. See [compatibility assessment](STEP5_7_FIRE_TV_COMPATIBILITY.md).
+The app does not directly declare Google Play Services as a dependency. The debug APK was built from an isolated checkout. A signed release APK was installed and tested on a clean Android TV API 36 emulator. Physical Fire OS runtime validation remains outstanding. See [compatibility assessment](STEP5_7_FIRE_TV_COMPATIBILITY.md).
 
 ## AWS Builder implementation
 
