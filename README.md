@@ -1,4 +1,4 @@
-# RentReady Vision for Fire TV
+﻿# RentReady Vision for Fire TV
 
 **Walk through once. Review the evidence together.**
 
@@ -70,7 +70,7 @@ The verified Android TV judge journey was:
 4. Review the Garage floor-damage finding and play its approved six-second evidence excerpt.
 5. Open the Rental Readiness Briefing, inspect reviewer-confirmed/rejected findings, and view the **cached** Amazon Bedrock recommendations linked to original findings.
 
-[Step 10](STEP10_JUDGE_JOURNEY.md) records **five consecutive operator-observed end-to-end successes** on Android TV API 36, including an emulator cold boot. This is not a claim of physical Fire OS testing or a fresh-install, independently authenticated judge run. The separate three-minute submission video is handled in Step 14; no unverified video link is included here.
+[Step 69](STEP69_JUDGE_JOURNEY.md) records **five consecutive operator-observed end-to-end successes** on Android TV API 36, including an emulator cold boot. This is not a claim of physical Fire OS testing or a fresh-install, independently authenticated judge run. The separate three-minute submission video is handled in Step 73; no unverified video link is included here.
 
 ## Architecture
 
@@ -124,7 +124,7 @@ These are additions **to** the existing OpenCV rental-inspection pipeline, not c
 | Tested | Google Android TV emulator, API 36 |
 | Build | Checked-in Gradle wrapper; debug APK |
 
-The app does not directly declare Google Play Services as a dependency. The debug APK was built from an isolated checkout. A signed release APK was installed and tested on a clean Android TV API 36 emulator. Physical Fire OS runtime validation remains outstanding. See [compatibility assessment](STEP5_7_FIRE_TV_COMPATIBILITY.md).
+The app does not directly declare Google Play Services as a dependency. The debug APK was built from an isolated checkout. A signed release APK was installed and tested on a clean Android TV API 36 emulator. Physical Fire OS runtime validation remains outstanding. See [compatibility assessment](STEP64_7_FIRE_TV_COMPATIBILITY.md).
 
 ## AWS Builder implementation
 
@@ -132,7 +132,7 @@ An authorized operator previously generated a structured **Amazon Bedrock / Amaz
 
 The original AI-generated priorities are presented distinctly from later human-review decisions. In the verified demo, one Bedrock-selected Garage finding was confirmed and the Bedroom and Kitchen selections were rejected by the human reviewer. The model's urgency/repair language remains advisory and must be checked against visual evidence.
 
-Technical details and evidence: [Step 8 — Bedrock briefing](STEP8_BEDROCK_BRIEFING.md).
+Technical details and evidence: [Step 67 — Bedrock briefing](STEP67_BEDROCK_BRIEFING.md).
 
 ## AWS services used
 
@@ -233,7 +233,7 @@ The private repository was scanned across reachable Git history. Thirteen known 
 
 ## Product feedback
 
-Developer experience observations are maintained in [Amazon Product Feedback and Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). The log distinguishes Amazon-specific development issues from Android Studio/tooling, OpenCV, and other project friction. Reviewing and completing its final entry set belongs to **Step 13**; it is not presented as already finalized here.
+Developer experience observations are maintained in [Amazon Product Feedback and Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). The log distinguishes Amazon-specific development issues from Android Studio/tooling, OpenCV, and other project friction. Reviewing and completing its final entry set belongs to **Step 72**; it is not presented as already finalized here.
 
 ## OpenCV baseline vs Amazon version
 
@@ -241,4 +241,15 @@ RentReady Vision development began in August 2026, **before** Amazon-specific ha
 
 The **Amazon `amazon-2026` branch** adds the television review client, remote-first navigation, restricted TV API/device pairing, evidence viewing/playback, and a new cached Amazon Bedrock rental-readiness briefing. It does **not** claim pre-existing inspection components as newly built for Amazon.
 
-See the [Amazon baseline](AMAZON_HACKATHON_BASELINE.md), [Fire TV implementation](STEP5_FIRE_TV_FINAL.md), [Step 8 Bedrock integration](STEP8_BEDROCK_BRIEFING.md), [OpenCV technical report](TECHNICAL_REPORT.md), and preserved OpenCV submission tag `opencv-2026-submission`.
+See the [Amazon baseline](AMAZON_HACKATHON_BASELINE.md), [Fire TV implementation](STEP64_FIRE_TV_FINAL.md), [Step 67 Bedrock integration](STEP67_BEDROCK_BRIEFING.md), [OpenCV technical report](TECHNICAL_REPORT.md), and preserved OpenCV submission tag `opencv-2026-submission`.
+
+### Development step numbering
+
+RentReady Vision's pre-existing OpenCV development uses **Steps 1-59**.
+Amazon Developer Hackathon-specific Fire TV development continues that
+history as **Steps 60-71**.
+
+Earlier Amazon-development Git commits retain their original local Step 1-12
+labels so repository history is not rewritten. See
+[`AMAZON_HACKATHON_BASELINE.md`](AMAZON_HACKATHON_BASELINE.md) for the
+authoritative mapping.

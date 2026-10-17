@@ -1,4 +1,4 @@
-# Step 7 Final ? Fire TV Image and Video Evidence
+﻿# Step 66 Final ? Fire TV Image and Video Evidence
 
 **Date:** October 14, 2026
 
@@ -10,7 +10,7 @@
 
 ## 1. Objective and result
 
-Step 7 connects saved computer-vision findings to real walkthrough evidence on television.
+Step 66 connects saved computer-vision findings to real walkthrough evidence on television.
 
 For the three approved demo findings, the Android/Kotlin app displays a preserved evidence photograph and a focusable **PLAY VIDEO EVIDENCE** action.
 
@@ -36,7 +36,7 @@ Evidence descriptions in the saved report:
 
 The user identified the third finding's actual location as Bedroom 2, but the saved report and current TV navigation still classify it as **Unknown**.
 
-A separate Unknown floor-staining finding was identified by the user as being in Bathroom 2. That room correction was not implemented in Step 7.
+A separate Unknown floor-staining finding was identified by the user as being in Bathroom 2. That room correction was not implemented in Step 66.
 
 ### Evidence interpretation
 
@@ -184,11 +184,11 @@ The displayed videos were not generic demonstration footage. They corresponded t
 7. Evidence clips are approximately 12 seconds, but the most relevant condition is visible for only part of some clips. Tighter editing or presentation could improve judge clarity.
 8. The finding screen displays the evidence photo directly. A separate full-screen VIEW EVIDENCE zoom action has not been implemented.
 9. A broader automated device matrix, accessibility review, long-duration playback testing and actual Fire OS testing remain future work.
-10. No new detector training, Bedrock-generated briefing or automated false-positive feedback loop was implemented in Step 7.
+10. No new detector training, Bedrock-generated briefing or automated false-positive feedback loop was implemented in Step 66.
 
 ## 9. Completion assessment
 
-**Step 7's core exit criterion is achieved:** at least three real demo findings have visible preserved image evidence and functioning video playback on the tested Android TV emulator.
+**Step 66's core exit criterion is achieved:** at least three real demo findings have visible preserved image evidence and functioning video playback on the tested Android TV emulator.
 
 The backend video-grant feature is active in production, while the updated Android application has been installed and tested on the emulator.
 
@@ -196,7 +196,7 @@ Further work includes final source publication, competition-specific demo rehear
 
 This document records observed results and known limitations; it does not claim universal Fire TV compatibility or establish that every detector finding is correct.
 
-## 10. Step 7.18F — improved evidence videos (October 14, 2026)
+## 10. Step 66.18F — improved evidence videos (October 14, 2026)
 
 **Outcome:** The three previously approved video findings were re-edited as clearer *presentation excerpts* of the authorized walkthrough footage; the original saved inspection and source evidence were not replaced or reprocessed.
 
@@ -228,4 +228,4 @@ Authenticated pairing and the `Demo House` inspection (12 findings) were visible
 - The current TV client applies inspection-specific **display-only** Bathroom 2 / Bedroom 2 room corrections and the `Demo House` display name when its guarded preconditions hold; the source issue records remain unchanged.
 - The very short v2 clips may require replay/pausing for judges to see the marks. Video excerpts should be labeled as edited presentation footage, with original evidence preserved.
 - Screenshots and walkthrough clips are private development evidence and are **not included in the public-facing repository**. No raw operator/device tokens, pairing codes, signed S3 URLs, or original customer footage should be committed.
-- This section supersedes Step 7's historical statements that tighter editing, room display corrections and a separate full-screen evidence viewer were *not yet implemented* at the original Step 7 checkpoint; those statements remain above to preserve development history.
+- This section supersedes Step 66's historical statements that tighter editing, room display corrections and a separate full-screen evidence viewer were *not yet implemented* at the original Step 66 checkpoint; those statements remain above to preserve development history.

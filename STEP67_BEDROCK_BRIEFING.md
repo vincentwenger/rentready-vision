@@ -1,4 +1,4 @@
-# Step 8 — Amazon Bedrock Rental Readiness Briefing
+﻿# Step 67 — Amazon Bedrock Rental Readiness Briefing
 
 **Verified:** October 15, 2026
 **Branch:** `amazon-2026`
@@ -120,7 +120,7 @@ or regulatory conclusions before displaying recommendations.
 
 ## Production and rollback protections
 
-The Step 8 API release was deployed using separate,
+The Step 67 API release was deployed using separate,
 verified release directories and rollback backups.
 
 The previously working video-v2 backend implementation
@@ -136,7 +136,7 @@ this GitHub publication.
 
 ## Verification outcome
 
-**Step 8 AWS Builder demonstration achieved:**
+**Step 67 AWS Builder demonstration achieved:**
 A real Amazon Bedrock-generated Rental Readiness Briefing
 based on saved RentReady Vision findings is cached in DynamoDB,
 served through the authenticated TV API, displayed on Android TV,

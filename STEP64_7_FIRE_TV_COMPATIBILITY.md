@@ -1,13 +1,13 @@
-# Step 5.7 — Fire TV Compatibility Precheck
+﻿# Step 64.7 — Fire TV Compatibility Precheck
 
-**Date:** October 13, 2026  
-**Status:** Preliminary source/APK/emulator compatibility review completed. **No client code, APK, runtime, GitHub main, or production AWS changes performed.**  
-**Branch/revision at review:** `amazon-2026`, `1cf9801` (Step 5 documentation checkpoint).  
-**Next planned phase:** Step 6 D-pad/Back usability audit, Step 7 evidence video, Step 8 Bedrock, Steps 9–10 final runtime and judge-journey testing.  
+**Date:** October 13, 2026
+**Status:** Preliminary source/APK/emulator compatibility review completed. **No client code, APK, runtime, GitHub main, or production AWS changes performed.**
+**Branch/revision at review:** `amazon-2026`, `1cf9801` (Step 64 documentation checkpoint).
+**Next planned phase:** Step 65 D-pad/Back usability audit, Step 66 evidence video, Step 67 Bedrock, Steps 68–69 final runtime and judge-journey testing.
 
 ## Purpose, scope, and interpretation
 
-Step 5.7 assessed whether our completed standalone **Android/Kotlin** TV application warrants a Vega migration or major Fire OS rewrite. It did not attempt to install the application onto physical Fire TV hardware, certify Fire OS, sign a release, run an Android 11 emulator, or implement missing video/Bedrock features.
+Step 64.7 assessed whether our completed standalone **Android/Kotlin** TV application warrants a Vega migration or major Fire OS rewrite. It did not attempt to install the application onto physical Fire TV hardware, certify Fire OS, sign a release, run an Android 11 emulator, or implement missing video/Bedrock features.
 
 **Conclusion:** No observed blocker justifies a Vega rewrite. The existing Google Android TV API 36 emulator is a useful accepted **hackathon demo emulator category**, but that does **not** certify operation on Amazon hardware or all Fire OS releases. Amazon's [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) explicitly says **“Fire TV: an emulator (Android TV Emulator or the Fire TV/Vega simulator) is fine — a physical device isn't required at any stage of submission or judging.”** The [formal rules](https://amazonappdev2026.devpost.com/rules) also specify Fire OS/Vega functionality and a Fire TV/simulator demonstration. For submission, faithfully identify the demonstrated Android TV environment and do not claim Fire OS hardware testing that was not performed.
 
@@ -28,7 +28,7 @@ Source examined: `fire-tv/app/build.gradle.kts`, `fire-tv/app/src/main/AndroidMa
 | Permissions | `android.permission.INTERNET` | Correct |
 | Network | Production `https://rentreadyvision.com`, `HttpsURLConnection`, short-lived signed S3 images | Already demonstrated end to end on Android TV emulator |
 | Google services | No direct Google Play Services dependency declared in `fire-tv/app/build.gradle.kts` | No obvious Google-service dependency; transitive/runtime review not exhaustive |
-| Video playback | TV playback feature not yet added | Scheduled Step 7; not an interoperability test result |
+| Video playback | TV playback feature not yet added | Scheduled Step 66; not an interoperability test result |
 
 Relevant Amazon guidance: [Add TV Support to an Existing React Native Project](https://developer.amazon.com/docs/fire-tv/add-tv-support-to-an-existing-react-native-project.html) includes the non-required touchscreen and `leanback` manifest examples. That is a TV sample, not proof that `required=true` is a device incompatibility in this Kotlin project.
 
@@ -61,7 +61,7 @@ targetSdkVersion:'37'
 leanback-launchable-activity: name='com.rentreadyvision.tv.MainActivity'
 ```
 
-For debug: label `RentReady Vision TV`, banner and icon packaged as `res/drawable/app_icon_your_company.png`.  
+For debug: label `RentReady Vision TV`, banner and icon packaged as `res/drawable/app_icon_your_company.png`.
 For unsigned release: same launchable activity and label; resources packed under `res/3L.png`.
 
 **Result:** Both APKs are discoverable as TV launcher applications from their badging metadata. This is a manifest/package verification, not a physical Fire TV installation test.
@@ -81,18 +81,18 @@ For unsigned release: same launchable activity and label; resources packed under
 | Risk / follow-up | Status | Timing |
 | --- | --- | --- |
 | Demonstration emulator category | Official FAQ explicitly accepts Android TV Emulator; running Android TV API 36 proven | Record exact runtime in final demo/video |
-| Fire OS hardware/platform behavior | **Not tested**; never claim compatibility certification | Step 10 / if real device available |
+| Fire OS hardware/platform behavior | **Not tested**; never claim compatibility certification | Step 69 / if real device available |
 | Android 11 / API 30 emulator | Not installed; no TV catalog result in observed command output | Optional additional validation, not a blocker today |
 | `targetSdk = 37` on an API 36 test runtime | Demonstrated on API 36; review target policy and backward compatibility | Final packaging |
 | `leanback required=true` / no explicit `faketouch required=false` | Potential device filtering review; no actual install rejection observed | Pre-release review |
-| Release APK | Compiled **unsigned** and was not tested as a signed release on Fire TV | Steps 10–11 |
-| D-pad/Back usability and accessibility | Core navigation seen working; full remote-only UX audit outstanding | Step 6 |
-| Video evidence playback | Not implemented | Step 7 |
-| Bedrock-generated TV briefing | Existing briefing deterministic; actual Bedrock TV feature not yet added | Step 8 |
-| End-to-end repeated demos | One walkthrough and restart verified, not five consecutive final runs | Step 10 |
+| Release APK | Compiled **unsigned** and was not tested as a signed release on Fire TV | Steps 69–70 |
+| D-pad/Back usability and accessibility | Core navigation seen working; full remote-only UX audit outstanding | Step 65 |
+| Video evidence playback | Not implemented | Step 66 |
+| Bedrock-generated TV briefing | Existing briefing deterministic; actual Bedrock TV feature not yet added | Step 67 |
+| End-to-end repeated demos | One walkthrough and restart verified, not five consecutive final runs | Step 69 |
 
-**Decision:** Step 5.7 is **closed as a preliminary, non-invasive precheck**. Do **not** describe it as complete Fire OS or Vega certification. Record actionable tool/onboarding friction separately without manufacturing Amazon-specific complaints: [Amazon product feedback log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md).
+**Decision:** Step 64.7 is **closed as a preliminary, non-invasive precheck**. Do **not** describe it as complete Fire OS or Vega certification. Record actionable tool/onboarding friction separately without manufacturing Amazon-specific complaints: [Amazon product feedback log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md).
 
 ## Post-precheck follow-up (October 13, 2026)
 
-The remote-only navigation, stable focus restoration, two-column finding evidence screen and empty-room/briefing tests have now been completed on the existing Android TV API 36 emulator. See [Step 6 — Fire TV Navigation](STEP6_FIRE_TV_NAVIGATION.md), Kotlin commit `f4b437b`. This does not constitute physical Fire OS validation; Step 7 video playback and later judge-ready testing remain separate.
+The remote-only navigation, stable focus restoration, two-column finding evidence screen and empty-room/briefing tests have now been completed on the existing Android TV API 36 emulator. See [Step 65 — Fire TV Navigation](STEP65_FIRE_TV_NAVIGATION.md), Kotlin commit `f4b437b`. This does not constitute physical Fire OS validation; Step 66 video playback and later judge-ready testing remain separate.

@@ -1,10 +1,10 @@
-# Step 5 Final — Standalone Fire TV / Android TV Inspection Client
+﻿# Step 64 Final — Standalone Fire TV / Android TV Inspection Client
 
-**Project:** RentReady Vision | **Amazon development branch:** `amazon-2026`  
-**Engineering milestone:** Core end-to-end Step 5 demonstration verified on **Android TV emulator API 36**, October 13, 2026.  
-**Demonstration platform:** Android TV API 36 emulator demonstrated; [official hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) explicitly accepts Android TV emulators. **Actual Fire OS hardware compatibility remains unverified.** See [Step 5.7](STEP5_7_FIRE_TV_COMPATIBILITY.md).  
-**Primary track being developed:** Fire TV | **Intended mini-challenge:** AWS Builder (submission requirements still to be completed).  
-**Related documents:** [Fire TV compatibility precheck (Step 5.7)](STEP5_7_FIRE_TV_COMPATIBILITY.md) · [Remote navigation implementation and tests (Step 6)](STEP6_FIRE_TV_NAVIGATION.md) · [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
+**Project:** RentReady Vision | **Amazon development branch:** `amazon-2026`
+**Engineering milestone:** Core end-to-end Step 64 demonstration verified on **Android TV emulator API 36**, October 13, 2026.
+**Demonstration platform:** Android TV API 36 emulator demonstrated; [official hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) explicitly accepts Android TV emulators. **Actual Fire OS hardware compatibility remains unverified.** See [Step 64.7](STEP64_7_FIRE_TV_COMPATIBILITY.md).
+**Primary track being developed:** Fire TV | **Intended mini-challenge:** AWS Builder (submission requirements still to be completed).
+**Related documents:** [Fire TV compatibility precheck (Step 64.7)](STEP64_7_FIRE_TV_COMPATIBILITY.md) · [Remote navigation implementation and tests (Step 65)](STEP65_FIRE_TV_NAVIGATION.md) · [Current API contract](fire-tv/TV_API_CONTRACT.md) · [Product feedback and friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) · [Pre-Amazon baseline](AMAZON_HACKATHON_BASELINE.md).
 
 ## 1. Scope and attribution
 
@@ -100,17 +100,17 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 
 ## 7. Git checkpoints
 
-- Amazon branch fork point: `104a9031` (pre-Amazon code baseline). The annotated `opencv-2026-submission` tag currently resolves to `e6a8fd2`, a direct documentation-only successor to that fork point; it was not changed by Step 6.
+- Amazon branch fork point: `104a9031` (pre-Amazon code baseline). The annotated `opencv-2026-submission` tag currently resolves to `e6a8fd2`, a direct documentation-only successor to that fork point; it was not changed by Step 65.
 - TV API + evidence checkpoint: `6ecfd8f` (earlier prototype).
 - Scoped device authentication and pairing: `e6453fa`.
 - TV TTL and dual pairing rate limits: `0a9b0c6`.
 - Completed standalone Android client, HTTPS, Keystore, pairing UI: `e42a79a`.
-- Step 6 remote focus restoration and 340dp two-column finding evidence layout: `f4b437b` (tested and published); see [Step 6](STEP6_FIRE_TV_NAVIGATION.md).
+- Step 65 remote focus restoration and 340dp two-column finding evidence layout: `f4b437b` (tested and published); see [Step 65](STEP65_FIRE_TV_NAVIGATION.md).
 - This documentation is a follow-up on `amazon-2026`; it does not change `main` or the frozen OpenCV submission.
 
 ## 8. Known limitations and blockers
 
-1. **Platform nuance:** The official [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) accepts an **Android TV emulator** for Fire TV-track demonstration. Our API 36 Google emulator qualifies as an allowed *emulator type*, but **actual Fire OS device compatibility has not been verified** and should not be claimed. Capture the actual runtime honestly. See [Step 5.7](STEP5_7_FIRE_TV_COMPATIBILITY.md).
+1. **Platform nuance:** The official [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) accepts an **Android TV emulator** for Fire TV-track demonstration. Our API 36 Google emulator qualifies as an allowed *emulator type*, but **actual Fire OS device compatibility has not been verified** and should not be claimed. Capture the actual runtime honestly. See [Step 64.7](STEP64_7_FIRE_TV_COMPATIBILITY.md).
 2. Release APK is **unsigned**; no physical Fire TV run, Fire OS-specific test or app-store deployment verified.
 3. DynamoDB automatic TTL cleanup is not enabled as of the audit; `tv_ttl_epoch` is present and application authorization enforces expiry, but historical records may accumulate.
 4. The exact-object S3 IAM deployment permission is temporary and must be reconciled/removed at the appropriate point. Terraform state already contains separate historic/manual IAM-policy reconciliation cautions; do **not** blindly apply Terraform.
@@ -119,7 +119,7 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 7. The portrait evidence image is narrow on a widescreen TV. Some pairing-screen content initially needed a scroll/focus movement to become fully visible.
 8. An authenticated device token remains a bearer credential; protect the emulator/device, don't publish codes or tokens, and plan secure provisioning for real testers.
 
-## 9. Remaining hackathon tasks (not Step 5 functionality)
+## 9. Remaining hackathon tasks (not Step 64 functionality)
 
 - Rehearse on the accepted Android TV emulator and document its exact platform. Per [official FAQ](https://amazonappdev2026.devpost.com/details/faqs), physical Fire TV/Vega testing is not mandatory; real Fire OS behavior remains unverified.
 - Prepare signed/tested deliverable or judge-readable installation instructions appropriate to the chosen runtime.
@@ -128,6 +128,6 @@ These are observed acceptance results, not claims that every Fire OS device, acc
 - Continue [Product Feedback & Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md): observation period **October 12–21**; finalize **October 21** for the **October 23, 2026 12:00 PM PDT** submission deadline.
 - Remove/reconcile the temporary artifact IAM grant, assess DynamoDB TTL activation, and confirm any demo-specific credentials/access with least privilege.
 
-**Rules:** https://amazonappdev2026.devpost.com/rules  
-**Submission and bonus requirements:** https://amazonappdev2026.devpost.com/  
+**Rules:** https://amazonappdev2026.devpost.com/rules
+**Submission and bonus requirements:** https://amazonappdev2026.devpost.com/
 **Feedback log:** [AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md)

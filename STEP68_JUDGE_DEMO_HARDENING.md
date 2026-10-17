@@ -1,4 +1,4 @@
-# Step 9 - Harden the Judge/Demo Path
+﻿# Step 68 - Harden the Judge/Demo Path
 
 **Verified:** October 15, 2026
 **Branch:** `amazon-2026`
@@ -112,7 +112,7 @@ actually return to the originating briefing. Its label is a
 minor usability limitation; the navigation behavior was verified.
 
 The cached Bedrock recommendations are advisory and still require
-human review. Step 9 did not rewrite the original model output.
+human review. Step 68 did not rewrite the original model output.
 
 ## Security and deployment notes
 
@@ -124,7 +124,7 @@ Automated checks and APK scanning cannot rule out every possible
 security issue; production-side restrictions remain essential.
 
 The production backend, DynamoDB cache, preserved evidence
-and video-v2 release were not modified during Step 9.
+and video-v2 release were not modified during Step 68.
 
 Do not commit pairing secrets, signed S3 URLs, customer footage,
 private evidence images, or sensitive AWS data.
@@ -136,6 +136,6 @@ demonstration passed security regression checks. The application
 also demonstrated recovery from inspection, evidence and briefing
 network failures without a visible crash on Android TV.
 
-Step 9's ordinary-failure recovery exit criterion was met on
+Step 68's ordinary-failure recovery exit criterion was met on
 the tested emulator. Physical Fire OS compatibility and a visual
 zero-finding scenario remain separate validation activities.

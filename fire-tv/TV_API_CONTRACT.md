@@ -1,8 +1,8 @@
-# RentReady Vision — Implemented TV API Contract
+﻿# RentReady Vision — Implemented TV API Contract
 
 **Status:** Implemented and deployed for an inspection-scoped, read-only TV experience (October 13, 2026).  
 **Branch:** `amazon-2026` | **Backend release:** `step55-tv-0a9b0c6-f07295163922`.  
-**Detailed record:** [Step 5 Final](../STEP5_FIRE_TV_FINAL.md) · [Product Feedback & Friction Log](../AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md).
+**Detailed record:** [Step 64 Final](../STEP64_FIRE_TV_FINAL.md) · [Product Feedback & Friction Log](../AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md).
 
 The Fire TV-facing app uses HTTPS at `https://rentreadyvision.com`. Only completed inspections in the explicitly configured server allowlist are exposed. On October 13 the production allowlist contained one completed inspection, **Mozart 2026 v2**. The TV-client app used in the verified demonstration was an Android TV API 36 emulator; Fire OS/Vega compatibility remains a separate acceptance test.
 

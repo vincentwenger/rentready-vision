@@ -1,8 +1,8 @@
-# Step 6 — Remote-First Fire TV Navigation and Finding Layout
+﻿# Step 65 — Remote-First Fire TV Navigation and Finding Layout
 
-**Date:** October 13, 2026  
-**Branch:** `amazon-2026` · **Verified Kotlin implementation:** commit `f4b437b859bb8f8a98d51baf3f3adcb078db1d9a` (`f4b437b`)  
-**Status:** **COMPLETE for the current five-screen TV application.** Video playback is planned for Step 7 and is not part of Step 6.  
+**Date:** October 13, 2026
+**Branch:** `amazon-2026` · **Verified Kotlin implementation:** commit `f4b437b859bb8f8a98d51baf3f3adcb078db1d9a` (`f4b437b`)
+**Status:** **COMPLETE for the current five-screen TV application.** Video playback is planned for Step 66 and is not part of Step 65.
 **Environment:** Google Android TV emulator (`emulator-5554`, Android 16/API 36, 1920 × 1080, 320 dpi), authenticated against the existing RentReady Vision production HTTPS API. The emulator's Android input system was controlled exclusively by ADB remote-equivalent key events, not mouse/touch navigation.
 
 ## Purpose and acceptance scope
@@ -42,23 +42,23 @@ Exactly one source file changed: `fire-tv/app/src/main/java/com/rentreadyvision/
 ## Observed user experience
 
 - Large 40/38/35/30/22sp-ish headings, large full-width list items and blue focused-state border/scale provide readable remote-first navigation.
-- Vertical menu uses natural Up/Down focus movement; Left/Right do not unexpectedly navigate away. Remote pairing grid supports horizontal and vertical character selection, previously tested in Step 5.
+- Vertical menu uses natural Up/Down focus movement; Left/Right do not unexpectedly navigate away. Remote pairing grid supports horizontal and vertical character selection, previously tested in Step 64.
 - Actual 8-room, 12-finding Mozart inspection was used: Bedroom, Garage, Kitchen, Living Room, Unknown, Bathroom, Exterior and Hallway. Empty Bathroom displays **No reported findings** and a visible **BACK TO PROPERTY** action. No reported findings **does not** guarantee the room was inspected or free of defects.
 - New side-by-side detail improves the portrait-evidence photograph's prominence; its aspect ratio is preserved. Selected action remains visible without accidental scrolling for the tested Garage finding.
 - All tested navigation was driven through Android key events (`KEYCODE_DPAD_UP=19`, `DOWN=20`, `LEFT=21`, `RIGHT=22`, `CENTER=23`, `BACK=4`) with no mouse or touch.
 
 ## Open items / limits
 
-- **Step 7:** secure short-clip video evidence playback is **not implemented**; media pause, resume, errors and remote controls remain to be tested.
-- **Step 8:** existing TV briefing comes from saved findings using deterministic logic, **not a fresh Amazon Bedrock invocation**; do not claim it is generative AI in the current TV release.
+- **Step 66:** secure short-clip video evidence playback is **not implemented**; media pause, resume, errors and remote controls remain to be tested.
+- **Step 67:** existing TV briefing comes from saved findings using deterministic logic, **not a fresh Amazon Bedrock invocation**; do not claim it is generative AI in the current TV release.
 - Long descriptions, worst-case text wrapping/localization, accessibility services, narrow/overscan TVs, variable font scales and all evidence aspect ratios were not exhaustively tested; the right column can still need a fallback for lengthy text.
 - The one-focusable-action Up/Down key listener suppresses directional navigation for that action; test hardware Back and potential future additional actions before expanding the detail view.
 - Left/Right focus movement in the main overview was **not** implemented because it is a single-column menu; directional movement is contextual rather than forced.
 - Release artifact compiled but remains **unsigned**; physical Fire TV/Fire OS and Vega compatibility are unverified. The [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs) accepts Android TV emulator demonstrations, but that is not a hardware certification.
-- Final judge sequence of **five consecutive complete runs** with video playback and Bedrock briefing is still outstanding (Step 10).
+- Final judge sequence of **five consecutive complete runs** with video playback and Bedrock briefing is still outstanding (Step 69).
 
 ## Friction log and next milestone
 
 See [Amazon Product Feedback & Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) for the **internally caused** focus-restoration and vertically stacked detail experience, with before/after evidence and workarounds. These are not presented as failures of the Amazon SDK or simulator.
 
-**Next:** Step 7 — Add evidence-image and secure video playback, retaining the tested remote focus/history behavior. Subsequent final app work must not accidentally regress Step 6.
+**Next:** Step 66 — Add evidence-image and secure video playback, retaining the tested remote focus/history behavior. Subsequent final app work must not accidentally regress Step 65.

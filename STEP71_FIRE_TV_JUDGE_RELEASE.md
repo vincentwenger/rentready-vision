@@ -1,18 +1,18 @@
-# Step 12 — Fire TV Judge-Ready Release and Private Reviewer Handoff
+﻿# Step 71 — Fire TV Judge-Ready Release and Private Reviewer Handoff
 
 **Project:** RentReady Vision for Fire TV
 **Hackathon:** Amazon Developer Hackathon 2026 · Fire TV primary track · AWS Builder mini-challenge (intended)
 **Branch:** `amazon-2026`
-**Scope:** Steps 12.1–12.21; judge packaging, offline and live access, release verification, documentation and private sharing
-**Outcome:** **Technical judge-readiness work completed**; reviewer invitation acceptance/recheck remains a pre-submission follow-up, and Steps 13–14 remain separate.
+**Scope:** Steps 71.1–71.21; judge packaging, offline and live access, release verification, documentation and private sharing
+**Outcome:** **Technical judge-readiness work completed**; reviewer invitation acceptance/recheck remains a pre-submission follow-up, and Steps 72–73 remain separate.
 
-> This report documents the **Amazon Fire TV Step 12** undertaken in October 2026. The pre-existing `STEP12_COOL_VALIDATION.md` describes an older OpenCV competition activity, not this Fire TV release. No private credential, pairing code, device token, signed media URL or personal property evidence is included here.
+> This report documents the **Amazon Fire TV Step 71** undertaken in October 2026. The pre-existing `STEP12_COOL_VALIDATION.md` describes an older OpenCV competition activity, not this Fire TV release. No private credential, pairing code, device token, signed media URL or personal property evidence is included here.
 
 ## 1. Starting point and objective
 
-The existing RentReady Vision system already provided video upload, OpenCV frame/scene analysis, candidate defect findings, private S3 evidence, processing infrastructure, and inspection reports. Earlier Amazon hackathon Steps 5–11 added an Android/Kotlin TV client, remote navigation, authenticated read-only inspection API, scoped device pairing, curated evidence playback and a separately generated/cached **Amazon Bedrock (Nova 2 Lite)** rental-readiness briefing. Five consecutive operator-observed Android TV emulator journeys were recorded in [Step 10](STEP10_JUDGE_JOURNEY.md).
+The existing RentReady Vision system already provided video upload, OpenCV frame/scene analysis, candidate defect findings, private S3 evidence, processing infrastructure, and inspection reports. Earlier Amazon hackathon Steps 64–70 added an Android/Kotlin TV client, remote navigation, authenticated read-only inspection API, scoped device pairing, curated evidence playback and a separately generated/cached **Amazon Bedrock (Nova 2 Lite)** rental-readiness briefing. Five consecutive operator-observed Android TV emulator journeys were recorded in [Step 69](STEP69_JUDGE_JOURNEY.md).
 
-Step 12 addressed a different problem: **Can a reviewer independently download, install and use a judge-ready Fire TV project from the private repository, with a reliable offline fallback and restricted access to the real saved Demo House inspection, without AWS/operator credentials?**
+Step 71 addressed a different problem: **Can a reviewer independently download, install and use a judge-ready Fire TV project from the private repository, with a reliable offline fallback and restricted access to the real saved Demo House inspection, without AWS/operator credentials?**
 
 The supported environment is the **Google Android TV API 36 emulator**, as permitted by the hackathon FAQ. This does **not** establish runtime compatibility with physical Fire OS devices or Vega OS.
 
@@ -26,7 +26,7 @@ The supported environment is the **Google Android TV API 36 emulator**, as permi
 | Live application | Explicit Live AWS selection, restricted pairing, saved Demo House, rooms/findings, approved evidence grants and cached Bedrock briefing |
 | Current signed judge APK | [Release v1.0.2](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.2): `RentReadyVision-FireTV-v1.0.2-judge.apk` |
 | Judge instructions | [JUDGE_TESTING.md](JUDGE_TESTING.md); excludes the judge code |
-| Friction / feedback | [AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md); Step 12 appendix added for later Step 13 review |
+| Friction / feedback | [AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md); Step 71 appendix added for later Step 72 review |
 | Reviewer distribution | Private GitHub invitations to six named Amazon reviewers and one Devpost account; acceptance pending at time of invitation screenshot |
 | Private Devpost testing attachment | `RentReadyVision-Devpost-Judge-Access.zip`, shown as **Current File** in the **Additional info — For judges and organizers** section; not published in Git |
 
@@ -97,19 +97,19 @@ The signed APK and basic offline mode remain usable if the hosted API is tempora
 ## 7. Remaining submission responsibilities
 
 - **October 22, 2026:** review all seven private repository invitations; confirm accepted access or re-invite as needed. Unaccepted invitations may expire.
-- **Step 13:** finalize the developer-product feedback questionnaire and review the [friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) as a submission draft. Engineering/script errors must not be misattributed to AWS or Amazon products.
-- **Step 14:** capture, edit, upload and verify the required three-minute demo video with accurate Android TV emulator attribution and separation of synthetic vs real evidence.
+- **Step 72:** finalize the developer-product feedback questionnaire and review the [friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) as a submission draft. Engineering/script errors must not be misattributed to AWS or Amazon products.
+- **Step 73:** capture, edit, upload and verify the required three-minute demo video with accurate Android TV emulator attribution and separation of synthetic vs real evidence.
 - **Submission:** validate all Devpost required fields and submission before **October 23, 2026, 12:00 PM Pacific**, including private repo access and private judging instructions. Do not represent draft progress as a submitted entry.
 
 ## 8. Related evidence
 
 - [README](README.md) — product overview, architecture, release and source build
 - [Judge testing guide](JUDGE_TESTING.md) — offline/live emulator steps (no code)
-- [Amazon Step 11 assessment](STEP11_FIRE_TV_SUBMISSION_READINESS.md)
+- [Amazon Step 70 assessment](STEP70_FIRE_TV_SUBMISSION_READINESS.md)
 - [Amazon product feedback/friction log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md)
 - [Amazon pre-work baseline](AMAZON_HACKATHON_BASELINE.md)
-- [Step 8 Bedrock briefing](STEP8_BEDROCK_BRIEFING.md)
-- [Step 10 emulator acceptance](STEP10_JUDGE_JOURNEY.md)
+- [Step 67 Bedrock briefing](STEP67_BEDROCK_BRIEFING.md)
+- [Step 69 emulator acceptance](STEP69_JUDGE_JOURNEY.md)
 - [GitHub v1.0.2 release](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.2)
 
-**Step 12 functional judge-ready exit criterion: met, with reviewer-invitation validity retained as the October 22 pre-submission check.**
+**Step 71 functional judge-ready exit criterion: met, with reviewer-invitation validity retained as the October 22 pre-submission check.**
