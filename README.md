@@ -26,6 +26,8 @@ Select **Open Demo Inspection — Offline**. Explore three synthetic findings, i
 
 Install the same APK and select **Open Live AWS Inspection — Pairing Required**. Enter the restricted reusable judge pairing code from the final reviewer instructions. This mode retrieves the real Demo House inspection, approved evidence and cached Bedrock output. Live AWS access was successfully verified on a clean Android TV API 36 emulator. The code expires December 20, 2026, at 11:59:59 PM PST.
 
+**Detailed judge instructions:** See [JUDGE_TESTING.md](JUDGE_TESTING.md).
+
 **Build from source:** Follow the Windows instructions below instead of downloading the APK.
 
 ### Quick start — Windows (verified build / install / launch)
@@ -216,15 +218,15 @@ A cached Bedrock briefing selects three original candidate findings. Each remain
 - A restricted TV token cannot upload a walkthrough, delete reports, or generate new Bedrock recommendations.
 - Raw tokens, signed URLs, pairing codes, private footage, personal details, and `.env` must not be published in this README, GitHub issues, Devpost materials or logs.
 
-Previous limited source/path scans found no flagged secret-pattern values, but **full Git-history, binary artifact and personal-data clearance is not established**. The repository remains private pending authorized reviewer access and release checks. See [Step 9](STEP9_JUDGE_DEMO_HARDENING.md) and [Step 11](STEP11_FIRE_TV_SUBMISSION_READINESS.md).
+The private repository was scanned across reachable Git history. Thirteen known Gitleaks alerts were reviewed as apparent infrastructure identifiers, checksums, and configuration references, with no new alerts. This is not a guarantee that every sensitive value is absent; the repository remains private.
 
 ## Known limitations
 
 - Fire OS hardware and Amazon Fire TV/Vega simulator compatibility have not been independently tested; the demonstrated runtime is Google Android TV API 36.
-- The debug APK is intended for emulator testing; the release APK previously built unsigned and has not been independently distributed/tested as a signed release.
-- **Independent judge access is not yet ready:** valid pairing currently requires operator-issued, five-minute codes; sessions last 24 hours. Code issuance and renewal must be made practical for judges without granting operator privileges.
-- The checked-in `app/tv_video.py` selects evidence-video **v1**, while the verified hosted production release uses **v2**. Reconcile release source and production before reproducing or redeploying the backend; do not blindly flip the selector.
-- The working TV demonstration depends on the hosted API, stored inspection/evidence and connectivity; it is not a fully offline demo.
+- The signed v1.0.2 release APK was installed and tested on Android TV API 36, and is available from GitHub Releases. Physical Fire OS has not been independently tested.
+- **Independent judge access verified:** a reusable, restricted pairing code is valid for the approved Demo House inspection through December 20, 2026, at 11:59:59 PM Pacific. Individual device sessions last up to 24 hours and can be renewed with the same code while valid.
+- The checked-in `app/tv_video.py` and the active hosted production release both select approved video **v2**. Version v1 remains available for rollback.
+- The application includes a standalone offline demonstration using synthetic media. Live AWS mode separately requires internet connectivity and the authenticated hosted API.
 - Some clips are deliberately edited/short presentation excerpts; not every finding has playable video.
 - The small detector holdout, model judgments and bounding boxes cannot establish universal accuracy, safety, code compliance or professional inspection conclusions.
 - The macOS/Linux installation path and a full fresh-AWS-account backend deployment have not been independently verified.
