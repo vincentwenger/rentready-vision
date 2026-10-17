@@ -16,6 +16,27 @@ Step 71 addressed a different problem: **Can a reviewer independently download, 
 
 The supported environment is the **Google Android TV API 36 emulator**, as permitted by the hackathon FAQ. This does **not** establish runtime compatibility with physical Fire OS devices or Vega OS.
 
+### Pre-existing project foundation before hackathon start
+
+RentReady Vision was a newly initiated project shortly before the Amazon Developer Hackathon 2026. Initial product planning began on **August 24, 2026**, approximately one week before the hackathon. The first hands-on technical implementation began on **August 26, 2026**, only **five days before** the Amazon Developer Hackathon 2026 started on **August 31, 2026 at 10:15 AM Pacific Time**.
+
+Before the hackathon began, the project had an early foundation that included:
+
+- the core concept of analyzing property walkthrough videos and producing rental-readiness findings;
+- an initial product and system architecture;
+- an early AWS architecture and development roadmap;
+- a FastAPI backend prototype;
+- initial computer-vision video-processing code;
+- an S3 presigned-upload flow;
+- a DynamoDB inspection data model;
+- basic inspection and processing API endpoints;
+- a simple local web interface; and
+- initial infrastructure and setup documentation.
+
+At that point, RentReady Vision was still an **early-stage prototype**. Much of the advanced inspection intelligence, reporting, testing, deployment, product refinement and Amazon-specific development remained to be built.
+
+The Amazon Developer Hackathon work therefore built upon a small but meaningful pre-existing foundation that had been created only days before the competition began.
+
 ## 2. Deliverables and source provenance
 
 | Deliverable | Status / evidence |
@@ -113,3 +134,4 @@ The signed APK and basic offline mode remain usable if the hosted API is tempora
 - [GitHub v1.0.2 release](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.2)
 
 **Step 71 functional judge-ready exit criterion: met, with reviewer-invitation validity retained as the October 22 pre-submission check.**
+
