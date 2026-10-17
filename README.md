@@ -12,11 +12,11 @@ RentReady Vision brings saved, AI-assisted rental-property inspections to a tele
 
 **Method 1: Offline Demo (recommended)**
 
-Download the verified signed APK from [GitHub Releases](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.1). Start one Android TV emulator (API 36 tested). In PowerShell, from the APK download folder:
+Download the verified signed APK from [GitHub Releases](https://github.com/vincentwenger/rentready-vision/releases/tag/amazon-firetv-2026-v1.0.2). Start one Android TV emulator (API 36 tested). In PowerShell, from the APK download folder:
 
 ```powershell
 $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
-& $adb install ".\RentReadyVision-FireTV-v1.0.1-judge.apk"
+& $adb install ".\RentReadyVision-FireTV-v1.0.2-judge.apk"
 & $adb shell am start -n "com.rentreadyvision.tv/.MainActivity"
 ```
 
