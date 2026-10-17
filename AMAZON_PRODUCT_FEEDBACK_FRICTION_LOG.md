@@ -122,7 +122,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 | **Android Studio / Gradle / Android SDK** | Kotlin debug and release builds; API 36 emulator; remote-focused UI; SDK Command-line Tools installed successfully. | **FL-001** offline Lint dependency; **DEV-006** Command-line Tools setup prerequisite and inconclusive older-TV image discovery, not an Amazon issue. | Debug build worked; release required online dependency retrieval. Reuse assessment: developer review. |
 | **Android TV emulator (not official Fire TV/Vega simulator)** | Pairing, focus, screen navigation, real inspection, evidence, encrypted restart and repeatable remote-only UI tests succeeded. | **FL-002** pairing layout and **FL-004** our own focus/detail UI issues; verified fixes for FL-004 on tested screens. | Useful emulator plus ADB keyevent / UIAutomator iteration loop. **Official Fire TV/Vega simulator not tested.** |
 | **Fire TV/Vega simulator** | No verified launch or emulator session in this evidence. | **Not tested; no legitimate friction entry yet.** | [Official FAQ](https://amazonappdev2026.devpost.com/details/faqs) also accepts Android TV emulators for the Fire TV demo; physical Fire OS behavior remains unverified. |
-| **AWS Bedrock** | Existing RentReady backend uses model-assisted inspection through AWS Bedrock before the Fire TV work; TV briefing uses saved findings and no new model call. | **No new Bedrock friction confirmed in this log period.** | Document actual Bedrock API/model integrations for AWS Builder feedback; don't invent latency, quota or errors. |
+| **AWS Bedrock** | Existing inspection processing used Bedrock before the Amazon extension; Step 8 added an Amazon Nova 2 Lite briefing generated from saved findings and retrieved from DynamoDB cache by the TV. | **ENG-011:** initial generation returned HTTP 502, then structured tool output and validation succeeded. **ENG-015:** two of three model-selected priorities were later rejected by the human reviewer. No AWS service defect was established. | Distinguish the pre-existing pipeline from the new TV briefing; improve evidence-grounding and reviewer-aware prioritization. |
 | **AWS SDK for Python (boto3)** | DynamoDB strongly consistent inspection/session reads and conditional writes; private S3 report/evidence access, 120-second URL signing; IAM/SSM tests. | No evidenced boto3 API defect; **FL-003** is IAM-policy provisioning workflow, not SDK malfunction. | AWS SDK operations succeeded after correct credentials/policy scope. Reuse assessment: developer review. |
 | **AWS credentials / IAM / SSM** | Operator credential securely read from SSM SecureString; EC2 uses instance role, no operator credential in TV APK. | **FL-003** least-privilege artifact permission initially absent; corrected with scoped grant. | Secure credential handling and role isolation verified. No unsupported onboarding complaint. |
 | **AWS EC2, DynamoDB and S3** | Hosted HTTPS API, hashed sessions, atomic one-time pairing, private evidence and encrypted deployment ZIP; real image loaded on TV. | TTL cleanup gap and temporary artifact IAM cleanup are **known engineering operations**, not cloud errors. | Core integration worked with existing infrastructure. |
@@ -211,6 +211,8 @@ The Google Android TV API 36 emulator successfully displayed Demo House, 12 insp
 - **Resolution:** Used isolated, checksum-verified releases, service-user validation, protected production rollback and precise cache-state checks.
 - **Learning:** Standardize cross-platform packaging and production smoke tests.
 - **Classification:** Internal development and deployment friction.
+- **Additional release-parity risk:** The local `app/tv_video.py` selector used video v1 while the active production deployment used v2. Repackaging from local sources without preserving the deployed video selection could reintroduce older evidence clips.
+- **Preventive action:** Compare deployed and repository configuration before release; preserve production v2 behavior and verify video grants and playback after each backend deployment.
 
 ### October 15 AWS Builder positive results
 Amazon Bedrock generated a real briefing from 12 saved Demo House findings. The backend restricted priority references to existing finding IDs and cached the validated response. The Android TV application displayed all three priorities, navigated to their original evidence and showed the human-review disclaimer. The verification used a Google Android TV API 36 emulator, not a physical Fire TV device.
@@ -229,6 +231,7 @@ Amazon Bedrock generated a real briefing from 12 saved Demo House findings. The 
 - **Resolution:** Added an advisory zero-findings state, evidence retry, clearer briefing fallback, and network/service status handling.
 - **Result:** Local source tests and APK build passed. Network, evidence and briefing recovery were visually verified on the Android TV emulator. The zero-finding screen has not yet been demonstrated using a real empty inspection.
 - **Classification:** Application resilience and judge usability improvement.
+- **Remaining low-priority UX issue:** The finding-detail button says `BACK TO ROOM` even when the navigation stack correctly returns to the Bedrock briefing. The behavior passed testing, but the label should reflect the actual destination.
 
 ### October 15 Step 9 positive results
 The restricted TV client recovered from severe simulated network degradation without a visible crash. Retrying reloaded the approved inspection, original evidence photograph and cached Amazon Bedrock briefing. The TV did not initiate a new Bedrock generation. Production AWS services and existing evidence were not changed.
@@ -241,6 +244,8 @@ The restricted TV client recovered from severe simulated network degradation wit
 - **Result:** The Android TV emulator displayed five confirmed and seven rejected classifications, featured Garage and Bedroom 2 evidence, and correctly labeled the Bedroom, Garage and Kitchen Bedrock priorities.
 - **Learning:** Separate detector outputs, reviewer decisions and model-generated recommendations. Future products should support per-finding feedback and reviewer-aware prioritization.
 - **Classification:** Model quality and product usability limitation, not an AWS service incident.
+- **Additional responsible-language observation:** The original Bedrock headline stated that three high-priority defects required repair before leasing. The Garage recommendation mentioned structural assessment, although visible concrete cracks alone did not establish structural damage or a legal repair requirement.
+- **Attribution and improvement:** The seven reviewer-rejected findings originated in the underlying detector results; Bedrock subsequently prioritized two of those findings. Strengthen source grounding, avoid unsupported certainty and consider reviewer-confirmed input when generating future recommendations. Original AI output remains preserved and labeled as pre-review.
 
 
 ### ENG-016 - Judge journey restart and pairing verification
@@ -254,6 +259,22 @@ The restricted TV client recovered from severe simulated network degradation wit
 
 ### October 16 Step 10 acceptance result
 The operator confirmed five consecutive successful end-to-end judge journeys. Each included Bathroom 2 image evidence, Garage image and six-second video evidence, return navigation, reviewer labels and cached Amazon Bedrock briefing. One formal run included a full Android TV emulator cold boot. No additional model generation or infrastructure modification was requested by the test workflow.
+
+## Steps 8-10 retrospective engineering observations (reviewed October 17, 2026)
+
+These are our own script and testing problems, not verified defects in AWS, Fire TV, Vega OS or Devpost.
+
+### ENG-040 - Documentation encoding and source-edit robustness
+- **Step 8 documentation check:** A creation script looked for an unformatted completion phrase, but the Markdown contained bold formatting. The check rejected valid documentation before writing or publishing.
+- **Step 8 encoding:** Nine intended em dashes were written as question marks during the Windows PowerShell/Python text handoff. A follow-up documentation commit (`52222cb`) corrected the stored Markdown.
+- **Demo review patch:** The first Kotlin source-edit script expected a different escaping of the finding title's newline separator. The guarded match stopped before writing files. A function-scoped patch succeeded; 116 regression tests and the Android build then passed.
+- **Lesson:** Validate Markdown semantics rather than unformatted phrases, handle UTF-8 explicitly, and use small function-scoped source patches with pre-write checks. These observations supplement ENG-010 and ENG-026 rather than alleging vendor failures.
+
+### ENG-041 - Step 9 security-test mock bypassed authorization
+- **Observed:** The first judge-security test run had 16 passes and one failure. The test replaced the inspection projection loader with a success-only mock that bypassed the actual inspection authorization boundary. The mock then asserted when a different inspection was requested.
+- **Resolution:** Changed the cross-inspection test to exercise the real authorization boundary and explicitly reject any database access before approval. All 17 security tests passed afterward.
+- **Lesson:** Security tests must exercise the actual enforcement point, not only mocked downstream application behavior. This was a test-fixture defect, not an established production authorization bypass.
+
 
 ---
 
