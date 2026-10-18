@@ -1,9 +1,9 @@
-﻿# Amazon Developer Hackathon 2026 — Product Feedback and Friction Log
+﻿# Amazon Developer Hackathon 2026 â€” Product Feedback and Friction Log
 
-**Status:** WORKING DRAFT — user review required before submitting feedback.
+**Status:** WORKING DRAFT â€” user review required before submitting feedback.
 **Coverage:** Amazon Developer Hackathon period beginning August 31, 2026 through October 21, 2026. Amazon-specific Fire TV implementation began October 11-12; earlier entries are retrospective observations from the pre-existing RentReady/OpenCV workload performed during the hackathon window and are not claimed as new Amazon-specific features. **Finalize October 21**.
 **Primary track:** Fire TV | **Intended mini-challenge:** AWS Builder.
-**Reference implementation:** [Step 64 Final](STEP64_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP64_7_FIRE_TV_COMPATIBILITY.md) · [Step 65 remote navigation test record](STEP65_FIRE_TV_NAVIGATION.md).
+**Reference implementation:** [Step 64 Final](STEP64_FIRE_TV_FINAL.md) Â· [Fire TV compatibility precheck](STEP64_7_FIRE_TV_COMPATIBILITY.md) Â· [Step 65 remote navigation test record](STEP65_FIRE_TV_NAVIGATION.md).
 **Submission deadline:** October 23, 2026, 12:00 PM PDT.
 
 ## Chronological index
@@ -14,9 +14,45 @@ date-ordered view for judge review.
 
 | Date observed | ID | Step / phase | Short observation | Classification |
 | --- | --- | --- | --- | --- |
+| Sep 1 | ENG-073 | Historical Step 10 | Linux-only uvloop was pinned unconditionally in the Windows baseline lockfile | Cross-platform dependency-lock tooling |
+| Sep 3-4 | ENG-072 | Historical Step 11 | COOL Marketplace runtime-verification example and local version provenance were incomplete | Marketplace product documentation/provenance |
 | Sep 5-6 | ENG-042 | Historical Step 12 | Benchmark configuration drift complicated baseline reproduction | Our benchmark/version-control discipline |
-| Sep 5-6 | ENG-043 | Historical Step 12 | COOL activation and inherited environment paths could contaminate stock-vs-COOL comparison | Runtime/environment integration |
+| Sep 5-6 | ENG-043 | Historical Step 12-13 | COOL activation, Python paths and native library paths complicated clean stock-vs-COOL isolation | Runtime/environment integration |
 | Sep 5-6 | ENG-044 | Historical Step 12 | Late S3 benchmark-report permission failure temporarily marked a successful COOL run failed | IAM coordination + runner error-state design |
+| Sep 6 | ENG-045 | Historical Step 13 | NumPy version mismatch violated the intended same-dependency A/B benchmark control | Benchmark/reproducibility discipline |
+| Sep 6 | ENG-046 | Historical Step 13 | Benchmark runner resolved a virtualenv Python symlink to system Python and aborted preflight | Benchmark harness bug |
+| Sep 7 | ENG-047 | Historical Step 14 | COOL production worker bootstrap required explicit Python/native library paths and deployment-script fixes | Runtime/bootstrap integration |
+| Sep 7 | ENG-048 | Historical Step 14 | Unattended EC2 bootstrap could not clone the initially private GitHub repository | Deployment/source-access configuration |
+| Sep 9 | ENG-050 | Historical Step 18 | Nova 2 Lite inference-profile IAM required profile and destination model permissions before Agentic Vision reassessment could run | Bedrock/IAM integration |
+| Sep 14 | ENG-051 | Historical Step 19 | Live crop_region validation required separate enqueue and CloudWatch verification permissions | AWS IAM validation workflow |
+| Sep 14-15 | ENG-052 | Historical Step 20 | Long-lived COOL worker revision and filesystem ownership drift complicated deployment provenance | Deployment/state-management discipline |
+| Sep 15 | ENG-053 | Historical Step 21 | Default nearby-frame sampling missed valid alternate views near the end of a short video | Our OpenCV agent-tool parameterization |
+| Sep 18-19 | ENG-054 | Historical Steps 23-24 | PowerShell/AWS CLI boundary corrupted inline structured JSON; Unicode service-status output also failed locally | AWS CLI/PowerShell integration |
+| Sep 23 | ENG-056 | Historical Step 31 demo preparation | Stopped Graviton4 worker and stale worker Git revision left a queued inspection appearing stuck until runtime state was reconciled | Deployment/runtime preflight + status UX |
+| Sep 29 | ENG-058 | Historical Step 34B | Active Bedrock inference profile did not establish Anthropic model access | AWS Bedrock model-access onboarding |
+| Sep 30 | ENG-050 follow-up | Historical Step 35 | Frozen two-model evaluation needed a scoped Sonnet inference-profile permission in addition to Nova | Bedrock/IAM integration |
+| Sep 30 | ENG-059 | Historical Step 35 | A response rejected by the tool-result validator stopped evaluation; bounded recovery required complete attempt accounting | Bedrock response-validation integration + our evaluator |
+| Sep 30-Oct 1 | ENG-060 | Historical Step 36 | Benchmark initially replaced the frozen pre-agent assessment with a fresh model call and could bypass the investigation being measured | Our benchmark/evaluation harness |
+| Sep 30-Oct 1 | ENG-061 | Historical Step 36 | Temporal persistence made a staged removable look-alike more confidently positive and triggered the frozen early-stop rule | Agentic model/product quality + our stopping policy |
+| Oct 2 | ENG-062 | Historical Step 38 | Reproducible COOL deployment exposed EC2 egress, package-install and executable-permission assumptions during bootstrap | Deployment/runtime integration + our infrastructure assumptions |
+| Oct 3 | ENG-063 | Historical Step 39 | Broad video-expiration rule also covered retained evidence | Our S3 lifecycle configuration |
+| Oct 3 | ENG-064 | Historical Step 39 | Worker update initially planned EC2 replacement | Terraform/EC2 deployment integration |
+| Oct 4 | ENG-065 | Historical Step 40 | Missing IAM simulation context caused false verification failures | Our security-verification harness |
+| Oct 4 | ENG-066 | Historical Step 40 | Probe user switching caused misleading COOL CPU-baseline errors | Our runtime-probe execution context |
+| Oct 5 | ENG-067 | Historical Step 41 | SSM ad-hoc validation did not inherit the systemd API service environment | Systems Manager/systemd environment integration + our diagnostic assumption |
+| Oct 5 | ENG-068 | Historical Step 42 | Semantic video filenames leaked expected labels into a model-verification payload and invalidated those verifier performance claims | Our evaluation-harness methodology |
+| Oct 5 | ENG-069 | Historical Step 42 | Fixed 1 Hz sampling and near-duplicate pruning could miss brief transient defect evidence; a 10 Hz motion fallback was too noisy on clean controls | Our OpenCV temporal-evidence design |
+| Oct 6 | ENG-070 | Historical Step 47 | API health probe used a disallowed localhost Host header and caused a false deployment rollback | Our deployment health-check / host-policy integration |
+| Oct 6 | ENG-071 | Historical Step 47 | Expected low-feature other-angle outcome was misclassified as a retryable worker failure | Our job error-classification / SQS workflow design |
+| Oct 7 | ENG-074 | Historical Step 48 | Retry-safe presigned S3 PUT returned HTTP 412 when the generated inspection key already contained the same object; recovery required verifying the existing object ETag against the local MD5 before safely reusing it | Our upload idempotency/retry handling; S3 precondition behaved correctly |
+| Oct 7 | ENG-075 | Historical Step 49 | Stale durable retry jobs blocked guarded worker installation despite empty SQS queues | Our job-state reconciliation; AWS safeguards worked |
+| Oct 7 | ENG-076 | Historical Step 50 | Direct EC2 start bypassed application lifecycle wake | Our lifecycle/deployment workflow |
+| Oct 10 | ENG-077 | Step 52 - web report | Repeated S3 manifest reads during 120 frame-URL requests | Application performance / AWS integration |
+| Oct 10 | ENG-078 | Historical Step 54 | AI bounding boxes sometimes produced misleading issue highlights | Pre-existing detector/report UX; not an Amazon defect |
+| Oct 10 | ENG-079 | OpenCV Step 56 | Missing Playwright dependency and brittle README assertion interrupted clean-environment tests | Internal reproducibility workflow |
+| Oct 10 | ENG-040 follow-up | Historical Step 57 | Markdown hard breaks failed staged Git whitespace validation; earlier check omitted the untracked report | Our documentation/validation workflow |
+| Oct 11 | ENG-080 | Historical Step 59 | Public inspection processing required an omitted DynamoDB ConditionCheckItem permission | Our IAM provisioning / deployment preflight |
+| Oct 11 | ENG-081 | Historical Step 60 | Expired S3 evidence-image links left two report images unavailable until links were renewed | Our application URL-refresh handling; S3 expiration behaved correctly |
 | Oct 12 | ENG-034 | Step 61 | Windows hypervisor/emulator prerequisite | Local workstation setup |
 | Oct 12 | ENG-035 | Step 61 | Kotlin Back API dependency mismatch | Android/Kotlin integration |
 | Oct 12 | ENG-036 | Step 62 | Incorrect Android LayoutParams type | App source error |
@@ -82,7 +118,7 @@ Evidence references are development-conversation console output/screenshots unle
 
 ## Confirmed friction/feedback observations
 
-### FL-001 — Offline Android release build could not resolve Android Lint
+### FL-001 â€” Offline Android release build could not resolve Android Lint
 - **Date:** October 13, 2026
 - **Tool/provider:** Android Studio / Gradle / Android Gradle Plugin; **general Android tooling, not identified as an Amazon SDK issue**.
 - **Task:** Build both debug and release APKs for the standalone authenticated TV viewer.
@@ -96,7 +132,7 @@ Evidence references are development-conversation console output/screenshots unle
 - **Evidence:** Step 64.6E.3 output and Step 64.6E.3R successful retry, October 13.
 - **Submission classification:** Potentially useful cross-platform Android developer feedback; **do not attribute the issue to Amazon Fire TV tooling without further evidence**.
 
-### FL-002 — Pairing-screen bottom controls initially outside the visible viewport
+### FL-002 â€” Pairing-screen bottom controls initially outside the visible viewport
 - **Date:** October 13, 2026
 - **Tool/context:** Android TV API 36 emulator; the **RentReady Vision app's own** GridLayout + ScrollView / D-pad UI.
 - **Task:** Enter a ten-character pairing code and reach DELETE, CLEAR, PAIR TV and status text with a remote.
@@ -110,7 +146,7 @@ Evidence references are development-conversation console output/screenshots unle
 - **Evidence:** Step 64.6G emulator screenshots, October 13.
 - **Submission classification:** Honest **app UX/developer-design** observation; not an allegation of an Amazon simulator bug.
 
-### FL-003 — Least-privilege IAM deployment object initially inaccessible to the API role
+### FL-003 â€” Least-privilege IAM deployment object initially inaccessible to the API role
 - **Date:** October 13, 2026
 - **Tool/provider:** AWS IAM, EC2 instance role, private S3, boto3.
 - **Task:** Stage and retrieve a new immutable Step 55 API ZIP from private S3 on the production EC2 host.
@@ -124,7 +160,7 @@ Evidence references are development-conversation console output/screenshots unle
 - **Evidence:** Step 64.5I `implicitDeny`, Step 64.5J `allowed`, Step 64.5K real download pass.
 - **Submission classification:** Appropriate **AWS integration/onboarding feedback**, clearly described as a configuration step rather than provider defect.
 
-### DEV-006 — Android SDK Command-line Tools prerequisite and TV image discovery (setup observation; NOT Amazon defect)
+### DEV-006 â€” Android SDK Command-line Tools prerequisite and TV image discovery (setup observation; NOT Amazon defect)
 - **Date:** October 13, 2026
 - **Tool/provider:** Android Studio / Google Android SDK Manager (`sdkmanager`) on Windows; **not the Fire TV/Vega simulator or Amazon SDK**.
 - **Task:** Investigate Android TV API 30 (Android 11) to provide an older runtime compatibility cross-check for an already working Android TV API 36 app.
@@ -135,12 +171,12 @@ Evidence references are development-conversation console output/screenshots unle
 - **Workaround and outcome:** Install the Command-line Tools via Android Studio; retain the proven API 36 TV AVD, stop further emulator-image investigation, and schedule optional platform-specific validation later.
 - **Suggested developer-experience improvement:** Make prerequisite Command-line Tools availability clear in emulator package-discovery workflows; surface available image names and platform support clearly in SDK Manager.
 - **What worked:** Android Studio installed the missing tools correctly; `sdkmanager.bat` became available, audit scripts completed, no project or production changes.
-- **Evidence:** Step 64.7D.1–D.3 PowerShell console output and Android Studio SDK Tools screenshots, October 13.
+- **Evidence:** Step 64.7D.1â€“D.3 PowerShell console output and Android Studio SDK Tools screenshots, October 13.
 - **Submission classification:** **Google Android tooling / our workstation setup**, not evidence of Amazon Fire TV documentation or simulator friction. **Do not submit as an Amazon complaint** unless independently justified; retain as internal product-feedback observation and positive onboarding notes.
 
 
 
-### FL-004 — Restored remote focus and evidence layout required extra work in our own TV UI
+### FL-004 â€” Restored remote focus and evidence layout required extra work in our own TV UI
 - **Date:** October 13, 2026
 - **Tool/context:** RentReady Vision's **own Android/Kotlin TV UI** running on a Google Android TV API 36 emulator, **not** Amazon Fire TV SDK / Vega.
 - **Task:** Complete an inspection navigation session with D-pad/Center/Back, including returning to selected rooms/findings and reading a preserved evidence photograph.
@@ -168,12 +204,12 @@ These are verified incidents in **our implementation or test scripts**. Record f
 | ENG-004 | Oct 13 | Production device-session TTL cleanup was not configured on shared DynamoDB table. | Introduced TV-only `tv_ttl_epoch` attributes. The app enforces expiration without relying on asynchronous DynamoDB TTL. Decide activation separately. |
 | ENG-005 | Oct 13 | Android release artifact unsigned. | Build completed, but release signing and physical Fire OS behavior remain unverified; the hackathon FAQ accepts the Android TV emulator demo. |
 | ENG-006 | Oct 13 | SDK Command-line Tools initially absent, then installed; API 30 TV system image not discovered in filtered catalog results. | Local tooling prerequisite resolved. Do not attribute no-image results to Amazon or claim image unavailable everywhere; see DEV-006. |
-| ENG-007 | Oct 13 | The original TV UI dropped the selected Garage focus on Back and the old vertically stacked detail could lose visible focus during Down. | Fixed the app's own navigation state and two-column evidence layout, validated in Steps 65.4–65.8; see FL-004. |
+| ENG-007 | Oct 13 | The original TV UI dropped the selected Garage focus on Back and the old vertically stacked detail could lose visible focus during Down. | Fixed the app's own navigation state and two-column evidence layout, validated in Steps 65.4â€“65.8; see FL-004. |
 | ENG-008 | Oct 13 | Step 65.9 safety script compared the OpenCV annotated tag's peeled commit to the original Amazon fork commit, and stopped before any Git writes. | Resolved against local/remote annotated tag object `f6d8e3d` and peeled target `e6a8fd2`; the newer target is documentation-only. No tags or `main` changed. |
 
 ## Tool-by-tool product-feedback inventory
 
-The Devpost form asks **for every tool/API/SDK used**, what it did, what worked, what needs work, the onboarding experience and whether the developer would use it again. The table below records **only currently evidenced experience**. “Would use again” should be confirmed by the developer before submission, not presented as an established personal opinion.
+The Devpost form asks **for every tool/API/SDK used**, what it did, what worked, what needs work, the onboarding experience and whether the developer would use it again. The table below records **only currently evidenced experience**. â€œWould use againâ€ should be confirmed by the developer before submission, not presented as an established personal opinion.
 
 | Tool / API / SDK | Verified use and what worked | Genuine friction or status | Onboarding / revisit |
 | --- | --- | --- | --- |
@@ -187,7 +223,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 | **AWS EC2, DynamoDB and S3** | Hosted HTTPS API, hashed sessions, atomic one-time pairing, private evidence and encrypted deployment ZIP; real image loaded on TV. | TTL cleanup gap and temporary artifact IAM cleanup are **known engineering operations**, not cloud errors. | Core integration worked with existing infrastructure. |
 | **Amazon-specific Fire TV SDK / Vega APIs** | Not demonstrated as a separate SDK integration; Kotlin app uses Android framework APIs. | **No entry** without actual use. | Fire TV track supports Android but Fire TV target testing remains necessary. |
 
-### Required product feedback draft — to validate before submitting
+### Required product feedback draft â€” to validate before submitting
 
 - **Tools used for the Amazon extension:** Android/Kotlin, Android Studio/Gradle, Android TV emulator, production FastAPI HTTPS API, boto3, AWS EC2, DynamoDB, S3, IAM and Systems Manager; underlying project also uses OpenCV COOL and Amazon Bedrock for existing inspection processing. Be explicit about which integrations predated the Amazon-specific extension.
 - **Worked well:** SSM SecureString and instance-role isolation; conditional DynamoDB operations; S3 presigned URLs; build debug/release once dependencies were present; D-pad navigation and end-to-end TV pairing; no Windows bridge after migration.
@@ -200,14 +236,14 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 
 **October 12:** Log observation window starts. No separately evidenced October 12 friction incident is asserted here.
 **October 13:** Historical Step 64 evidence reviewed and the confirmed entries above documented.
-**October 14–20:** After each new tool interaction, append a dated entry **only if an actual observation exists**. Record exact task, reproducible steps, expected/actual, severity, workaround, outcome, actionable suggestion and evidence. Positive observations belong in product-feedback inventory even if no friction occurred.
-**October 21 — finalize:** Recheck tool names/versions and dates; verify each entry is honest, specific, non-duplicative and sanitized; ask developer to confirm whether they'd use each tool again; finalize URLs/evidence; freeze a ready-to-paste feedback narrative; include log link in Devpost description/product-feedback submission.
+**October 14â€“20:** After each new tool interaction, append a dated entry **only if an actual observation exists**. Record exact task, reproducible steps, expected/actual, severity, workaround, outcome, actionable suggestion and evidence. Positive observations belong in product-feedback inventory even if no friction occurred.
+**October 21 â€” finalize:** Recheck tool names/versions and dates; verify each entry is honest, specific, non-duplicative and sanitized; ask developer to confirm whether they'd use each tool again; finalize URLs/evidence; freeze a ready-to-paste feedback narrative; include log link in Devpost description/product-feedback submission.
 **October 23, noon PDT:** Official submission deadline; do not wait until deadline to resolve Fire TV/Vega target eligibility or judging access.
 
 ### Copyable entry template
 
 ```markdown
-### FL-XXX — [neutral summary]
+### FL-XXX â€” [neutral summary]
 - Date / tool / exact version:
 - Task:
 - Steps taken:
@@ -222,7 +258,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 - Submission decision (include / exclude / await evidence):
 ```
 
-**Do not add issues merely to fill categories.** If Fire TV documentation, the official simulator, Bedrock or SDK usage produces no friction, report what worked well or explicitly say “no issues observed” after genuine use. Remove speculative language from final submitted entries.
+**Do not add issues merely to fill categories.** If Fire TV documentation, the official simulator, Bedrock or SDK usage produces no friction, report what worked well or explicitly say â€œno issues observedâ€ after genuine use. Remove speculative language from final submitted entries.
 
 
 ### ENG-009 - V2 video URL allowlist integration
@@ -324,6 +360,12 @@ The operator confirmed five consecutive successful end-to-end judge journeys. Ea
 These are our own script and testing problems, not verified defects in AWS, Fire TV, Vega OS or Devpost.
 
 ### ENG-040 - Documentation encoding and source-edit robustness
+
+- **Step 57 follow-up - observed October 10, 2026; recorded October 17, 2026:** Preparing the pre-existing RentReady/OpenCV technical report encountered a Markdown/Git validation mismatch.
+- **Expected versus actual:** Four intentional Markdown hard breaks in the report header were flagged as trailing whitespace by `git diff --cached --check`, stopping the commit. The earlier unstaged check had not inspected the new report because it was still untracked. The Windows LF-to-CRLF warning was informational, not the cause of failure.
+- **Resolution and outcome:** Replaced the four hard breaks with blank lines, restaged only `README.md` and `TECHNICAL_REPORT.md`, and passed the staged whitespace check. Commit `b6226ec` was pushed successfully; local and GitHub main matched. All 63 report links had been verified locally.
+- **Severity and attribution:** Low; our generated documentation and validation workflow, not an Amazon/AWS defect. Validate new files after explicit staging and prefer blank lines where Git whitespace checks reject Markdown hard breaks. This is supporting evidence for ENG-040, not a separate incident or new Amazon-specific feature.
+
 - **Step 67 documentation check:** A creation script looked for an unformatted completion phrase, but the Markdown contained bold formatting. The check rejected valid documentation before writing or publishing.
 - **Step 67 encoding:** Nine intended em dashes were written as question marks during the Windows PowerShell/Python text handoff. A follow-up documentation commit (`52222cb`) corrected the stored Markdown.
 - **Demo review patch:** The first Kotlin source-edit script expected a different escaping of the finding title's newline separator. The guarded match stopped before writing files. A function-scoped patch succeeded; 116 regression tests and the Android build then passed.
@@ -337,7 +379,7 @@ These are our own script and testing problems, not verified defects in AWS, Fire
 
 ---
 
-## Step 71 — Judge packaging, deployment and private-release follow-up (October 2026)
+## Step 71 â€” Judge packaging, deployment and private-release follow-up (October 2026)
 
 **Status:** Evidence-backed supplement to this **working draft**. Review inclusion and wording during Step 72; this update does not constitute submitted Amazon feedback. The final Step 71 implementation, verification and limitations are documented in [Step 71 Fire TV Judge Release](STEP71_FIRE_TV_JUDGE_RELEASE.md).
 
@@ -375,7 +417,7 @@ Step 71 delivered a **signed v1.0.2 APK**, three-image/three-video offline synth
 4. **Release packaging:** proactive release-build/runtime checks and tool warnings vs exit-code guidance would reduce Kotlin optimization and Java/PowerShell signing friction; these were Android/Java integration issues, not necessarily Amazon SDK issues.
 5. **Accessibility/remote UX:** use real TV distance and D-pad tests for button visibility, focus recovery and the distinction between illustrative offline and actual evidence.
 
-**Step 72 review still required:** Confirm the exact third-party tooling used, versions, dates, which issues to include as optional feedback, subjective onboarding/reuse judgments, and any evidence/link submissions. Do not treat this appendix as final five-answer Devpost feedback. Retain the original draft entries above, including pre-existing Steps 64–69 evidence, without silently editing their history.
+**Step 72 review still required:** Confirm the exact third-party tooling used, versions, dates, which issues to include as optional feedback, subjective onboarding/reuse judgments, and any evidence/link submissions. Do not treat this appendix as final five-answer Devpost feedback. Retain the original draft entries above, including pre-existing Steps 64â€“69 evidence, without silently editing their history.
 
 ## Step 66 retrospective engineering lessons (October 14, 2026)
 
@@ -388,8 +430,8 @@ Step 71 delivered a **signed v1.0.2 APK**, three-image/three-video offline synth
 | **ENG-029** | **Deployment preflight assumptions.** A read-only EC2 check falsely reported `Unexpected EC2 instance profile` because our script used the wrong IAM ARN pattern (`/instance-profile/` instead of `:instance-profile/`). A separate simulation of `s3:GetObject` on the **new exact Step 66 ZIP** returned `implicitDeny` with two missing context values even though the EC2 role could read the three video objects. | Corrected the ARN check; verified the actual profile and allowed video reads. Rather than broaden the role for a **6,368-byte** release ZIP, validated checksum-protected **SSM in-memory package delivery**, backed up the running release, and used a separately staged release with checked rollback. | **Our IAM-verification script + expected least-privilege deployment coordination**, not provider failure; closely related to **FL-003**. Use correct IAM ARN formats and distinguish video-data permission from deployment-artifact permission. |
 | **ENG-030** | **Android build environment.** During Step 66.15B, Gradle stopped before Kotlin compilation because the Windows PowerShell session had no `JAVA_HOME` and `java` was absent from `PATH`. | Located Android Studio's installed JBR (`C:\\Program Files\\Android\\Android Studio\\jbr`; OpenJDK 25), set the environment **for that process only**, then built debug and release APKs successfully without altering the Kotlin patch. | **Workstation setup**, not an Amazon SDK bug. Preflight JDK discovery and document reproducible shell-local build commands; do not reinstall Java before checking Android Studio JBR. |
 | **ENG-031** | **Room identification and demo clarity.** The saved detector report placed two distinct findings under `Unknown`: tile-floor discoloration in the second bathroom and a small wall mark in the second bedroom. A single generic room rename would have assigned one finding incorrectly; the technical inspection label `Mozart 2026 v2` was also less suitable for a judge demo. | Matched exact public finding IDs; applied **finding-specific TV-only room mapping** to **Bathroom 2** and **Bedroom 2**, renamed only the TV display to **Demo House**, and verified the new groups, **12 retained findings**, evidence photos and Bedroom 2 video navigation. Original report and S3 finding associations were preserved. | **Our model-output classification and presentation UX**, not an Amazon tool defect. Track reviewer-corrected room assignments separately from detector predictions and false-positive/negative review. A visible mark does not prove moisture damage. |
-| **ENG-032** | **Evidence inspection on a remote.** The initial viewer's center-based zoom cropped the small Bedroom 2 wall mark near the bottom at **300%**. Two non-ASCII separators rendered as literal **`?`** in the emulator heading/status. | Added explicit **PAN IMAGE** mode, bounded D-pad panning, Fit/reset and Back/focus restoration; replaced separators with ASCII hyphens. Emulator screenshots demonstrated 100%–300% zoom, moving the mark toward the center, Fit and return to the same finding. | **Our Android TV UX and text-rendering choice**, not a verified emulator/Fire OS bug. Test defect visibility at high zoom and use font-safe labels for remote-driven judging. |
-| **ENG-033** | **Video evidence framing.** The original 12-second clips played correctly but useful Garage discoloration appeared mainly in the early seconds before driveway footage, while Bedroom 2 later showed mostly a blank wall. This made evidence less obvious in a short judge demonstration. | Retained original MP4s with checksum verification, planned contact-sheet/frame review and shorter separately approved candidates; later successful v2 playback and URL-allowlist integration are already recorded under **ENG-009** and the October 14–16 results. Avoid claiming every dark mark is a confirmed defect. | **Our demo editing/evidence UX**, not a media SDK error. Center the viewing interval on genuinely visible evidence, preserve originals and do not replace private objects before visual and playback approval. |
+| **ENG-032** | **Evidence inspection on a remote.** The initial viewer's center-based zoom cropped the small Bedroom 2 wall mark near the bottom at **300%**. Two non-ASCII separators rendered as literal **`?`** in the emulator heading/status. | Added explicit **PAN IMAGE** mode, bounded D-pad panning, Fit/reset and Back/focus restoration; replaced separators with ASCII hyphens. Emulator screenshots demonstrated 100%â€“300% zoom, moving the mark toward the center, Fit and return to the same finding. | **Our Android TV UX and text-rendering choice**, not a verified emulator/Fire OS bug. Test defect visibility at high zoom and use font-safe labels for remote-driven judging. |
+| **ENG-033** | **Video evidence framing.** The original 12-second clips played correctly but useful Garage discoloration appeared mainly in the early seconds before driveway footage, while Bedroom 2 later showed mostly a blank wall. This made evidence less obvious in a short judge demonstration. | Retained original MP4s with checksum verification, planned contact-sheet/frame review and shorter separately approved candidates; later successful v2 playback and URL-allowlist integration are already recorded under **ENG-009** and the October 14â€“16 results. Avoid claiming every dark mark is a confirmed defect. | **Our demo editing/evidence UX**, not a media SDK error. Center the viewing interval on genuinely visible evidence, preserve originals and do not replace private objects before visual and playback approval. |
 
 **Step 66 positive outcome:** On the Google Android TV API 36 emulator, three authentic findings displayed preserved photographs, authenticated short-lived S3 video grants, correct 12-second playback, Pause/Resume, Back navigation and restored focus. The later full-screen viewer added secure Fit/Zoom/Pan. This establishes tested **Android TV emulator** behavior, **not** physical Fire OS or Vega compatibility, and does not prove the detector's causal interpretation of staining.
 
@@ -410,6 +452,40 @@ Step 71 delivered a **signed v1.0.2 APK**, three-image/three-video offline synth
 **Coverage and deliberate non-duplication:** Step 60's OpenCV tag/branch freeze was verified as successful, with no additional separate failure identified. The later annotated-tag target check is **already ENG-008**. Earlier Step 63 `JAVA_HOME`/JBR setup also matches the recurring Java-path issue later captured in **ENG-030**; it does not justify a second identical entry. Steps 64/64.7 and 65 already have **FL-001 through FL-004, DEV-006, and ENG-001 through ENG-008** covering offline Gradle Lint, pairing layout, exact-artifact IAM, SDK command-line tools, focus/scroll, TTL and other engineering assumptions. This supplement records additional observed friction **without** inflating the number of Amazon-specific product complaints.
 
 **Positive result:** Step 60 isolated `amazon-2026` from the OpenCV submission; Step 61 established a working Android TV emulator; Step 62 built the five-screen local viewer; Step 63 loaded real inspection data via a verified temporary bridge; Step 64 delivered pairing, production HTTPS and actual preserved image evidence; Step 65 validated D-pad/Back navigation and stable focus. These are observed development results, **not** independent Fire OS hardware certification.
+
+## September 1 retrospective - Step 10 OpenCV baseline packaging during the hackathon window
+
+**Recorded October 17 from the historical Step 10 development conversation.** This occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV extension began. It is internal engineering friction from the pre-existing RentReady/OpenCV workload, not an Amazon, AWS or OpenCV product defect.
+
+### ENG-073 - Linux-only uvloop was pinned unconditionally in the Windows baseline lockfile
+
+- **Date observed:** September 1, 2026.
+- **Task:** Install the fully pinned and hashed stock OpenCV 5 baseline on Windows before creating the COOL-on-Graviton comparison path.
+- **Expected:** The dependency lock would install on both the Windows development workstation and the later Linux/Graviton environment while preserving the same application dependency versions.
+- **Actual:** The lock generated on Linux from `uvicorn[standard]==0.52.4` pinned `uvloop==0.22.1` without a platform marker. Windows `pip` downloaded the source archive and stopped with `RuntimeError: uvloop does not support Windows at the moment`, preventing RentReady Vision from starting.
+- **Resolution:** Regenerate the fully hashed lock with `uv pip compile requirements.in --universal --generate-hashes`. The corrected lock preserves the `sys_platform != 'win32'` marker for `uvloop` and includes the Windows-specific `colorama` dependency. A Windows Python 3.14 target resolved all 41 applicable packages, while the Linux clean environment retained `uvloop` and passed all 25 tests.
+- **Classification:** **Our cross-platform dependency-lock and release-packaging error**, not an Amazon, AWS, Uvicorn or OpenCV service failure.
+- **Lesson:** Generate portable locks with platform markers intact and perform both Windows-target and Linux-target dependency-resolution checks before publishing a supposedly reproducible benchmark package.
+- **Amazon-hackathon relevance:** The same pinned application was being prepared for a stock-OpenCV versus COOL comparison on AWS Graviton. Correct platform isolation prevented a packaging difference from being mistaken for an OpenCV or COOL runtime difference. Do not submit this as an Amazon product complaint.
+
+## September 3-4 retrospective - COOL Marketplace environment setup during the hackathon window
+
+**Recorded October 17 from the historical Step 11 COOL environment setup conversation.** This observation occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV extension began. It concerns an OpenCV product distributed through AWS Marketplace and is not a Fire TV, Vega or AWS infrastructure defect claim.
+
+### ENG-072 - COOL Marketplace runtime-verification example and local version provenance were incomplete
+
+- **Date observed:** September 3-4, 2026.
+- **Tool/provider:** OpenCV Cloud Optimized OpenCV for AWS Graviton4 AMI distributed through AWS Marketplace.
+- **Task:** Verify the installed COOL product and OpenCV runtime, then persist judge-verifiable reproducibility evidence including product version, OpenCV version, library path, architecture, AMI ID, instance type, region, source commit and timestamp.
+- **Expected:** The Marketplace usage example would report the active OpenCV version and binary path, and the installed image would expose authoritative machine-readable COOL release provenance.
+- **Actual:** The supplied verification example referenced `cv2.version` and `cv2.file`. Reliable Python runtime identity required `cv2.__version__` and `cv2.__file__`. The active runtime reported OpenCV `5.1.0-dev`, while `cv2.getBuildInformation()` reported version control as `unknown`. No authoritative local COOL release marker was found in the expected `/opt/cool` version-file locations or package-manager records, so COOL product version `3.1` had to be taken separately from the Marketplace product instructions.
+- **Resolution:** Verify the runtime with `cv2.__version__`, `cv2.__file__`, `cv2.getBuildInformation()` and `platform.machine()`; record Marketplace product version `3.1` separately from OpenCV runtime version `5.1.0-dev`; explicitly persist `COOL_VERSION=3.1` together with AMI, instance, region and Git provenance.
+- **Verified outcome:** The runtime-evidence verifier passed with no errors on `aarch64` and uploaded the resulting evidence and complete OpenCV build information to private S3.
+- **Severity:** **Low**, resolved with a reliable manual verification procedure.
+- **Classification:** **OpenCV Marketplace product documentation and runtime-provenance friction**, not an AWS service or infrastructure failure.
+- **Actionable improvement:** Correct the Python verification example and include a machine-readable release manifest in the AMI, such as `/opt/cool/release.json`, containing the COOL product version, OpenCV runtime version, source/build revision, architecture and image build identifier.
+- **What worked:** The documented activation command correctly established the optimized environment, and Python/OpenCV exposed enough runtime data to construct independent evidence once the correct attributes and Marketplace version were combined.
+- **Submission classification:** Historical developer-integration feedback about a Marketplace-distributed OpenCV runtime used during the eligibility period; not an Amazon Fire TV or Vega defect claim.
 
 ## September 5-6 retrospective ? pre-existing OpenCV/COOL workload during the Amazon hackathon window
 
@@ -437,8 +513,8 @@ AWS/Amazon defects.
 - **Date observed:** September 5-6, 2026.
 - **Task:** Run stock OpenCV and the official COOL runtime independently on the same Graviton machine.
 - **Expected:** Separate Python environments would isolate stock OpenCV from `/opt/cool`.
-- **Actual:** Systems Manager opened a POSIX `sh` shell, so `source` was unavailable. Directly invoking the COOL virtualenv Python before activation did not initially expose `cv2`. After `deactivate`, COOL-related `PYTHONPATH` and `LD_LIBRARY_PATH` values remained inherited, causing the nominal stock virtualenv to import `/opt/cool`.
-- **Resolution:** Activate COOL with `. /opt/cool/venvs/python_3.12/bin/activate`; verify `cv2.__file__`; run stock commands with `env -u PYTHONPATH -u LD_LIBRARY_PATH PYTHONNOUSERSITE=1`.
+- **Actual:** Systems Manager opened a POSIX `sh` shell, so `source` was unavailable. Directly invoking the COOL virtualenv Python before activation did not initially expose `cv2`. During the Step 13 setup, adding only `PYTHONPATH=/opt/cool/python_3.12/site-packages` found the COOL Python package but still failed to import because the native dependency `libopencv_photo.so.501` was not on the dynamic-library path. Adding `LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib` completed the COOL runtime setup. After `deactivate`, COOL-related `PYTHONPATH` and `LD_LIBRARY_PATH` values could also remain inherited, causing the nominal stock virtualenv to import `/opt/cool`.
+- **Resolution:** Activate COOL with `. /opt/cool/venvs/python_3.12/bin/activate` or explicitly set both `PYTHONPATH=/opt/cool/python_3.12/site-packages` and `LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib`; verify `cv2.__file__`; run stock commands with `env -u PYTHONPATH -u LD_LIBRARY_PATH PYTHONNOUSERSITE=1`.
 - **Verified outcome:** Stock loaded OpenCV 5.0.0 from its dedicated virtualenv while COOL loaded OpenCV 5.1.0-dev from `/opt/cool/...` on `aarch64`.
 - **Classification:** **Runtime/environment integration friction**, not an AWS service outage.
 - **Actionable improvement:** Runtime onboarding should prominently document shell assumptions and exported path variables, and provide a standard runtime-identity preflight (`python executable`, `cv2.__version__`, `cv2.__file__`, architecture).
@@ -454,6 +530,27 @@ AWS/Amazon defects.
 - **Classification:** Combination of **least-privilege deployment coordination and our runner's error-state design**. Related to FL-003, but distinct because the compute workload had already succeeded.
 - **Actionable improvement:** Preflight every output prefix before long-running work, and distinguish compute failure from evidence-persistence failure so a late reporting error cannot overwrite the actual processing result.
 
+### ENG-045 - Non-OpenCV dependency mismatch threatened benchmark fairness
+
+- **Date observed:** September 6, 2026.
+- **Task:** Run the reproducible Step 13 stock-OpenCV-vs-COOL benchmark with OpenCV as the intended runtime variable while keeping non-OpenCV Python dependencies identical.
+- **Expected:** Stock and COOL would use the same Python major/minor and the same NumPy version before any timed runs.
+- **Actual:** The isolated stock environment reported Python `3.12.3`, OpenCV `5.0.0` and NumPy `2.5.2`, while COOL reported Python `3.12.3`, OpenCV `5.1.0-dev` and NumPy `2.5.1`. Starting the benchmark in that state would have violated the intended same-dependency control.
+- **Resolution:** Pin only the stock environment to `numpy==2.5.1`, then re-run isolated environment checks. Both environments reported Python `3.12.3` and NumPy `2.5.1`; stock continued to load OpenCV `5.0.0` from its dedicated virtualenv and COOL loaded `5.1.0-dev` from `/opt/cool`.
+- **Verified outcome:** The final benchmark used matching non-OpenCV dependency versions, completed one warm-up plus five measured executions per environment, and passed strict output equivalence.
+- **Classification:** **Our benchmark/reproducibility discipline**, not an AWS, Amazon or OpenCV service defect.
+- **Actionable improvement:** Make dependency-parity validation a mandatory preflight for A/B performance testing and fail before timing if Python or non-target dependency versions differ.
+
+### ENG-046 - Benchmark runner resolved the stock virtualenv interpreter to system Python
+
+- **Date observed:** September 6, 2026.
+- **Task:** Launch the official 12-execution Step 13 benchmark after successful one-run stock and COOL smoke tests.
+- **Expected:** The orchestrator would preserve `/home/ssm-user/stock-opencv/bin/python` and `/opt/cool/venvs/python_3.12/bin/python` as the selected interpreters.
+- **Actual:** The benchmark harness used `Path.resolve()` on the interpreter paths. Because the virtualenv executable was a symlink, the stock path became `/usr/bin/python3.12`. The orchestrator then failed its stock preflight because system Python did not contain the stock OpenCV package, even though the earlier direct smoke test using the virtualenv had succeeded.
+- **Resolution:** Change the harness from `.resolve()` to `.absolute()` for both interpreter paths so path normalization does not dereference the virtualenv symlink. Re-run stock and COOL environment preflights before restarting the official benchmark.
+- **Verified outcome:** Stock again reported OpenCV `5.0.0` from `/home/ssm-user/stock-opencv/...`; COOL reported `5.1.0-dev` from `/opt/cool/...`. The official benchmark then completed all 12 executions and reported COOL `6.817%` faster with `6.814%` lower estimated EC2 compute cost and exact output-equivalence evidence.
+- **Classification:** **Our benchmark harness bug**, not an Amazon/AWS or OpenCV runtime defect.
+- **Actionable improvement:** Treat virtualenv interpreter paths as execution identities rather than canonical filesystem targets; test launcher code with symlinked interpreters before long-running benchmarks.
 **Positive result:** the complete RentReady core workload - video decode/sampling,
 resize/analysis preparation, blur scoring, brightness checks, motion and ORB
 features, HSV comparison, scene segmentation, deduplication and keyframe
@@ -461,3 +558,665 @@ selection - executed under COOL on AWS Graviton and matched the reproduced
 stock baseline exactly for scene boundaries, representative-frame identities
 and selection scores. This is evidence about the pre-existing core workload,
 not a new Amazon Fire TV feature.
+
+
+## September 7 retrospective - Step 14 production COOL worker during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 14 development conversation.**
+
+Step 14 belonged to the pre-existing RentReady Vision/OpenCV project. The work occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before Amazon-specific Fire TV development began. These entries document AWS Graviton4, COOL runtime and deployment integration experiences. They are not claims of defects in Amazon Fire TV, Vega or Amazon SDKs.
+
+### ENG-047 - COOL production-worker bootstrap required explicit runtime paths
+
+- **Date observed:** September 7, 2026.
+- **Task:** Deploy a persistent SQS-consuming RentReady video worker on AWS Graviton4 using the official COOL 3.1 environment and OpenCV 5.1.0-dev.
+- **Expected:** EC2 cloud-init would install the application, initialize the official COOL runtime, import cv2 and start the worker automatically.
+- **Actual:** Initial deployment attempts failed during bootstrap because the COOL Python environment did not automatically expose the cv2 package and required native libraries. This prevented the production worker from starting successfully.
+- **Resolution:** Explicitly configure PYTHONPATH=/opt/cool/python_3.12/site-packages and LD_LIBRARY_PATH=/opt/cool/cpp_sdk/lib in bootstrap and service environments. Validate cv2 imports using the official COOL Python executable. Enforce LF line endings for Linux shell/bootstrap templates, pin the Terraform AWS provider and preserve the existing 1 MiB SQS message-size configuration.
+- **Verified outcome:** cloud-init reached status done. The systemd worker was active and running. Runtime verification returned OpenCV 5.1.0-dev from /opt/cool/python_3.12/site-packages/cv2/__init__.py on aarch64, with COOL_VERSION=3.1 and the expected deployed Git commit.
+- **Severity:** Medium - deployment blocker with a verified configuration workaround.
+- **Classification:** Runtime/bootstrap integration and our deployment configuration; not evidence of an AWS service failure.
+- **Actionable improvement:** Provide a production-service bootstrap example that documents the required Python and native-library environment, verifies cv2 identity before service startup and checks cloud-init completion and systemd status automatically.
+- **Evidence:** Historical Step 14 cloud-init/systemd output, runtime import checks and Git commit d70edee8d9eea9f2c74734cbe7469567066c6e42.
+
+### ENG-048 - Private GitHub source access blocked unattended EC2 deployment
+
+- **Date observed:** September 7, 2026.
+- **Task:** Automatically retrieve the tracked RentReady application source during EC2 cloud-init and launch the production COOL worker.
+- **Expected:** Bootstrap would retrieve the configured repository revision without manual intervention.
+- **Actual:** An initial deployment could not clone the GitHub repository while it was private and unattended bootstrap had no suitable repository credentials. This required another deployment attempt.
+- **Resolution:** The developer made the repository public, allowing the configured Git clone to complete. The final worker checked out the expected Git revision and started successfully.
+- **Verified outcome:** Git reported commit d70edee8d9eea9f2c74734cbe7469567066c6e42, and the worker completed a real SQS processing job.
+- **Severity:** Medium - unattended deployment blocked until source access was corrected.
+- **Classification:** Our source-access and deployment design, not an AWS or GitHub service defect.
+- **Actionable improvement:** Add a repository-access preflight before provisioning expensive EC2 instances. For private source, use a narrowly scoped deployment credential or an authenticated immutable release artifact rather than requiring public repository visibility. Validate that no credentials or secrets are exposed before publishing a repository.
+- **Evidence:** Historical Step 14 Git/bootstrap troubleshooting and successful subsequent worker deployment.
+
+### Step 14 - Positive production validation
+
+The production deployment ultimately passed an end-to-end inspection using:
+
+Browser/API -> S3 -> SQS -> Graviton4 COOL worker -> S3/DynamoDB -> CloudWatch.
+
+- **EC2:** AWS Graviton4 m8g.4xlarge, aarch64.
+- **Runtime:** COOL 3.1, OpenCV 5.1.0-dev, Python 3.12.3.
+- **Source revision:** d70edee8d9eea9f2c74734cbe7469567066c6e42.
+- **SQS:** 1800-second visibility timeout, 20-second long polling, five receives before dead-letter handling.
+- **Processing backend:** graviton4_cool_sqs.
+- **Inspection/job result:** COMPLETE on the first receive.
+- **Measured processing time:** 8.686 seconds.
+- **Measured throughput:** 46.628 source frames per second.
+- **Measured peak memory:** 417.488 MB.
+- **Verification:** passed=true; live_inspection_verified=true; errors=[].
+- **Telemetry:** OPENCV_STARTED, KEYFRAMES_SELECTED, COOL_RUNTIME_VERIFIED and PROCESSING_COMPLETE were observed, along with processing time, FPS and peak memory metrics.
+- **Qualification:** PROCESSING_FAILED was not observed because this successful inspection did not fail. Runtime evidence also recorded git_dirty=true; the reason was not established in this conversation, so a completely clean worker checkout should not be claimed.
+
+The local API required explicit PROCESSING_QUEUE_URL configuration and an appropriate least-privilege SQS producer policy. The final test proved actual asynchronous execution rather than merely verifying that the worker process was running.
+
+**Lessons:** Preflight runtime identity, source availability, IAM producer/consumer permissions and deployment prerequisites before launching or replacing expensive EC2 workers. Preserve machine-readable verification evidence and distinguish application/configuration friction from provider defects.
+
+**Submission classification:** Historical AWS/developer integration learning from the pre-existing OpenCV workload during the hackathon eligibility period. These are historical AWS/developer integration observations, not Amazon Fire TV or Vega defect claims.
+
+### ENG-049 - Nova 2 Lite rejected Bedrock `toolSpec.strict`
+
+- **Date observed:** September 8, 2026.
+- **Task:** Run the first constrained RentReady visible-issue detector against a real completed inspection using Amazon Nova 2 Lite through Amazon Bedrock Converse tool use.
+- **Expected:** The detector's Bedrock tool specification used the documented optional `strict` field to reinforce structured output while forcing the named issue-reporting tool.
+- **Actual:** The live Nova 2 Lite request failed with `ValidationException`: `This model doesn't support the strict field. Remove strict and try again.`
+- **Resolution:** Removed only `"strict": true` from the tool specification. The application continued to force the named tool and independently validate taxonomy categories, confidence, severity and evidence-frame references.
+- **Verified outcome:** The same real inspection then completed successfully. Nova 2 Lite analyzed three existing COOL-selected keyframes, persisted the Step 16 issue report to private S3 and returned Bedrock request ID `bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96`. The live verifier reported `passed=true`, one accepted issue and no errors.
+- **Severity:** Low to Medium - first live model invocation was blocked, but the workaround was small and immediately verifiable.
+- **Classification:** Amazon Bedrock / Nova model-capability and documentation discoverability friction; not evidence of an AWS service outage. The common Bedrock tool schema exposed `strict`, but Nova 2 Lite did not accept that option in this live integration.
+- **Actionable improvement:** Make model-specific structured-tool compatibility explicit in Bedrock documentation and SDK/API guidance, including which models support `strict`. Ideally reject unsupported tool fields during configuration or provide a model-capability example before developers make a paid/runtime invocation.
+- **Evidence:** Step 16 live AWS validation for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, persisted report `inspections/96a7a795-498f-4c6c-96d5-ad3a4d0027b3/issues/step16-visible-issues.json`, and Bedrock request ID `bc4808da-a9cf-466c-b6f6-5a8b7aa2ac96`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. This is useful Amazon product feedback but is separate from the later Fire TV-specific application work.
+
+### ENG-050 - Nova 2 Lite inference-profile IAM required profile and destination model permissions
+
+- **Date observed:** September 9, 2026.
+- **Task:** Run the Step 18 Agentic Vision `inspect_interval` follow-up on the existing Graviton4 COOL worker, then use Amazon Nova 2 Lite through Bedrock to reassess the targeted temporal evidence.
+- **Expected:** The worker role already permitted the configured Nova 2 Lite Bedrock inference path, so the second-stage reassessment would run after COOL/OpenCV returned the requested interval frames.
+- **Actual:** COOL/OpenCV completed the targeted interval work, but the first Bedrock reassessment attempts failed with `AccessDeniedException`. The least-privilege EC2 worker policy did not yet include all resources required by the Nova 2 Lite inference profile.
+- **Diagnosis:** `GetInferenceProfile` showed that the application used the `us.amazon.nova-2-lite-v1:0` inference profile and that authorization also needed the destination Nova 2 Lite foundation-model ARNs in the supported destination Regions. Granting only the apparent local model/profile path was insufficient for this live invocation.
+- **Resolution:** Added only the exact inference-profile and destination foundation-model ARNs to the worker policy for `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream`. A full Terraform plan showed an unrelated EC2 replacement, so only `aws_iam_role_policy.cool_worker` was applied to preserve the already validated Graviton4 worker.
+- **Verified outcome:** The subsequent automatic retry succeeded. Step 18 persisted Bedrock request evidence, changed confidence from `0.8` to `0.9`, produced `ACCEPT_FINDING`, and the live AWS verifier returned `passed=true` with no errors.
+- **Severity:** Medium - the live Agentic Vision reassessment was blocked until the least-privilege Bedrock resources were identified and granted, but no worker rebuild or broad wildcard permission was required.
+- **Classification:** Amazon Bedrock / IAM inference-profile integration friction, not an AWS outage. The authorization behavior was valid; the friction was discovering the complete least-privilege resource set required for a cross-Region inference profile.
+- **Actionable improvement:** Bedrock documentation and IAM examples should make it very explicit that inference-profile invocation can require permission for both the inference-profile ARN and every destination foundation-model ARN returned by `GetInferenceProfile`. A ready-to-use least-privilege policy example or preflight validator would reduce trial-and-error and discourage `Resource="*"` workarounds.
+- **Evidence:** Step 18 live AWS Agentic Vision validation for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, Step-18 job `rv-da3386e4a5680c8aa90281f850edc791`, CloudWatch Agentic Vision events, persisted S3 trace, and `evaluation/step18/live/verification.json`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. This is useful Amazon Bedrock/IAM product feedback but is separate from the later Fire TV-specific application work.
+
+### ENG-051 - Step 19 live validation required separate execution and verification permissions
+
+- **Date observed:** September 14, 2026.
+- **Task:** Deploy and live-validate Step 19 `crop_region` on the existing Graviton4 COOL worker, enqueue the agent-tool job, and verify its S3 and CloudWatch evidence.
+- **Expected:** The existing least-privilege validation path would allow the live Step 19 job to be initiated and its completion telemetry verified without changing identities mid-workflow.
+- **Actual:** The COOL worker could execute `crop_region` successfully once the SQS message existed, but the EC2 worker role did not have `sqs:SendMessage`, so it could not enqueue its own validation job. The same role also lacked `logs:FilterLogEvents`, so `verify_step19_aws.py` could not complete the final CloudWatch event check from the worker.
+- **Resolution:** Keep the production worker role narrowly scoped. Use the developer workstation AWS identity to enqueue the Step 19 SQS message and run the final AWS verifier, while the worker continued to perform only its intended processing role.
+- **Verified outcome:** Job `rv-5129d358aa8dd1d4a5321499ab5f1136` completed on `m8g.4xlarge` / `aarch64` using COOL 3.1 and OpenCV 5.1.0-dev. The crop persisted at `1002x1024`, original source evidence remained unchanged, S3 trace/crop artifacts were present, and `AGENT_TOOL_STARTED`, `AGENT_TOOL_OPENCV_COMPLETE`, and `AGENT_TOOL_COMPLETE` were verified. The live AWS verifier returned `passed=true`.
+- **Severity:** Low to Medium - the processing feature itself worked, but live acceptance required switching to an identity with the additional control-plane permissions.
+- **Classification:** AWS IAM / validation-workflow integration friction, not an AWS outage or incorrect authorization behavior. The least-privilege role boundaries behaved as configured.
+- **Actionable improvement:** Provide a role-aware validation preflight that clearly separates worker execution permissions from test-orchestrator permissions such as SQS enqueue and CloudWatch log inspection. A sample permission matrix for runtime, deployment, orchestration and verification roles would reduce trial-and-error without encouraging broad wildcard policies.
+- **Evidence:** Step 19 live AWS validation for inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`, job `rv-5129d358aa8dd1d4a5321499ab5f1136`, and `evaluation/step19/live_aws_verification.json`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It is separate from the later Fire TV-specific implementation and should not be presented as an AWS service defect.
+
+### ENG-052 - Long-lived worker revision and filesystem ownership drift complicated Step 20 deployment
+
+- **Date observed:** September 14-15, 2026.
+- **Task:** Deploy and live-validate Step 20 `enhance_region` on the existing cost-controlled Graviton4 COOL worker while preserving an auditable connection between the requested source revision, running service and generated evidence.
+- **Expected:** Terraform's configured worker revision, the EC2 repository HEAD, the `GIT_COMMIT` runtime value and the intended Step 20 commit would agree; the worker checkout would be clean and service restart would be reproducible.
+- **Actual:** The worker was intentionally stopped, so the first Systems Manager connection returned `TargetNotConnected` until the instance was started and passed health checks. Terraform still reported the older Step 14 revision `d70edee8d9eea9f2c74734cbe7469567066c6e42`, the EC2 checkout was at `4fb745ecdf867b1174222d5abbec1a5f20c88b71`, and Step 20 required `67d726855aedca743550f6adfd14e2f23041d0a2`. The SSM session ran as `ssm-user` while the repository belonged to `ubuntu`, causing Git's dubious-ownership protection. The checkout also contained retained Step 19 changes and generated `evaluation/runtime` files; some runtime files were root-owned, so `git stash --include-untracked` could not remove them completely. The later Step 20 runtime record therefore honestly reported `git_dirty=true`, even though the exact tracked Step 20 implementation revision was checked out.
+- **Resolution:** Start the worker only when needed and wait for EC2 health checks; stop the service before deployment; perform repository operations explicitly as `ubuntu`; preserve the previous state in a named stash; restore remaining tracked paths after the ownership-related cleanup warning; check out the exact signed Step 20 commit in detached mode; update `/etc/environment` `GIT_COMMIT`; reinstall and restart the COOL worker; and verify the active service and startup logs before enqueueing the live job.
+- **Verified outcome:** Step 20 job `rv-4b566e815c422a0df54ad76e6f8d9cdf` completed on `m8g.4xlarge` / `aarch64` with COOL 3.1 and OpenCV 5.1.0-dev. The live verifier returned `passed=true` with `errors=[]`; contrast adjustment, LAB brightness normalization and sharpening executed; the original evidence was not overwritten; the enhanced view was persisted separately; and the required CloudWatch lifecycle events were present. The EC2 worker was stopped again after validation to control cost.
+- **Severity:** Medium - processing itself worked, but revision drift, mixed file ownership and generated files inside the checkout complicated deployment provenance and increased the risk of validating the wrong source state.
+- **Classification:** Our long-lived EC2 deployment, repository-ownership and provenance discipline. `TargetNotConnected`, Git's ownership protection and least-privilege file permissions behaved as expected; this is not evidence of an AWS, Systems Manager or Git defect.
+- **Actionable improvement:** Use an immutable release artifact or freshly prepared checkout for each worker release. Keep generated runtime evidence outside the source checkout or ignore it explicitly. Maintain one authoritative deployed-revision value, and preflight EC2 state, service account, repository owner, worktree cleanliness, Terraform revision, repository HEAD and runtime `GIT_COMMIT` before processing.
+- **Evidence:** Step 20 deployment and live AWS validation conversation; implementation commit `67d726855aedca743550f6adfd14e2f23041d0a2`; documentation/evidence commit `d29ce523e5ad6813eb7b4ba4fbb9e3654c569886`; inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`; and `evaluation/step20/live_aws_verification.json`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It is separate from the later Fire TV-specific implementation and should not be presented as an AWS service defect.
+
+### ENG-053 - Default nearby-frame sampling missed valid viewpoints near a video boundary
+
+- **Date observed:** September 15, 2026.
+- **Task:** Live-validate Step 21 `inspect_other_angle`, which searches nearby video frames for geometrically verified views of the same candidate region before asking AI whether the issue is visible from multiple viewpoints.
+- **Expected:** The default search window of four seconds before and after the 13.0-second reference, sampled every 0.5 seconds, would return two or three geometrically verified views from the 13.5-second inspection video.
+- **Actual:** The reference was close to the end of the short video, so the forward side of the default window was clipped at 13.5 seconds. The initial run sampled eight candidates, but none passed the ORB/RANSAC geometric checks; only the reference frame remained. The system correctly avoided claiming multi-view confirmation and returned `REQUEST_HUMAN_APPROVAL`, but the live verifier's two-to-five-frame acceptance requirement could not pass.
+- **Resolution:** Repeat the bounded search with `search_seconds_before=1.0`, `search_seconds_after=0.4`, `sample_every_seconds=0.1`, `max_results=3` and the unchanged `min_viewpoint_change=0.06`. This denser, reference-centered search sampled 14 candidates and geometrically matched eight.
+- **Verified outcome:** The successful job selected Frame A at 12.6 seconds, reference Frame B at 13.0 seconds and Frame C at 13.4 seconds. Amazon Nova 2 Lite confirmed the same region or object and visibility across multiple viewpoints. Confidence increased from 0.80 to 0.95, the final action became `ACCEPT_FINDING`, and `scripts/verify_step21_aws.py` returned `passed=true` with `errors=[]`.
+- **Severity:** Medium - the AWS pipeline and conservative decision behavior worked, but the default temporal sampling was too coarse near the video boundary to satisfy the intended multi-view validation on the first run.
+- **Classification:** Our OpenCV agent-tool defaults and edge-of-video sampling strategy, not an AWS, Bedrock, COOL, SQS or Graviton failure.
+- **Actionable improvement:** Center sampling explicitly around the reference in both directions and adaptively densify the search near video boundaries. If fewer than two valid views survive geometry checks, automatically retry with a smaller interval before requesting human review.
+- **What worked well:** SQS dispatch, the Graviton4 COOL worker, OpenCV ORB/RANSAC processing, Bedrock assessment, S3 evidence persistence, DynamoDB state and CloudWatch lifecycle logging all operated correctly. The verifier also confirmed derived-image hashes and original-video immutability.
+- **Evidence:** Initial job `rv-d79e7dce6e39e07b8b8b4f4d16a9430a`; successful job `rv-8d430190e1ad65696dcfdb045837caf6`; inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`; implementation commit `f0f1d0ad712d0c857ca4da0a637ece611b9fc9a8`; and `evaluation/step21/live_aws_verification.json`.
+- **Submission classification:** Historical engineering learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It is separate from the later Fire TV-specific implementation and should not be presented as an Amazon service defect.
+
+## September 18 retrospective - Step 23 live AWS validation during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 23 deployment and live-validation conversation.**
+
+Steps 23 and 24 belonged to the pre-existing RentReady Vision/OpenCV project. The work occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before Amazon-specific Fire TV development began. This entry documents AWS CLI, Windows PowerShell, Systems Manager and DynamoDB command-line integration friction. It is not a claim of an AWS service outage or a new Fire TV feature.
+
+### ENG-054 - PowerShell/AWS CLI boundary complicated structured JSON submission and result retrieval
+
+- **Date observed:** September 18-19, 2026.
+- **Task:** Deploy and verify Step 23 through AWS Systems Manager, then read the persisted Step 24 DynamoDB metadata from Windows PowerShell.
+- **Expected:** PowerShell-generated JSON values could be passed directly to `aws ssm send-command --parameters` and `aws dynamodb get-item --key`, with completed results displayed locally.
+- **Actual:** During Step 23, the first inline SSM `--parameters` invocation failed before submission with `Invalid JSON`; quotation marks around property names, command strings and array values were lost at the PowerShell/native-command boundary. A later completed SSM result also failed to render locally with a Python `charmap` error because `systemctl status` returned Unicode symbol U+25CF. During Step 24, a key produced with `ConvertTo-Json -Compress` reached AWS CLI as `{SK:{S:METADATA},PK:{S:INSPECTION#...}}`, again losing required quotation marks, and `dynamodb get-item` returned `ParamValidation: Invalid JSON`.
+- **Resolution:** For Step 23, write the complete SSM request to a temporary JSON file and use `--cli-input-json file://...`. For Step 24, write the DynamoDB key to a temporary JSON file and use `--key file://...`. Use ASCII-safe service checks when returning command output through the Windows console.
+- **Verified outcome:** Systems Manager executed the valid Step 23 request and live validation passed all 17 checks. The file-backed Step 24 DynamoDB request returned `issue_detection_status=COMPLETE`, the expected Step 24 S3 report key, consolidation version `rentready-issue-consolidation/1.0`, one raw issue and one consolidated issue. Step 24 live validation passed 12/12 checks. No EC2 worker start was required because the API-side consolidation reused existing S3 keyframes while invoking live Bedrock, S3 and DynamoDB services.
+- **Severity:** Low to Medium - deployment and validation work was delayed, but no remote command or AWS resource was damaged and both workarounds were deterministic.
+- **Classification:** AWS CLI / Windows PowerShell structured-argument serialization and console-encoding integration friction. Systems Manager and DynamoDB processed valid file-backed requests correctly; this is not evidence of an AWS service failure.
+- **Actionable improvement:** Provide prominent Windows PowerShell examples using `file://` JSON inputs for structured AWS CLI parameters across services, including `--cli-input-json`, `--parameters` and DynamoDB `--key`. Document UTF-8 console/output handling and clearly distinguish successful AWS execution from client-side serialization or rendering failures.
+- **Evidence:** Historical Step 23 and Step 24 console output; Step 23 implementation commit `5426e42afce6d824993aba0d65a19aff4f5df987`; Step 24 implementation commit `a00a08cacb7e235fb548ed1f64141ccde63fb1eb`; inspection `96a7a795-498f-4c6c-96d5-ad3a4d0027b3`; `evaluation/step23/live_aws_verification.json`; and `evaluation/step24/live/verification.json`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It is separate from the later Fire TV-specific implementation.
+
+**Deliberate non-duplication:** Step 24 reproduced the same structured-JSON boundary already recorded by ENG-054, so it is incorporated here rather than assigned a second incident ID. Repository revision drift and Markdown/PowerShell escaping are already covered by `ENG-052`, `ENG-019`, `ENG-026`, and `ENG-040`.
+
+### ENG-055 - Step 28 snapshot import introduced unrelated tracked changes and generated bytecode noise
+
+- **Date observed:** September 18-23, 2026.
+- **Task:** Import the extracted Step 28 polished-report snapshot into the clean RentReady Vision repository, validate it and publish the intended implementation.
+- **Expected:** Copying the Step 28 source would modify only the files required for the polished rental-readiness report.
+- **Actual:** The full-directory `robocopy` completed successfully but also replaced older tracked Step 22-27 documentation and evaluation files with versions from the extracted snapshot. After testing, tracked Python `.pyc` files under `__pycache__` were also modified. The resulting Git status mixed the intended Step 28 work with unrelated historical and generated-file changes, increasing the risk of committing an inaccurate source history.
+- **Resolution:** Restore the unrelated Step 22-27 paths, restore all tracked `.pyc` files with a Git pathspec, stage an explicit 13-file Step 28 allowlist, inspect the staged diff and run focused and complete validation before committing.
+- **Verified outcome:** Eleven focused tests passed, the Step 28 verifier passed 11/11 checks, the complete suite passed 153 tests, and `git diff --cached --check` reported no errors. The isolated Step 28 implementation was committed as `9485eafa03bfe75d599ee8b5630a74b0e8aa8cd0` and local `main` matched `origin/main`.
+- **Severity:** Low to Medium - no source or remote history was damaged, but manual cleanup was required and an unchecked bulk commit could have included unrelated revisions and generated bytecode.
+- **Classification:** Our archive-transfer and repository-hygiene workflow, not an Amazon, AWS, GitHub, Git or Robocopy defect. This complements ENG-052 but concerns a distinct local snapshot-import incident rather than EC2 deployment ownership and revision drift.
+- **Actionable improvement:** Transfer changes as a Git commit, patch or explicit file manifest instead of copying a complete source snapshot over a repository. Do not track generated Python bytecode; use a dry-run comparison before bulk copying and stage an explicit allowlist after imports.
+- **Evidence:** Historical Step 28 PowerShell output, staged 13-file diff, local verifier results, complete test-suite results and implementation commit `9485eafa03bfe75d599ee8b5630a74b0e8aa8cd0`.
+- **Submission classification:** Historical internal engineering learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It should not be presented as an Amazon or AWS product defect.
+## September 23 retrospective - Step 31 demo preparation during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical September 23 Step 31 / organizer-check-in preparation conversation.**
+
+This preparation occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV implementation began. The rehearsal intentionally used the stable Step 30 RentReady Vision application rather than retaining the temporary Step 31 evidence-panel changes. The incident below concerns deployment/runtime coordination and user-visible processing status, not an AWS service outage.
+
+### ENG-056 - Queued processing looked stuck when the Graviton4 worker was stopped and on an older Git revision
+
+- **Date observed:** September 23, 2026.
+- **Task:** Rehearse a live RentReady Vision organizer demonstration by uploading the previously validated short walkthrough and running the normal S3 -> SQS -> AWS Graviton4 COOL/OpenCV processing path.
+- **Expected:** After upload, the short walkthrough should move quickly from queued processing through OpenCV evidence extraction and into the final report.
+- **Actual:** The browser remained on `Extracting useful frames` for more than five minutes even though the local FastAPI server was healthy. Inspection status showed `QUEUED` on the `graviton4_cool_sqs` backend with no worker receive event. The Graviton4 EC2 instance had intentionally been stopped to control cost. After the instance was started, the worker received the message but changed the inspection to `RETRY_PENDING` because its deployed Git revision `5426e42afce6d824993aba0d65a19aff4f5df987` did not match the queued Step 30 job revision `20bb7112522e370369474b9c4790df3ed1ea62d9`.
+- **Resolution:** Stop the worker service before further retries, update the EC2 checkout to the exact Step 30 commit, update `GIT_COMMIT` in the worker environment, reinstall/restart `rentready-cool-worker.service`, and verify the COOL runtime before allowing the queued job to retry.
+- **Verified outcome:** The original queued inspection recovered without another upload and completed successfully on AWS Graviton4 using COOL 3.1 and OpenCV 5.1.0-dev. Runtime verification passed on `aarch64`; the worker reported the expected Step 30 Git commit. The 405-frame walkthrough was reduced to 14 sampled frames and 3 representative frames. Core processing completed in 5.459 seconds at 74.183 source frames/second, with `PROCESSING_COMPLETE` and no error.
+- **Severity:** Medium during demo preparation - the application appeared hung and could have disrupted a live organizer walkthrough, but no data was lost and the queued job recovered once the worker state was corrected.
+- **Classification:** Primarily **our deployment/runtime-preflight and status-UX design**, not an AWS failure. The worker's revision guard behaved correctly by refusing to process a job with different source code. This is related to ENG-052's earlier deployment-revision discipline, but the distinct lesson here is live operational readiness and user-visible queue state before a demonstration.
+- **Actionable improvement:** Add a demo/startup preflight that verifies EC2 state, worker-service health, SQS consumer readiness and worker/app Git-revision agreement before accepting a live analysis. In the UI, distinguish `QUEUED`, `WAITING_FOR_WORKER`, `PROCESSING` and `RETRY_PENDING` rather than displaying `Extracting useful frames` for the entire initial processing poll.
+- **What worked well:** Private S3 upload, SQS persistence, the Git-revision safety check, Systems Manager access, COOL runtime verification and retry recovery all behaved safely. Once the worker was correctly aligned, no re-upload or manual reconstruction of the inspection was required.
+- **Submission classification:** Historical engineering/product-UX learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon eligibility period. It should not be presented as an Amazon or AWS service defect.
+
+## September 29 retrospective - Step 34B Bedrock model access during the Amazon hackathon window
+
+This occurred during the pre-existing RentReady/OpenCV detector development, before the Fire TV extension.
+
+### ENG-058 - Active inference profile did not mean Anthropic model access was ready
+
+- **Date observed:** September 29, 2026.
+- **Task:** Compare a Claude Sonnet 4.5 detector trial on the Compass and Quimby houses development clips using Bedrock Converse in `us-west-2`.
+- **Expected:** An `ACTIVE` inference profile would indicate that the model was ready for an account-authorized Converse request, or a preflight would clearly identify the remaining access step.
+- **Actual:** `get_inference_profile` returned `ACTIVE` for `us.anthropic.claude-sonnet-4-5-20250929-v1:0`, but `Converse` raised `ResourceNotFoundException` saying, "Model use case details have not been submitted for this account." A retry shortly after submitting the Anthropic use-case form returned the same message and advised trying again after 15 minutes.
+- **Resolution and outcome:** A later development trial completed on all 21 clips. The exact access-activation time and mechanism were not measured.
+- **Severity:** Medium; the model comparison was temporarily blocked.
+- **Classification:** Bedrock account/model-access onboarding and error clarity for a third-party model. This is not evidence of a Bedrock inference outage or a Fire TV SDK defect.
+- **Actionable improvement:** Show model-use eligibility separately from inference-profile status. For an existing active profile, return an access-specific error that identifies the form, account status, region and any propagation delay.
+- **Evidence:** September 29 Step 34B PowerShell profile lookup and Python boto3 `Converse` errors, followed by the completed development trial. No account identifiers or property footage are needed in submitted feedback.
+
+## October 17 retrospective - Step 34 held-out detector evaluation during the Amazon hackathon window
+
+### ENG-057 - Held-out evaluation exposed an over-conservative detector with zero defect recall
+
+- **Date observed:** October 17, 2026.
+- **Task:** Measure real clip-level precision and recall on the fixed Mozart house property-held-out test split while using Amazon Nova 2 Lite (`us.amazon.nova-2-lite-v1:0`) in the existing RentReady Vision inspection pipeline.
+- **Expected:** The frozen detector would identify at least some of the 8 known defect-positive clips while maintaining a manageable false-positive rate.
+- **Actual:** Across 23 held-out clips, the final detector produced no positive predictions: **TP=0, TN=15, FP=0, FN=8**. Recall was **0%**, precision was undefined because `TP + FP = 0`, specificity was **100%**, and false positives/video were **0**.
+- **Diagnosis status:** The result establishes an over-conservative end-to-end detector configuration, but it does **not** establish that Amazon Nova 2 Lite or Amazon Bedrock caused the failure. The missing detections could originate in OpenCV evidence selection, keyframe coverage, Nova candidate generation, confidence filtering, consolidation, or downstream decision policy.
+- **Resolution / next action:** Preserve the Mozart house result unchanged as the v1 held-out evaluation. Diagnose and improve the detector using only the separate Compass + Quimby development data, then freeze a new configuration before evaluating on a new unseen property. Do not tune directly against the Mozart house test results.
+- **Learning:** False-positive control alone is not sufficient evidence of detector quality. Evaluation should expose both precision and recall, and the pipeline should preserve stage-by-stage evidence so developers can determine whether missed findings originate before or after multimodal inference.
+- **Classification:** Our detector/evaluation engineering limitation and observability gap, **not an established Amazon Bedrock, Nova, AWS, OpenCV or COOL defect**.
+- **What worked well:** The existing AWS/COOL pipeline completed the held-out evaluation reproducibly, and the separately measured COOL benchmark remained positive: **6.817% faster wall-clock**, **7.324% higher throughput**, and **6.814% lower estimated compute cost** than stock OpenCV 5 on the same benchmark configuration.
+- **Evidence:** Step 34 artifacts `STEP34_PRECISION_RECALL.md`, `evaluation/step34/clip_predictions.csv`, `evaluation/step34/clip_metrics.json`, and `evaluation/step34/cool_vs_stock_benchmark.json`; Git commit `33788c31bac484cbac735be4fe2c98e8514f52ac`.
+- **Submission classification:** Historical engineering learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It may be useful as responsible product-development feedback, but should not be presented as an Amazon service defect.
+
+#### ENG-057 follow-up â€” Step 34A isolated the actual recall failure points
+
+- **Development dataset:** Only the separate **Compass and Quimby houses** development positives were used. The frozen Mozart house Step 34 test results were not changed or used for tuning.
+- **Task:** Trace each known-positive defect through OpenCV sampling, quality filtering, scene analysis, deduplication, keyframe selection, Amazon Nova 2 Lite candidate detection, the `0.65` confidence gate, consolidation, decision policy and final detector output.
+- **Finding 1 â€” pre-AI loss:** The Quimby house water-drip defect was not represented in the selected keyframes. One brief drip was removed during near-duplicate handling and another fell between the 1 Hz samples, so Nova never received defect-visible evidence for those intervals.
+- **Finding 2 â€” multimodal candidate-generation misses:** Five other known defects were visibly represented in the selected keyframes sent to Amazon Nova 2 Lite, but the model emitted **no candidate** for the annotated defect. Those misses therefore occurred before confidence filtering, consolidation or decision policy.
+- **Finding 3 â€” successful candidate path:** The Quimby house vanity-mounting damage produced a Nova candidate with confidence **0.85**. It passed the existing **0.65** confidence threshold, survived consolidation, was routed as `INVESTIGATE_CANDIDATE`, and remained present in the final detector issues.
+- **Reinspection observation:** Targeted 6 fps reinspection contained defect-visible evidence for **8/8 annotated development intervals**. However, the current application recovery path is candidate-triggered, so a defect for which the initial model emits no candidate cannot automatically request that reinspection.
+- **Product-quality interpretation:** Lowering the confidence threshold alone would not address the dominant misses observed in this development set. Five defect-visible inputs reached Nova but generated no candidate at all. This is useful **task-specific Nova 2 Lite model-quality feedback under the tested prompt, keyframes and RentReady workload**, not evidence that Nova generally fails at visual defect detection.
+- **Engineering interpretation:** The transient water-drip miss remains an issue in our own sampling/keyframe pipeline rather than a Nova failure.
+- **What worked well:** Bedrock inference completed successfully, the model returned structured tool-use output, the confidence/consolidation path behaved correctly for the detected vanity finding, and the stage-by-stage diagnostic made it possible to distinguish OpenCV evidence loss from multimodal model misses.
+- **Evidence:** `STEP34A_RECALL_DIAGNOSIS.md` and `evaluation/step34a/` in RentReady Vision commit `8f360d8`.
+- **Submission classification:** Useful follow-up to ENG-057. Present the five no-candidate cases as bounded model-quality/product feedback, while keeping the water-drip failure and candidate-triggered recovery limitation attributed to our own pipeline/application design.
+
+## September 30 retrospective - Step 35 evaluation during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 35 development console output and owner-reviewed measurements.** This work belonged to the pre-existing RentReady/OpenCV project, before the Fire TV extension. It is not claimed as a new Amazon-specific feature.
+
+### ENG-050 follow-up - Step 35 also required explicit Sonnet inference-profile authorization
+
+- **Date observed:** September 30, 2026.
+- **Task:** Compare two-second frame sampling, OpenCV selection and bounded agent reinspection using the same frozen Nova 2 Lite and Claude Sonnet 4.5 detector configuration.
+- **Expected:** The EC2 worker could invoke both configured models before starting the evaluation.
+- **Actual:** The first evaluation stopped with Bedrock `AccessDeniedException` on the Sonnet inference profile. The worker role permitted Nova but did not permit the required Sonnet invocation.
+- **Resolution:** Inspect the inference profile and its destination models; add a temporary `bedrock:InvokeModel` policy for the exact Sonnet profile and its three US destination foundation-model ARNs, with the foundation-model permissions conditioned on the profile ARN. Remove the temporary policy after AI evaluation completed; verify that only the original worker policy remained.
+- **Severity:** Medium; evaluation was blocked until the worker's permissions matched the frozen two-model configuration.
+- **Classification:** Correct least-privilege IAM enforcement and our model-permission preflight gap, not an AWS outage. This extends ENG-050 rather than creating a duplicate incident. It is separate from ENG-058's account-level Anthropic use-case onboarding.
+- **Actionable improvement:** Preflight every configured model against the actual execution role, including cross-Region profile destinations, before launching a paid evaluation. Provide scoped IAM examples and an explicit temporary-policy cleanup step.
+- **Evidence:** Step 35 first-run AccessDenied output, inspected worker policy, inference-profile destination lookup, successful later model calls and confirmed temporary-policy removal.
+
+### ENG-059 - Tool-result validation stopped evaluation and exposed a need for bounded, fully accounted recovery
+
+- **Date observed:** September 30, 2026.
+- **Tool/context:** Python boto3 Bedrock Converse, the shared Nova 2 Lite / Claude Sonnet 4.5 detector wrapper and our Step 35 response validator.
+- **Task:** Complete three controlled evaluation pipelines across 21 development clips from the Compass and Quimby houses.
+- **Expected:** Each returned response would contain exactly one detail-scan tool result accepted by the application's validator, or the evaluator would preserve the response and account for the unsuccessful attempt.
+- **Actual:** The second evaluation attempt stopped with `ValueError: Expected exactly one valid detail-scan tool result`, after completing 5 baseline, 5 OpenCV-selection and 6 agentic clip runs. A returned response failed our application-level contract. This error alone does not establish whether the underlying cause was missing tool use, multiple results, invalid content or another parser/model-contract mismatch.
+- **Resolution:** Add a shared recovery wrapper with at most three total identical requests for this exact validation failure. Save returned responses and a per-request journal. Include rejected attempts in request, image, token, model-time and estimated AI-cost accounting. Stop on exhausted attempts, SDK errors or missing token usage; do not treat failed validation as a clean negative finding.
+- **Controlled comparison:** Apply the same recovery policy to A, B and C, advance the evaluation profile to 1.1, and restart in a fresh output directory. Keep all 22 frozen detector source files unchanged.
+- **Verified outcome:** Local focused validation passed 20 tests with one Linux-only skip; AWS validation passed all 21 tests. The fresh run completed all 63 clip/pipeline executions. Its console recorded a Nova 2 Lite validation retry before successful completion. Owner review subsequently completed for every final finding.
+- **Severity:** Medium; a long evaluation stopped partway through and required a protocol update and fresh run.
+- **Classification:** Bedrock structured-response integration and our evaluator's validation/recovery design, not a confirmed AWS service outage or boto3 defect. Unlike ENG-049, this was not rejection of the `strict` request field; unlike ENG-011, it concerned the earlier multi-clip detector evaluation rather than the later TV briefing cache.
+- **Actionable improvement:** Provide model-specific tool-use examples that cover absent or invalid tool results, response diagnostics, bounded retry behavior and token/cost accounting for every returned attempt. Evaluators should journal responses before parsing and preserve failed pilot records separately from final comparison results.
+- **Evidence:** Step 35 failed-run traceback and completion counts; recovery implementation commit `2a7e0e6`; focused test and frozen-source verification output; completed 21/21 runs for each pipeline; README results commit `6b4c778` and milestone `step35-final`.
+
+**Positive outcome and limits:** The separate same-instance Graviton4 benchmark passed output equivalence. Across five measured runs per runtime, median runtime was 164.217 seconds for stock OpenCV 5.0.0 and 153.984 seconds for COOL/OpenCV 5.1.0-dev, about 6.2% lower. Python version, hardware, video, application code and runtime settings were controlled; the OpenCV builds/versions differed, so this is not a pure same-version optimization comparison. Individual function results included improvements, no material benefit and regressions.
+
+**Agentic interpretation:** Owner-reviewed interval recall was 1/9 for A, 1/9 for B and 2/9 for C. C's confirmed detections originated in its initial pass; reinspection recovered no additional confirmed defects and added two false positives. B/C selected identical initial frames in all 21 clips, but their initial findings differed in two clips. These results do not establish a causal recall benefit from reinspection, and they are development measurements rather than unseen-property performance.
+## September 30-October 1 retrospective - Step 36 agentic-verification measurement
+
+**Recorded October 17, 2026, from the historical Step 36 RentReady/OpenCV development conversation and frozen measurement artifacts.** This work was performed during the Amazon Developer Hackathon eligibility window but belonged to the pre-existing RentReady/OpenCV project before the Amazon-specific Fire TV extension. These observations are not claimed as Fire TV features or automatic AWS/Amazon defects.
+
+### ENG-060 - Initial benchmark implementation replaced the frozen pre-agent state
+
+- **Date observed:** September 30-October 1, 2026.
+- **Task:** Measure agentic verification separately by comparing each ambiguous finding's frozen initial assessment, bounded agent investigation and final assessment.
+- **Expected:** The Step 35 source confidence that originally routed a candidate into the `0.50-0.85` investigation band would remain the fixed **before-agent** state. Only the subsequent investigation tools would be allowed to change the assessment.
+- **Actual:** The first Step 36 runner made a fresh model assessment of the reference frame before deciding whether investigation was required. For the first development candidate, the frozen Step 35 confidence was **0.80 / INVESTIGATE**, but the new call returned **0.90 / PRESENT**. Because that result was already terminal, the agent investigation was skipped. This destroyed the intended before/after comparison and could make an agentic benchmark appear successful without exercising the agent tools.
+- **Resolution:** Changed the executor so the initial Step 36 assessment imports the frozen Step 35 `source_confidence`, source model and source stage. No fresh model call is made before routing. The model is invoked only after an actual evidence tool is used.
+- **Verified outcome:** The corrected development measurement routed all three selected ambiguous development candidates through `INVESTIGATE`; each used `inspect_interval()` once and was re-evaluated. The focused Step 36 validation suite passed **9 tests** after the contract was corrected.
+- **Severity:** Medium for evaluation integrity; the application itself was not blocked, but the original measurement would not have validly isolated agentic improvement.
+- **Classification:** **Our benchmark/evaluation-harness bug**, not an Amazon Bedrock, Nova, AWS, OpenCV or COOL defect.
+- **Actionable improvement:** Agentic evaluation tooling should preserve and fingerprint the exact pre-agent state, prohibit an unaccounted model call before routing, and include a test proving that an ambiguous source case actually enters the intended investigation path.
+- **Evidence:** `STEP36_AGENTIC_VERIFICATION.md`, `scripts/measure_step36_agentic.py`, `tests/test_step36_agentic_verification.py`, and final Step 36 implementation commit `616b36f`.
+
+### ENG-061 - Temporal persistence made a staged false positive more confident before early stopping
+
+- **Date observed:** September 30-October 1, 2026.
+- **Tool/context:** OpenCV `inspect_interval()` evidence followed by Amazon Nova 2 Lite reassessment through Bedrock, under the frozen Step 36 investigation policy.
+- **Task:** Test whether bounded agentic evidence gathering could resolve naturally ambiguous findings on a separate fixed challenge set without tuning against the challenge results.
+- **Expected:** Temporal evidence would help distinguish supported findings from unsupported look-alikes, with later `crop_region`, other-angle evidence and final verification available when ambiguity remained.
+- **Actual:** The ground-truth PRESENT cabinet/trim candidate moved from **0.85 / INVESTIGATE** to **0.90 / PRESENT** after `inspect_interval()` and was correctly recovered. The ground-truth ABSENT staged removable surface mark also persisted across the sampled frames, so the Nova reassessment moved from **0.85 / INVESTIGATE** to **1.00 / PRESENT**. Temporal persistence established that the visible mark remained in the scene, but did not establish that it was an actual stain or damaged material rather than a removable look-alike.
+- **Stopping-policy interaction:** The frozen policy stops after the first confident re-evaluation. Because the negative candidate became confidently PRESENT after `inspect_interval()`, it did **not** proceed to `crop_region()`, other-angle evidence or the final `verify()` stage.
+- **Verified outcome:** The one-time frozen challenge resolved **2/2 ambiguous candidates**, used **1.0 agent tool call per investigated candidate**, produced **0 unnecessary tool calls** and recovered **1/1 real ambiguous finding**, but rejected **0/1 negative ambiguous findings**. Final strict binary accuracy was **1/2 (50%)**. The failed negative was retained rather than tuning and rerunning the frozen challenge.
+- **Severity:** Medium as a bounded product-quality/stopping-policy finding; the challenge contained only two candidates and is not a statistically robust estimate of general production accuracy.
+- **Classification:** **Task-specific model/product-quality plus our stopping-policy interaction**, not evidence of an AWS service outage or a general claim that Nova cannot perform visual verification.
+- **Actionable improvement:** Do not treat persistence alone as proof of physical defect type. For categories where removable material, reflections, shadows or other look-alikes are plausible, an agent policy should consider whether the evidence has answered the relevant semantic question before terminating solely because confidence crossed a threshold.
+- **Evidence:** `evaluation/step36/challenge_candidates_v1.json`, `challenge_freeze_v1.json`, `challenge_final_v1/measurement.json`, candidate result records, `STEP36_AGENTIC_VERIFICATION.md`, and implementation commit `616b36f`.
+
+**Benchmark-set construction note:** After the policy was frozen, the held-out Mozart material did not naturally produce candidates inside the Step 36 `0.50-0.85` investigation band under the tested frozen proposal/assessment process; outputs were generally terminal rather than ambiguous. Rather than lower thresholds, alter labels or manufacture intermediate confidence values, a separate fixed challenge-media set was created. Only naturally generated ambiguous proposals were admitted and the challenge was frozen before the final measurement. This is useful evaluation-design context but is **not recorded as a separate Amazon friction incident**.
+
+**Step 36 positive result and limitation:** The experiment demonstrated a reproducible path from an ambiguous source finding through targeted OpenCV evidence gathering to a successful Nova/Bedrock reassessment, while also preserving a concrete negative result showing that more temporal evidence can make a visible look-alike more confidently wrong. The result therefore supports bounded agentic verification as a measurable workflow while showing why tool selection and stopping criteria must be evaluated separately from raw confidence.
+
+## October 2 retrospective - Step 38 reproducible COOL deployment during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 38 deployment-hardening conversation.**
+
+Step 38 belonged to the pre-existing RentReady Vision/OpenCV deployment and occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV implementation began. This entry records AWS Graviton4 / COOL deployment-integration friction encountered during the hackathon period. It is not a claim about Fire TV, Vega or an Amazon SDK.
+
+### ENG-062 - Reproducible COOL deployment exposed EC2 egress, package-install and executable-permission assumptions
+
+- **Date observed:** October 2, 2026.
+- **Tool/context:** AWS EC2 Graviton4 `m8g.4xlarge`, official OpenCV COOL 3.1 AWS Marketplace AMI, Terraform, private S3 deployment artifact, Systems Manager, cloud-init and AWS CLI v2.
+- **Task:** Replace the earlier mutable Git-clone worker bootstrap with a deterministic, versioned `rentready-vision-cool-worker` artifact stored in S3, pinned by SHA-256 and verified before extraction.
+- **Expected:** Terraform would launch the official COOL Marketplace AMI, download the immutable worker artifact, verify its checksum, install the worker and register the instance with Systems Manager without manual repair.
+- **Actual:** Three bootstrap assumptions surfaced during live deployment. First, the selected subnet had an Internet Gateway but no NAT gateway; with no public IPv4 address, the instance could not register with SSM or reach the external endpoints needed by bootstrap. Second, the COOL AMI had `curl`, `python3` and `tar` but not `aws` or `unzip`; Ubuntu package-repository connections timed out, so installing `awscli`/`unzip` through APT failed even though direct HTTPS access to the AWS CLI download worked. Third, extracting the AWS CLI ZIP with Python `zipfile` did not preserve executable bits, causing `/tmp/aws/install: Permission denied`.
+- **Resolution:** For the existing VPC topology, enable a public IPv4 address on the worker. Remove the APT dependency by downloading AWS CLI v2 directly over HTTPS with `curl` and extracting it with Python `zipfile`. Explicitly restore execute permissions on `/tmp/aws/install`, `aws` and `aws_completer` before installation. Continue deploying the application from the exact S3 object and verify its SHA-256 before extraction.
+- **Verified outcome:** Final cloud-init completed successfully. The immutable artifact was installed under `/opt/rentready-vision/releases/<version>` with `/opt/rentready-vision/current` pointing to it. The worker service was active. `verify_runtime.py` passed with no errors on Graviton4, reporting COOL 3.1, OpenCV 5.1.0-dev from `/opt/cool`, `aarch64`, the expected source commit/artifact version and matching SHA-256.
+- **Severity:** Medium - repeated deployment attempts were required, but each blocker had a safe verified workaround.
+- **Classification:** **Deployment/runtime integration plus our networking/bootstrap assumptions.** The package-repository and permission failures are not evidence of an AWS service outage, and the public-IP requirement was a consequence of the selected VPC/subnet topology.
+- **Actionable improvement:** For Marketplace runtime onboarding, clearly document the tools guaranteed to be present in the AMI, recommended SSM/S3 egress patterns for public and private subnets, and a known-good unattended bootstrap example. On the application side, preflight network reachability, required commands and executable permissions before replacing the production worker.
+- **Evidence:** `STEP38_AWS_COOL_HARDENING.md`, `evaluation/step38/final_runtime_verification.json`, final application artifact/source commit `4f9a5f9e7c4aca60da38227aa064104c479f4751`, and the October 2 Step 38 deployment console output.
+
+**Positive result:** The final design removed GitHub from the judge/demo bootstrap path and produced a reproducible Graviton4 worker deployment using the official COOL Marketplace runtime plus an immutable, SHA-256-pinned RentReady application artifact. This is evidence about the pre-existing AWS/OpenCV workload during the hackathon window, not a new Amazon Fire TV feature.
+
+## October 3 retrospective - Step 39 S3 retention and worker deployment
+
+Recorded October 17, 2026 from the historical Step 39 conversation.
+These observations concern the pre-existing RentReady/OpenCV workload during
+the Amazon hackathon window, before Amazon-specific Fire TV development.
+
+### ENG-063 - Broad prototype S3 expiration also covered retained inspection evidence
+
+- **Date observed:** October 3, 2026.
+- **Tool/context:** Amazon S3 lifecycle configuration; our storage and retention design.
+- **Task:** Expire original walkthrough videos while retaining frames, reports and issue evidence.
+- **Expected:** Expiration would identify original videos specifically.
+- **Actual:** The existing `expire-prototype-video` rule applied 30-day expiration to the entire `inspections/` prefix, covering non-video artifacts too.
+- **Severity:** Medium configuration risk, resolved. No actual evidence loss or lifecycle deletion was demonstrated.
+- **Resolution:** Disable the broad rule; use prefix-plus-tag filters for current and noncurrent original-video expiration in both inspection namespaces. Keep multipart-upload and expired-delete-marker cleanup separate. Merge configuration while preserving unrelated rules.
+- **Verified outcome:** Live lifecycle and new-inspection verification passed without errors. The video had its retention tag and expiration header; three keyframes and one preserved issue evidence frame were checked.
+- **Classification:** Our overbroad prototype configuration, not incorrect S3 behavior.
+- **Actionable improvement:** Provide artifact-specific retention examples and preflight checks showing which non-video objects a broad rule would cover. Distinguish configured expiration from proof of actual deletion.
+
+### ENG-064 - Worker update initially planned EC2 replacement instead of an in-place deployment
+
+- **Date observed:** October 3, 2026.
+- **Tool/context:** Terraform AWS provider, EC2, Systems Manager and our worker deployment workflow.
+- **Task:** Update the worker while preserving the existing Graviton4 instance and COOL runtime.
+- **Expected:** Apply IAM and deployment changes without unnecessarily replacing the worker.
+- **Actual:** Terraform initially planned one addition, one update and one destruction. After disabling replacement on user-data changes, JSON plan inspection still identified `associate_public_ip_address` changing from false to true as the replacement trigger while the worker was stopped.
+- **Severity:** Medium deployment workflow friction, resolved before applying a destructive plan.
+- **Resolution:** Inspect `change.replace_paths`, start the existing worker, confirm its public IP, and regenerate the plan. The revised plan required zero additions, two updates and zero destructions.
+- **Verified outcome:** Terraform applied without adding or destroying resources. The checksum-verified release was explicitly installed through Systems Manager, the worker restarted, both COOL runtime checks passed, and a new inspection completed.
+- **Classification:** Our deployment configuration and Terraform/EC2 state interaction; no established AWS service defect or universal Terraform bug.
+- **Actionable improvement:** Surface replacement-triggering fields during deployment preflight and review stopped-instance network state before accepting replacement. Document that changing EC2 user data alone does not install a new application release on an existing instance.
+
+**Evidence:** October 3 Step 39 console output and
+[Step 39 completion documentation](https://github.com/vincentwenger/rentready-vision/blob/cb02d7d/STEP39_S3_STORAGE.md).
+
+## October 4 retrospective - Step 40 security verification
+
+Recorded October 17, 2026 from the historical Step 40 conversation.
+These incidents occurred in the pre-existing RentReady/OpenCV workload
+during the Amazon Developer Hackathon window, before Amazon-specific
+Fire TV implementation. They are not new Fire TV features or established
+Amazon service defects.
+
+### ENG-065 - Incomplete IAM simulation context caused false verification failures
+
+- **Date observed:** October 4, 2026.
+- **Tool/context:** AWS IAM policy simulation, boto3 and our security-verification harness.
+- **Task:** Verify that the COOL worker role allowed required processing operations while denying unrelated access after narrowing its management policy.
+- **Expected:** Verification should distinguish allowed processing operations from denied access to the operator token, unrelated objects, bucket administration and IAM changes.
+- **Actual:** The first harness result marked ten denial checks false even though the corresponding IAM decisions were `implicitDeny`. The simulation request lacked context used by the conditional CloudWatch statement, so the checker did not treat those results as complete.
+- **Severity:** Medium verification friction, resolved.
+- **Resolution:** Supply `cloudwatch:namespace=RentReadyVision/Processing` as a string context entry and rerun the simulation. This did not require broadening the deployed role.
+- **Verified outcome:** All 27 worker-policy checks passed. Separate resource-policy review and actual worker-role permission checks were also retained; simulation alone was not treated as proof of effective live permissions.
+- **Classification:** Our simulation-request completeness and result-validation issue, not an incorrect AWS authorization decision.
+- **Actionable improvement:** Preflight required IAM context keys and report missing context separately from an unexpected allow/deny decision. Secure deployment examples should pair policy simulation with real allowed and denied operation probes.
+- **Evidence:** Step 40 console output; `evaluation/step40/worker_iam_policy_verification_missing_context.json` and `evaluation/step40/worker_iam_policy_verification.json`, committed in `487c28d`.
+- **Submission decision:** Retain as historical AWS integration/security-verification learning, not a provider-defect complaint.
+
+### ENG-066 - Security-probe user switching caused a misleading COOL CPU-baseline failure
+
+- **Date observed:** October 4, 2026 Pacific time; runtime records use October 5 UTC.
+- **Tool/context:** Systems Manager Run Command, Linux service-user execution and the official COOL/OpenCV runtime on AWS Graviton4.
+- **Task:** Verify the actual worker identity, least-privilege permissions and official COOL runtime, then return the worker to the stopped state.
+- **Expected:** The read-only probe should import the same working COOL runtime used by the worker service.
+- **Actual:** The initial remote probe aborted with OpenCV missing-CPU-baseline errors, including unavailable SVE, and exited with code 134. The probe changed user IDs inside an already-running Python process. The symptoms were consistent with restricted ARM auxiliary-vector access; this did not establish unsupported Graviton hardware or a broken production COOL installation.
+- **Severity:** Medium verification friction, resolved.
+- **Resolution:** Launch Python directly as the worker user with `runuser`, providing the required COOL environment before process startup. Add an explicit auxiliary-vector readability check. CPU-baseline checks were not disabled.
+- **Verified outcome:** The corrected SSM command succeeded, all 13 inner runtime checks passed, the worker service was active, and OpenCV 5.1.0-dev loaded from the official `/opt/cool` path on `aarch64`. The queue was idle before and after the check, and the worker was stopped again.
+- **Classification:** Our probe-launch and Linux execution-context issue, not a demonstrated AWS, Graviton or OpenCV product defect. Distinct from ENG-043's inherited-environment contamination.
+- **Actionable improvement:** Run diagnostic probes under the real service account from process startup. Before interpreting architecture errors, verify the executable, runtime environment, library identity and CPU-feature information access.
+- **Evidence:** Step 40 failed-command stderr; `evaluation/step40/worker_runtime_security_verification_initial_probe_failure.json` and `evaluation/step40/worker_runtime_security_verification.json`, committed in `487c28d`.
+- **Submission decision:** Retain as historical runtime-integration learning; do not claim a new inference benchmark or a hardware compatibility failure.
+
+**Deliberate non-duplication:** The recurring stopped-worker UI message
+`Extracting useful frames` is already covered by ENG-056. This Step 40
+conversation does not record successful recovery after its final upload
+report. PowerShell/Python quoting friction is already covered by existing
+engineering entries and is not counted again.
+
+
+## October 5 retrospective - Step 41 CloudWatch observability during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 41 observability and live-validation conversation.**
+
+Step 41 belonged to the pre-existing RentReady Vision/OpenCV workload. The work occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV implementation began. This entry records AWS Systems Manager/systemd environment integration friction and is not a claim of an AWS service outage or a Fire TV/Vega defect.
+
+### ENG-067 - SSM ad-hoc validation did not inherit the systemd API service environment
+
+- **Date observed:** October 5, 2026.
+- **Tool/context:** AWS Systems Manager Run Command, EC2, systemd, FastAPI, boto3, S3, SQS and the RentReady Step 41 CloudWatch observability validation.
+- **Task:** Run a controlled Step 41 agent-observability smoke job against the deployed API so the real `AGENT_TOOL_CALL` and `AGENT_VERIFICATION_COMPLETE` paths could be verified in CloudWatch.
+- **Expected:** A Python script launched through Systems Manager from the deployed API release would see the same application configuration used by the running systemd API service.
+- **Actual:** After the deployed application was made importable with `PYTHONPATH`, the first remote validation attempt failed during application settings initialization because `S3_BUCKET` and the other variables supplied to the API through `/etc/rentready/api.env` were not present in the ad-hoc SSM shell. The systemd service's EnvironmentFile was not automatically inherited by the separate Run Command process.
+- **Resolution:** Explicitly load the deployed service environment with `set -a; . /etc/rentready/api.env; set +a` before launching the diagnostic Python process. Keep the application's deployed release on `PYTHONPATH`.
+- **Verified outcome:** The controlled `inspect_interval` job then queued and completed successfully on the Graviton4 COOL worker. CloudWatch recorded `AGENT_TOOL_CALL`, `AGENT_VERIFICATION_COMPLETE` and agent-verification observability metrics. The final Step 41 verifier observed all 12 required lifecycle events and all 5 required metrics with `passed=true` and `live_aws_verified=true`.
+- **Severity:** Low to Medium - validation was interrupted, but the production API remained healthy and no application data or AWS resource was damaged.
+- **Classification:** **Systems Manager/systemd environment integration plus our diagnostic-environment assumption**, not an AWS service failure. A separate SSM Run Command process should not be assumed to inherit a systemd service's EnvironmentFile.
+- **Actionable improvement:** For SSM-based production diagnostics, document the distinction between the Run Command environment and the target service environment. Provide a standard preflight that identifies the service executable, working directory and required EnvironmentFile without printing secrets, then launches diagnostics under the same runtime configuration.
+- **Deliberate non-duplication:** The COOL `PYTHONPATH` / native-library requirements are already covered by ENG-043 and ENG-047, shell behavior is covered by ENG-018, and service-interpreter selection is covered by ENG-020. The Step 41 CloudWatch pagination bug was our verifier bug and is not recorded as an Amazon product-friction incident.
+- **Evidence:** Step 41 implementation commit `14be4f4469650a001f79bd85e5b5decf244c058b`; final live-evidence/documentation commit `7082a1326092d618a9353bdc7eff38da10f9a2ae`; `evaluation/step41/live_cloudwatch_verification.json`.
+- **Submission classification:** Historical AWS/developer integration learning from the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon 2026 eligibility period. It is separate from the later Amazon-specific Fire TV implementation.
+## October 5 retrospective - Step 42 detector-v3 development during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 42 detector-development conversation.**
+
+Step 42 belonged to the pre-existing RentReady Vision/OpenCV workload and occurred during the Amazon Developer Hackathon eligibility period, before the Amazon-specific Fire TV implementation began. These observations document evaluation-harness and computer-vision pipeline friction encountered while improving detector recall. They are **not claims of an Amazon, AWS, Bedrock, OpenCV or Fire TV product defect**.
+
+### ENG-068 - Semantic video filenames leaked expected labels into a model-verification payload
+
+- **Date observed:** October 5, 2026.
+- **Tool/context:** RentReady Vision Step 42B-2 evaluation harness, Amazon Bedrock vision-model verification, Python and the fixed Compass/Quimby development set.
+- **Task:** Use a conservative vision-model verifier to reject unsupported raw detector findings while preserving genuine subtle physical defects.
+- **Expected:** The verifier would make its decision only from the candidate description and supplied image evidence, without knowing whether the source clip was expected to be clean or defective.
+- **Actual:** Methodology review found that the model-visible candidate payload included the source video filename. Development filenames contained semantic labels such as `defect_12_drywall_patch_baseboard` and `clean_29_quimby_vanity_level_holder`. A model seeing those names could infer both expected defect status and, in some cases, expected defect type. The original 42B-2 verifier-supported performance claims therefore could not be treated as fully label-blind.
+- **Severity:** Medium evaluation-methodology issue; no production outage or customer-data impact.
+- **Resolution:** Preserve the historical artifact, explicitly document the methodology correction, create a label-blind verifier variant, and replay the saved raw observations without exposing video paths, filenames, stems, annotation text or expected conditions to the model. Exclude the original label-leaked verifier claims from the final Step 42 performance result.
+- **Verified outcome:** The final Step 42 closeout separates owner-verified raw physical-defect recall from automatic verifier acceptance and does not use the original 42B-2 verifier result as performance evidence.
+- **Classification:** **Our evaluation-harness design error**, not an Amazon Bedrock service defect. Bedrock returned model responses to the content we supplied; the problem was that our payload contained semantically informative metadata.
+- **Actionable improvement:** Evaluation frameworks that call multimodal models should automatically strip or replace semantic filenames, object keys, directory names, labels and other metadata before inference. Add a preflight that reports which non-image/text metadata fields are model-visible.
+- **Submission decision:** Retain as internal engineering/evaluation learning. If mentioned in product feedback, frame it as a general developer-experience safeguard opportunity rather than an Amazon-service complaint.
+
+### ENG-069 - Brief transient defects exposed limits of fixed 1 Hz sampling and near-duplicate pruning
+
+- **Date observed:** October 5, 2026.
+- **Tool/context:** RentReady Vision OpenCV video sampling, keyframe selection, duplicate reduction and Step 42 water-drip diagnostics.
+- **Task:** Recover two short water-drip intervals that were missed by the selected-keyframe detector path.
+- **Expected:** The existing sampling/keyframe pipeline would retain enough temporal evidence for short visible events while continuing to suppress redundant frames.
+- **Actual:** The pipeline sampled at 1 Hz. For the first annotated drip interval, `1.8-2.1s`, the `2.0s` frame was sampled and had high evidence quality but was rejected as a near-duplicate of the `3.0s` representative. For the second interval, `15.23-15.55s`, no 1 Hz sample fell inside the short event at all; the neighboring `15.0s` and `16.0s` frames were outside the annotation interval and were also treated as near-duplicates.
+- **Investigation:** A 10 Hz OpenCV-only transient-motion diagnostic using affine stabilization, frame differencing and connected components exposed motion near the target intervals, but clean controls also produced many equal or stronger residual-motion events. The fallback was therefore not discriminative enough to promote.
+- **Severity:** Medium detector-recall/design limitation on brief transient evidence; not a service failure.
+- **Resolution:** Do not globally increase sampling or weaken duplicate thresholds based on one development example. Do not promote the noisy transient-motion heuristic. Leave the two water-drip intervals unresolved, record the limitation, and stop additional tuning against the same development set to reduce overfitting risk.
+- **Verified outcome:** Final Step 42 owner-verified physical interval recall remained `5/9`, up from the frozen Detector v2 baseline of `2/9`. The water-drip experiment added no claimed recall gain.
+- **Classification:** **Our OpenCV temporal-sampling and evidence-selection design tradeoff**, not an OpenCV library defect and not an Amazon/AWS service defect.
+- **Actionable improvement:** For inspection-video systems, consider an adaptive temporal-evidence stage that can distinguish true short-lived object motion from camera-registration residuals before requesting expensive model inference. Preserve diagnostic accounting when rejected near-duplicate frames overlap annotated events.
+- **Submission decision:** Retain as historical computer-vision engineering learning; do not present as an Amazon-product complaint.
+
+**Deliberate non-duplication:** Step 42 included additional failed prompt, crop and verifier experiments, but they are not logged separately here. ENG-068 captures the material evaluation-integrity issue and ENG-069 captures the distinct temporal-evidence limitation. The known `clean_29` false positive and later human-review lessons are already represented elsewhere in the detector and demo-review records and do not require another friction-log incident.
+
+**Positive result:** Step 42 improved owner-verified physical-defect interval recall on the fixed development split from `2/9` to `5/9` while preserving the frozen Detector v2 source. The final result was explicitly recorded as development evidence only, Detector v3 was not promoted, and further tuning on the same examples was stopped before a future unseen-holdout evaluation.
+
+## October 6 retrospective - Steps 43-47 Detector v4 evaluation and deployment during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Steps 43-47 RentReady Vision/OpenCV development conversation.**
+
+Steps 43-47 belonged to the pre-existing RentReady Vision/OpenCV workload and occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV extension began. The observations below are deployment and application-engineering lessons from that eligible-period work. They are **not claims of an Amazon, AWS, SQS, Bedrock, EC2, FastAPI or OpenCV product defect**.
+
+### ENG-070 - Local API health probe used a disallowed Host header and caused a false deployment rollback
+
+- **Date observed:** October 6, 2026 Pacific time; some deployment records use October 7 UTC.
+- **Tool/context:** RentReady Vision FastAPI deployment on AWS EC2/systemd, HTTPS host-header protection, Systems Manager and the Step 47 API release workflow.
+- **Task:** Deploy the Step 47 follow-up API release and verify that the newly started process was healthy before accepting the cutover.
+- **Expected:** The local post-start health probe would return HTTP 200 when the new API process had started correctly.
+- **Actual:** The first release switch started the new application normally, but the local probe sent `Host: 127.0.0.1:8000`. The application's host-header policy correctly rejected that request with HTTP 400 `Invalid host header`. Our deployment check interpreted the non-200 response as a failed application release and automatically rolled back an otherwise healthy deployment.
+- **Severity:** Low-to-Medium deployment-verification friction. The rollback mechanism was safe, but the probe produced a false negative and interrupted the release workflow.
+- **Resolution:** Re-run the cutover with a host-aware local health probe using `Host: www.rentreadyvision.com`, which is an allowed production hostname.
+- **Verified outcome:** The local health probe returned HTTP 200, the new release remained active, and both `https://www.rentreadyvision.com/health` and `https://rentreadyvision.com/health` returned HTTP 200.
+- **Classification:** **Our deployment health-check assumption and trusted-host integration**, not an AWS, EC2, systemd or FastAPI service failure. The application security policy behaved as configured.
+- **Actionable improvement:** Deployment health checks should exercise the same accepted Host/SNI assumptions as production, or expose a deliberately scoped local readiness probe. Before rolling back, log enough response detail to distinguish process-start failure from an HTTP policy rejection.
+- **Evidence:** Step 47 deployment console output; live source revision `7607014dd09ef0caea49439964af8785c913d577`; later Step 47 documentation commit `51a2bcba5f05e0fd2f30369d1ee66e41923634ef`.
+- **Submission decision:** Retain as internal deployment/integration learning; do not present as an Amazon-product defect.
+
+### ENG-071 - Low-feature other-angle outcome was incorrectly treated as a retryable worker failure
+
+- **Date observed:** October 6, 2026 Pacific time; some processing records use October 7 UTC.
+- **Tool/context:** RentReady Vision Step 21 `inspect_other_angle`, OpenCV ORB/geometric matching, Amazon SQS processing, DynamoDB durable jobs, S3 traces and the Graviton4 COOL worker.
+- **Task:** Search nearby video frames for a geometrically verified alternate viewpoint of a low-feature candidate region before deciding whether additional AI reassessment was justified.
+- **Expected:** If the reference region did not contain enough visual features for reliable geometric matching, the job should finish with a structured "alternate evidence unavailable" result and continue to human review without retrying.
+- **Actual:** The frozen other-angle inspector raised `RuntimeError: Candidate region has insufficient visual features for reliable other-angle matching`. The service layer treated that expected domain outcome like a worker failure. SQS therefore retried the same message; the stale pre-fix message was observed with receive count `4`, while the web workflow appeared stuck on the other-angle search stage.
+- **Severity:** Medium application-reliability and judge-UX friction. The repeated work could consume unnecessary worker time and made a normal no-evidence outcome look like a hung workflow.
+- **Resolution:** Preserve the frozen inspector and change only the non-frozen service layer. Catch that exact expected condition and convert it to a structured result with `unavailable_reason=insufficient_reference_features`, `has_other_view_candidates=false`, `selected_frame_count=0` and no fabricated evidence. With fewer than two usable views, skip Bedrock reassessment, preserve confidence and return `REQUEST_HUMAN_APPROVAL`. Other runtime errors continue to raise normally.
+- **Verified outcome:** Live job `rv-5bd7616c6d94c61fae83e40036ce1d21` completed with durable status `COMPLETE`, `attempt_count=1`, confidence `0.7 -> 0.7`, no Bedrock request ID, and persisted Step-21 trace. After completion the processing queue and DLQ were both `0` visible / `0` in-flight / `0` delayed. The `m8g.4xlarge` worker was then stopped again.
+- **Classification:** **Our application error classification and queue-retry semantics**, not an Amazon SQS or Bedrock defect. SQS correctly retried a message whose consumer raised an exception.
+- **Actionable improvement:** Queue consumers should explicitly separate expected terminal domain outcomes from transient/retryable failures. Use typed or structured outcome categories, bounded retries and user-visible stage states so "no usable alternate evidence" completes normally rather than looking like an indefinitely running operation.
+- **Evidence:** Inspection `1733b73b-d229-4098-954d-0638fc7e9aaf`; fixed source revision `7607014dd09ef0caea49439964af8785c913d577`; S3 trace `rentready/inspections/1733b73b-d229-4098-954d-0638fc7e9aaf/reports/agentic/rv-5bd7616c6d94c61fae83e40036ce1d21/step21-other-angle-trace.json`.
+- **Submission decision:** Retain as strong internal resilience/product-design learning. If referenced in Amazon feedback, make clear that SQS behaved correctly and the retry classification bug was in RentReady Vision.
+
+**Deliberate non-duplication:** Steps 43-46 were also reviewed. Step 44's holdout accuracy result and Step 45 detector research are evaluation/model-quality evidence rather than a separate Amazon tooling incident, and related detector/human-review limitations are already represented elsewhere in this log. Step 46 integration did not add a distinct non-duplicate blocker. Step 47's `/bin/sh` / `pipefail` behavior, exact-object IAM provisioning and Terraform worker-replacement planning are already represented by existing shell, IAM and deployment entries and are not repeated here.
+
+**Positive result:** The Step 47 follow-up ultimately aligned the public API and COOL worker to source revision `7607014dd09ef0caea49439964af8785c913d577`, verified public HTTPS health, completed the formerly retrying other-angle case on its first processing attempt, returned both SQS queues to empty and stopped the expensive development worker after testing. These are observed results from the pre-existing RentReady/OpenCV workload, not new Amazon Fire TV functionality.
+
+## October 7 retrospective - Step 48 untouched Detector v4 holdout during the Amazon hackathon window
+
+**Recorded October 17, 2026, from the historical Step 48 RentReady Vision/OpenCV evaluation conversation.**
+
+Step 48 belonged to the pre-existing RentReady Vision/OpenCV workload and occurred after the Amazon Developer Hackathon opened on August 31, 2026, but before the Amazon-specific Fire TV extension began. The observation below is an upload/idempotency engineering lesson from that eligible-period work. It is **not a claim of an Amazon S3 service defect**.
+
+### ENG-074 - Retry-safe presigned S3 upload returned HTTP 412 when the target object already existed
+
+- **Date observed:** October 7, 2026.
+- **Tool/context:** RentReady Vision Step 48 untouched Detector v4 holdout, Amazon S3 presigned PUT upload, HTTPS API and PowerShell/curl evaluation workflow.
+- **Task:** Upload each frozen external holdout video exactly once to a newly created inspection before processing it through the production Detector v4 pipeline.
+- **Expected:** A presigned `PUT` using `If-None-Match: *` would create the inspection's original-video object while preventing accidental overwrite of an existing object.
+- **Actual:** For holdout case `v4c001`, the upload returned HTTP `412 Precondition Failed` because an object was already present at the exact inspection S3 key. Because the Step 48 protocol prohibited casual reruns or replacing evidence, the existing object could not simply be overwritten or ignored.
+- **Investigation:** The existing S3 object's ETag was compared with the local video's MD5. Both matched exactly (`209A172AED6AA123876172191DF8F056`), establishing that the already-present object contained the same bytes as the intended holdout video.
+- **Resolution:** Preserve the existing object, complete the upload-registration step without overwriting it, and continue the one-shot evaluation. No detector rerun or holdout relabeling was performed because of the upload condition.
+- **Verified outcome:** `v4c001` completed normally and was recorded as a true negative. All 18 Step 48 holdout cases were ultimately evaluated exactly once, with final results `TP=8`, `TN=9`, `FP=0`, `FN=1`.
+- **Severity:** Low operational friction, but important for evaluation integrity because an unexplained `412` during a frozen one-shot benchmark could otherwise lead to an unnecessary re-upload, overwrite or rerun.
+- **Classification:** **Our upload idempotency/retry-handling and diagnostic workflow**, not an Amazon S3 failure. S3 correctly enforced the `If-None-Match: *` precondition and prevented an overwrite.
+- **Actionable improvement:** Treat HTTP `412` from conditional presigned uploads as a first-class idempotency state. If policy permits, automatically inspect the existing object's trusted checksum or equivalent identity metadata and distinguish `same object already present` from `conflicting object already present` before deciding whether to continue, fail or require operator review.
+- **Submission decision:** Retain as historical AWS/developer-integration learning. If referenced in Amazon product feedback, describe the opportunity as clearer retry/idempotency handling around conditional presigned uploads, while explicitly noting that S3's precondition behavior was correct.
+
+**Deliberate non-duplication:** The Step 48 detector accuracy result itself is evaluation evidence rather than Amazon-product friction. The local absence of the Python `matplotlib` package while creating a confusion-matrix image was ordinary workstation dependency friction and is intentionally not logged as an Amazon/AWS issue.
+
+**Positive result:** Step 48 completed an untouched 18-video external holdout with `94.4%` accuracy, `94.1%` F1, `100.0%` precision and zero false positives. The S3 precondition prevented an unintended overwrite, and the evaluation preserved its one-shot integrity.
+
+## October 7 retrospective - Step 49 on-demand COOL worker
+
+Step 49 used the pre-existing RentReady/OpenCV workload during the Amazon Developer Hackathon window. This was an AWS integration and operations lesson, not a new Fire TV feature or an AWS service defect.
+
+### ENG-075 - Stale durable retry jobs blocked guarded worker installation despite empty SQS queues
+
+- **Date observed:** October 7, 2026.
+- **Task:** Deploy the guarded on-demand COOL worker and its 600-second idle shutdown.
+- **Expected:** Install the new worker package once no queued or active processing work remained.
+- **Actual:** Two SSM installation attempts stopped safely with `Wait for queued jobs before deploying` and `Wait for active jobs before deploying`. DynamoDB still held two `RETRY_PENDING` processing jobs, while the main SQS queue and dead-letter queue each reported zero available, in-flight and delayed messages. Neither job had an active claim token. One belonged to an already completed inspection; the other inspection remained `RETRY_PENDING`. Their earlier errors concerned insufficient visual features for other-angle matching and a worker/job Git-revision mismatch.
+- **Resolution:** Inspected the durable job and inspection records alongside both queues, saved a backup, conditionally changed the two stale jobs to `FAILED`, and changed the incomplete inspection to `FAILED`. The completed inspection was preserved. The guarded worker installation then succeeded.
+- **Impact and attribution:** The fail-closed deployment guard prevented an unsafe rollout. The friction was our stale durable job-state reconciliation across DynamoDB and SQS; the observed AWS services behaved as designed.
+- **Actionable improvement:** Add a pre-deployment check that distinguishes live queued or claimed work from stranded retry records. Require a backup and conditional reconciliation before clearing any durable blocker.
+
+**Related entries, without duplicate incident IDs:** ENG-056 recorded the earlier manually stopped-worker and apparently stuck UI experience; Step 49 subsequently verified automatic startup from a stopped instance. ENG-064 already recorded Terraform's public-IP drift replacement risk; Step 49 added `ignore_changes` for that setting and `prevent_destroy` to protect the existing worker.
+
+**Verified positive outcome:** Live tests observed startup from `stopped` followed by a completed inspection on the Step 49 source commit, two overlapping jobs completing, and an upload during `STOPPING` proceeding through `RESTART_PENDING`, automatic restart and completion. The worker stopped after at least 600 seconds idle in both shutdown checks; the final check found no active work and zero SQS messages. Evidence is recorded in `evaluation/step49/` and `STEP49_ON_DEMAND_WORKER.md` at source commit `433395e63d61be0fe33970e3d082266c483c40fb`.
+
+
+## October 7 retrospective - Step 50 deployment workflow
+
+Recorded October 17, 2026 from the Step 50 development conversation. This work concerned the pre-existing RentReady/OpenCV backend during the Amazon hackathon window, before the Amazon-specific Fire TV extension. It is not claimed as a new Fire TV feature.
+
+### ENG-076 - Step 50: direct EC2 startup bypassed the application lifecycle wake
+
+- **Date observed:** October 7, 2026.
+- **Tool/context:** AWS EC2, Systems Manager Run Command, Lambda, and our Step 49 on-demand worker lifecycle controller.
+- **Task:** Deploy the checksum-pinned Step 50 processing-progress worker.
+- **Steps taken:** Start the stopped worker with `aws ec2 start-instances`; observe Systems Manager reporting Online; submit the prepared deployment with `aws ssm send-command`.
+- **Expected:** The worker would remain available long enough for the deployment command to execute.
+- **Actual:** SendCommand returned `InvalidInstanceId: Instances not in a valid state for account`. A subsequent EC2 query showed the worker had stopped again, with a `User initiated` transition reason. The earlier SSM Online result did not establish that EC2 was still running when SendCommand was submitted.
+- **Diagnosis boundary:** The sequence was consistent with a retained draining/shutdown state in our application lifecycle controller. That specific internal state and the stop caller were not independently traced in this conversation; EC2's transition reason alone does not identify the caller.
+- **Resolution:** Invoke our existing worker-lifecycle Lambda with `{"action":"wake"}` rather than starting EC2 directly. The response reported `STARTING`; subsequent checks showed EC2 running and SSM Online. Retry the worker deployment.
+- **Verified outcome:** The worker command returned Success, exit code 0, and `STEP50_WORKER_DEPLOYED`. The API deployment also succeeded. A hosted inspection completed, and its report identified deployed source commit `c591c7a73c91a2d97809ef55b25fbfb0d6507b07`.
+- **Severity:** Medium - deployment was delayed, with a verified workaround.
+- **Classification:** Our application lifecycle/deployment integration, not an established AWS service defect. AWS enforced instance-state requirements.
+- **Actionable improvement:** Route maintenance startup through the application's lifecycle wake operation; make maintenance grace explicit; recheck EC2 state alongside SSM availability immediately before deployment. Troubleshooting should distinguish stale SSM availability from current EC2 state.
+- **Evidence:** Step 50 console output in this conversation; successful deployment receipts and runtime identity recorded in `evaluation/step50/live_verification.json` at commit `1c29431` on the OpenCV/main history.
+- **Scope:** Automatic idle shutdown after this rollout was not subsequently confirmed in this conversation. The incident does not establish a Fire TV SDK defect.
+- **Non-duplication:** The Windows `charmap` / U+25CF display issue is already covered elsewhere in this local log and is not counted again.
+
+## Step 52 retrospective - Large-video report performance
+
+**Recorded October 17, 2026.** Pre-existing RentReady Vision/OpenCV web application work during the Amazon Developer Hackathon period; not an Amazon-specific Fire TV feature.
+
+### ENG-077 - Repeated S3 manifest reads during report rendering
+
+- **Date observed:** October 10, 2026.
+- **Tools:** Amazon S3, boto3, EC2, AWS Systems Manager, FastAPI, JavaScript and Chromium.
+- **Task:** Display the final inspection report for a roughly 3 GB video.
+- **Expected:** Render retained evidence efficiently after processing completes.
+- **Actual:** The browser displayed `Service Unavailable` near the final reporting stage. Backend processing had completed. The application made 120 parallel frame-URL requests, each potentially reloading the same 6,102,399-byte S3 manifest.
+- **Verified friction:** Repeated manifest retrieval created unnecessary storage and API load. The precise cause of the original HTTP 503 was not conclusively established.
+- **Severity:** Medium; application performance and reliability engineering.
+- **Fix:** Added `GET /inspections/{inspection_id}/frames/urls` to load the manifest once and generate all retained-frame URLs in one response. Updated the frontend to use it; retained the legacy endpoint.
+- **Performance improvement:** Frame-URL API requests reduced from 120 to 1. Manifest reads for URL generation reduced from 120 to 1, eliminating approximately 726 MB of redundant reads for the observed manifest size.
+- **Validation:** 726 local tests passed, 1 skipped, with two historical detector evaluation modules excluded. Chromium rendered 120 simulated frames using one batch request.
+- **Production result:** API/frontend hotfix deployed and independently verified live. Public health returned HTTP 200, the updated frontend was served, and authenticated batch routing was verified. No COOL worker change or 3 GB video reprocessing.
+- **What worked:** Checksum-verified SSM transfer, isolated release deployment, rollback preservation and HTTPS health checks.
+- **Actionable lesson:** Batch presigned URL generation and reuse metadata instead of repeatedly retrieving identical S3 objects. Include maximum-frame-count performance tests.
+- **Attribution:** Our application architecture, not a proven AWS/S3/Fire TV defect. Retain as an engineering lesson, not an Amazon provider complaint.
+- **Evidence:** Git commit `dee7723c16f0d37421314d11d196281e6a33a61c`; `STEP52_REPORT_BATCH_OPTIMIZATION.md` on the RentReady Vision `main` branch.
+
+### ENG-078 - AI bounding-box localization and misleading report highlights
+
+- **Date observed:** October 10, 2026. Reviewed retrospectively October 17, 2026.
+- **Scope:** Pre-existing RentReady Vision/OpenCV web-report work during the Amazon Developer Hackathon calendar window, not an Amazon-specific Fire TV feature.
+- **Task and expectation:** Display rectangles around detected property issues using existing AI-generated normalized bounding-box coordinates, with each rectangle identifying a meaningful region of damage.
+- **Actual friction:** Eight existing findings contained bounding boxes. Two boxes covered 100% of their images, making them unsuitable for localization. Visual review also identified at least one smaller rectangle incorrectly positioned near an air-conditioning unit. Browser rendering and responsive positioning tests passed; the limitation was principally the AI-generated coordinates in these examples.
+- **Impact:** Medium report-usability concern. An apparently precise rectangle can mislead users about the actual location of a finding. The two full-image boxes out of eight findings represent one inspected example, not an overall detector accuracy measurement.
+- **Resolution:** Hide rectangles covering 80% or more of an image, preserve original evidence photographs, and label visible rectangles "Red rectangle: AI-estimated area. Verify visually." The application regression suite reported 727 passed and 1 skipped. The correction was deployed with public HTTPS health, checksum and feature-marker verification. No additional Bedrock inference or video reprocessing was required.
+- **Remaining limitation:** Smaller rectangles may still be inaccurate. The 80% cutoff is a presentation safeguard, not proof of localization accuracy. Final production report rendering was not separately verified through an authenticated end-to-end browser run.
+- **Actionable improvement:** Evaluate spatial localization separately from finding classification and confidence. Consider region-quality checks and human-corrected issue coordinates before treating boxes as precise evidence annotations.
+- **Classification:** Our detector/report-presentation limitation, not a demonstrated Amazon Bedrock, Fire TV, S3 or SDK defect. Complements ENG-015 on model false positives; existing IAM and deployment-script observations should not be duplicated.
+- **Evidence:** Step 54 development console results, real-image contact-sheet review, Chromium tests and STEP54_FINAL.md.
+
+### ENG-079 - Clean-environment test dependencies and README assertion
+
+- **Date observed:** October 10, 2026. Recorded retrospectively October 17.
+- **Context:** Pre-existing RentReady Vision OpenCV work during the Amazon hackathon window, before Amazon-specific Fire TV development began.
+- **Task:** Reproduce OpenCV and browser regression tests in a clean Python 3.12 environment while preparing judge-facing GitHub documentation.
+- **Expected:** Declared test dependencies would support clean installation, and the updated README would satisfy existing architecture checks.
+- **Actual:** Step 54 test collection initially failed with `ModuleNotFoundError: No module named playwright`. After installing Playwright, the broader regression suite reported 726 passed, 1 skipped and 1 failure because a Step 38 test required exact architecture wording missing from the updated README.
+- **Resolution:** Added separate browser-test requirements pinning Playwright 1.62.0, pyee 13.0.1 and greenlet 3.5.6; installed matching Chromium; pinned test-only Moto 5.2.3; restored the required Graviton4/COOL README references without weakening the test.
+- **Verified outcome:** Python 3.12.10 regression suite passed with 727 passed, 1 skipped and one non-failing deprecation warning. Synthetic local OpenCV processing also succeeded. Documentation changes were merged through GitHub PR #4.
+- **Severity:** Low to Medium, resolved. Test reproducibility was interrupted; no production application failure was established.
+- **Actionable improvement:** Declare browser and AWS-mock test dependencies separately from production requirements, verify clean-environment installations, and avoid brittle exact-wording assertions where semantic documentation checks are sufficient.
+- **Classification:** Internal engineering/test documentation friction, not an Amazon, AWS, Fire TV or OpenCV provider defect.
+- **Submission decision:** Retain as retrospective engineering learning, not as a standalone Amazon product complaint.
+
+
+## October 11 retrospective - Step 59 public demonstration access
+
+Recorded October 17, 2026 from the Step 59 development conversation.
+This work concerned the pre-existing RentReady/OpenCV web application during
+the Amazon hackathon period, before the Fire TV extension. It is not claimed
+as a new Fire TV feature or an AWS service defect.
+
+### ENG-080 - Public processing required an omitted DynamoDB transaction permission
+
+- **Date observed:** October 11, 2026.
+- **Tool/context:** AWS IAM, DynamoDB conditional transactions, and the EC2 API instance role.
+- **Task:** Complete a token-free demonstration inspection while enforcing public-access expiry and processing quotas.
+- **Steps taken:** Deploy public mode with access initially OFF; enable a bounded test window; upload authorized footage; investigate the processing failure by simulating `dynamodb:ConditionCheckItem` for the actual API role against the inspection table.
+- **Expected:** Deployment preflight identifies every permission required by the new transaction guard before public processing is enabled.
+- **Actual:** The first public processing attempt failed. IAM simulation returned `implicitDeny` for `dynamodb:ConditionCheckItem`, which had been omitted from the deployment permission setup.
+- **Severity:** Medium integration friction; the tested public processing flow was blocked until corrected.
+- **Workaround and outcome:** Add a narrowly scoped permission for that single action on the inspection table, verify simulation returns `allowed`, then complete a new token-free inspection through report creation and saved checklist verification. Separate live tests also passed for upload-size boundaries, quota enforcement, disabling access and automatic expiry.
+- **Actionable improvement:** Maintain a permission manifest alongside transaction changes, include ConditionCheck authorization in deployment preflight, and verify the public processing path using the actual instance role before opening judge access.
+- **What worked well:** IAM policy simulation isolated the missing permission; the scoped grant restored processing without broadening access to unrelated resources.
+- **Evidence:** Step 59 console output, public-mode verification record at `evaluation/step59/public-mode-verification.json`, and implementation/documentation commit `104a903`.
+- **Classification:** Our IAM provisioning omission and deployment-preflight gap; AWS least-privilege authorization behaved as configured. Not a boto3 defect, AWS outage, or Fire TV SDK issue.
+- **Submission decision:** Retain as a concrete AWS integration lesson; review before including it in final product feedback.
+
+**Non-duplication:** The recurring localhost Host-header health-check problem
+is already covered by ENG-070. Missing AWS CLI availability is already
+recorded in the FL-003 follow-up. Neither receives another incident ID here.
+
+### ENG-081 - Expired S3 evidence-image links interrupted demo preparation
+
+- **Date observed:** October 11, 2026; recorded retrospectively.
+- **Context:** Existing RentReady Vision OpenCV web application during demo-video preparation. This is historical OpenCV work, not the Amazon implementation step sequence.
+- **Tools:** Amazon S3 presigned image URLs and Chrome DevTools. Exact tool versions were not captured.
+- **Task:** Display the report's evidence images while preparing the demonstration video.
+- **Expected:** Evidence images would remain viewable while reviewing the open report, with expired links renewed when necessary.
+- **Actual:** Two report images were unavailable. An S3 image request returned "Request has expired"; the presigned links had a 15-minute validity period.
+- **Severity:** Medium - interrupted evidence review and required a manual workaround.
+- **Workaround:** Request fresh image URLs through the application's existing authenticated frame-URL endpoint and replace the displayed image sources using the browser console.
+- **Verified outcome:** The missing images were restored; the user confirmed the report was fine. No analysis rerun was required. A permanent application fix was not verified in this conversation.
+- **Classification:** Our application's handling of expiring media URLs. S3 correctly enforced URL expiration; this was not evidence of an AWS service outage or SDK defect.
+- **Actionable improvement:** Renew expired evidence-image URLs through the authenticated application when images are viewed or fail to load, while preserving the active report and private, time-limited access. An AWS integration example covering this lifecycle would be useful.
+- **What worked well:** Fresh signed links restored access without repeating inference or changing object permissions.
+- **Evidence reference:** October 11, 2026 OpenCV demo-preparation conversation: expired-image diagnosis, browser-console workaround, and user confirmation. Signed URLs, credentials and inspection identifiers are intentionally omitted.
+- **Submission decision:** Retain as historical AWS integration learning; do not present it as a new Amazon feature or a confirmed Amazon product defect.
