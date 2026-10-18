@@ -1,6 +1,6 @@
 ﻿# Amazon Developer Hackathon 2026 — Product Feedback and Friction Log
 
-**Status:** TECHNICALLY REVIEWED — Step 72 five-answer submission draft prepared October 18; developer's personal reuse Yes/No sign-off and October 21 future-change review are pending. Not yet submitted to Devpost.
+**Status:** TECHNICALLY REVIEWED — Step 72 five-answer submission draft prepared and developer's reuse preference **YES, with stated qualifications** explicitly confirmed October 18, 2026. October 21 final freeze/recheck remains pending; not yet submitted to Devpost.
 **Coverage:** Amazon Developer Hackathon period beginning August 31, 2026 through October 21, 2026. Amazon-specific Fire TV implementation began October 11-12; earlier entries are retrospective observations from the pre-existing RentReady/OpenCV workload performed during the hackathon window and are not claimed as new Amazon-specific features. **Finalize October 21**.
 **Primary track:** Fire TV | **Intended mini-challenge:** AWS Builder.
 **Reference implementation:** [Step 64 Final](STEP64_FIRE_TV_FINAL.md) · [Fire TV compatibility precheck](STEP64_7_FIRE_TV_COMPATIBILITY.md) · [Step 65 remote navigation test record](STEP65_FIRE_TV_NAVIGATION.md).
@@ -106,7 +106,7 @@ date-ordered view for judge review.
 | 88 | Oct 17 | ENG-025 | Step 71 | Inherited template artwork was unsuitable for public/original branding | Asset provenance |
 | 89 | Oct 17 | ENG-026 | Step 71 | Documentation patch failed because of stale exact-text match | Documentation tooling |
 
-**Devpost-ready five-answer draft and prioritized evidence:** [Step 72 Amazon feedback submission](STEP72_AMAZON_FEEDBACK_SUBMISSION.md). Personal reuse answers are recommendations until the developer confirms them.
+**Devpost-ready five-answer draft and prioritized evidence:** [Step 72 Amazon feedback submission](STEP72_AMAZON_FEEDBACK_SUBMISSION.md). Personal reuse response **YES for the tools actually used, with the stated qualifications**, was confirmed by the developer October 18, 2026.
 
 ## Purpose and integrity rules
 
@@ -216,7 +216,7 @@ These are verified incidents in **our implementation or test scripts**. Record f
 
 ## Tool-by-tool product-feedback inventory
 
-The Devpost form asks **for every tool/API/SDK used**, what it did, what worked, what needs work, the onboarding experience and whether the developer would use it again. The table below records **only currently evidenced experience**. “Would use again” should be confirmed by the developer before submission, not presented as an established personal opinion.
+The Devpost form asks **for every tool/API/SDK used**, what it did, what worked, what needs work, the onboarding experience and whether the developer would use it again. The table below records **only currently evidenced experience**. The developer explicitly confirmed **Yes, I would use the tools actually used again, with the Step 72 qualifications**, on October 18, 2026. This does not rate any untested tool or platform.
 
 | Tool / API / SDK | Verified use and what worked | Genuine friction or status | Onboarding / revisit |
 | --- | --- | --- | --- |
@@ -236,7 +236,7 @@ The Devpost form asks **for every tool/API/SDK used**, what it did, what worked,
 - **Worked well:** SSM SecureString and instance-role isolation; conditional DynamoDB operations; S3 presigned URLs; build debug/release once dependencies were present; D-pad navigation and end-to-end TV pairing; no Windows bridge after migration.
 - **Needs work / opportunities:** repeatable offline release build setup (FL-001), focus/scroll-safe sample UX (FL-002), less manual exact-object deployment permission coordination (FL-003). These are contextual, not blanket vendor complaints.
 - **Onboarding:** A pre-existing AWS project was reused, then a new Android TV/Kotlin client and pairing infrastructure were added. Successful first end-to-end demonstration on Android TV API 36 does not establish Fire OS/Vega onboarding outcome.
-- **Would build again?** **Developer to confirm** for each actually used tool before submission. Avoid fabricating user sentiment.
+- **Would build again?** **Developer confirmed YES October 18, 2026** for the tool families actually used, with the stated qualifications. Untested Fire TV/Vega platforms are not rated.
 - **AWS Builder:** State specifically how Bedrock, S3, DynamoDB, EC2, SSM/IAM and any other genuinely used AWS services support the system; indicate when calls are in the pre-existing pipeline versus new Fire TV work.
 
 
@@ -279,7 +279,7 @@ For **TV-specific UX**, FL-002/FL-004 and Step 71's ENG-017/ENG-022 are valuable
 
 **4. Onboarding.** This was **not** zero-to-hello-world AWS onboarding: RentReady Vision already had an AWS account and a functioning OpenCV-backed pipeline. The new Android TV work started October 11-12; Windows Hypervisor Platform, JDK/SDK command-line availability, emulator boot, Kotlin Back handling and release-build dependencies required explicit setup and testing. Once configured, emulator navigation and live HTTPS integration succeeded. The official Fire TV/Vega simulator and physical Fire OS runtime were not tested.
 
-**5. Would I build with these again?** **OWNER CONFIRMATION REQUIRED BEFORE SUBMISSION.** A factual proposed rationale for a **Yes** on the *actually used* Android/TV test and AWS stack is that the verified emulator, Bedrock, DynamoDB, S3, IAM and EC2 workflows enabled a functioning end-to-end product. Record the owner's genuine Yes/No and any exceptions for each tool/tool family on October 21. Do not express an opinion about the untested Fire TV/Vega simulator or unimplemented SDKs.
+**5. Would I build with these again?** **OWNER-CONFIRMED YES (October 18, 2026)** for the *actually used* Android/TV test and AWS stack, with the Step 72 qualifications: the verified emulator, Bedrock, DynamoDB, S3, IAM and EC2 workflows enabled a functioning end-to-end product. No opinion is attributed to the owner about untested Fire TV/Vega simulator, physical hardware or unimplemented SDKs.
 
 **Before October 21 freeze:** Confirm tool inventory and versions; check optional-entry severity and short, sanitized evidence links; decide how much pre-existing AWS history to submit; check log text encoding and links; obtain the owner's actual re-use answers; keep judge pairing codes, credentials, tokens, S3 signed URLs and private customer media out of public feedback. Link the finalized log in the Devpost submission; the organizer says a log link in the description is acceptable. An up-to-10% bonus is possible, **not promised**.
 
@@ -288,7 +288,7 @@ For **TV-specific UX**, FL-002/FL-004 and Step 71's ENG-017/ENG-022 are valuable
 **October 12:** Amazon TV integration/onboarding began; the evidenced Windows hypervisor, Kotlin API, layout and ADB/PowerShell test-workflow observations (ENG-034 through ENG-038) were documented retrospectively October 17. Do not mistake their recording date for the event date.
 **October 13:** Historical Step 64 evidence reviewed and the confirmed entries above documented.
 **October 14–20:** After each new tool interaction, append a dated entry **only if an actual observation exists**. Record exact task, reproducible steps, expected/actual, severity, workaround, outcome, actionable suggestion and evidence. Positive observations belong in product-feedback inventory even if no friction occurred.
-**October 21 — finalize:** Recheck tool names/versions and dates; verify each entry is honest, specific, non-duplicative and sanitized; ask developer to confirm whether they'd use each tool again; finalize URLs/evidence; freeze a ready-to-paste feedback narrative; include log link in Devpost description/product-feedback submission.
+**October 21 — finalize:** Recheck tool names/versions and dates; verify each entry is honest, specific, non-duplicative and sanitized; retain the developer's October 18 confirmed Yes with qualifications; finalize URLs/evidence; freeze a ready-to-paste feedback narrative; include log link in Devpost description/product-feedback submission.
 **October 23, noon PDT:** Official submission deadline; do not wait until deadline to resolve Fire TV/Vega target eligibility or judging access.
 
 ### Copyable entry template
