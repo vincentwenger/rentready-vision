@@ -4,7 +4,7 @@
 **Primary track:** Fire TV  
 **Mini-challenge:** AWS Builder  
 **Prepared:** October 18, 2026 (Pacific)  
-**Status:** Submission-ready factual draft; **the developer's personal Yes/No reuse preference is proposed, not confirmed**. Incorporate any new genuine observations before the planned October 21 freeze. No feedback or log has been submitted to Devpost by this documentation step.
+**Status:** Five Devpost answers prepared; **developer personally confirmed YES to reusing the tools actually used, with the qualifications below, on October 18, 2026**. Incorporate only genuine new observations before the planned October 21 final freeze. No feedback or log has been submitted to Devpost by this documentation step.
 
 **Full evidence-backed log:** [AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md) — see its chronological index and incident IDs. This is a private GitHub repository; the judges must have accepted collaborator access for these links to work.
 
@@ -48,11 +48,11 @@ Integrating the **existing** AWS backend with a new device client took more care
 
 ### 5. Would you build with these devices and services again? Yes/No, and why?
 
-**Proposed personal response — developer must confirm before copying to Devpost: YES, for the tool families actually used.** Kotlin/Android and the Android TV emulator enabled a native remote-first product and repeatable testing. I would use Bedrock again for bounded, evidence-linked summarization with schema checks, caching and visible human-review safeguards. I would also reuse DynamoDB, S3, IAM, EC2/Graviton and SSM for secure inspection/session access and controlled on-demand processing. The precise model compatibility, access prerequisites and build/deployment preflights above should be easier to discover.
+**Developer-confirmed response (October 18, 2026): YES, for the tool families actually used, with the qualifications below.** Kotlin/Android and the Android TV emulator enabled a native remote-first product and repeatable testing. I would use Bedrock again for bounded, evidence-linked summarization with schema checks, caching and visible human-review safeguards. I would also reuse DynamoDB, S3, IAM, EC2/Graviton and SSM for secure inspection/session access and controlled on-demand processing. The precise model compatibility, access prerequisites and build/deployment preflights above should be easier to discover.
 
 I would **not** claim a personal Yes/No evaluation of physical Fire TV hardware, Vega OS, the official Fire TV/Vega simulator, or Amazon-specific SDKs that I did not actually test. I would also avoid presenting a model-generated repair recommendation as a verified diagnosis.
 
-**Owner sign-off (not yet asserted):** Confirm that the above **YES** reflects your personal view, or replace it with your genuine tool-specific Yes/No exceptions. This subjective part cannot be established from commits or runtime traces alone.
+**Owner sign-off: CONFIRMED October 18, 2026.** The developer explicitly approved **Yes, I would use the tools we actually used again, with the qualifications in the Step 72 draft**. The distinction between tested tools and untested Fire TV/Vega hardware, simulator and SDKs remains intact.
 
 ## Optional friction-log submission: prioritized, non-duplicative shortlist
 
@@ -73,8 +73,8 @@ I would **not** claim a personal Yes/No evaluation of physical Fire TV hardware,
 - **External rules/FAQ/organizer forum** were checked on October 18. They require five feedback answers, allow optional task-specific friction logs for a potential up-to-10% bonus, and accept an Android TV emulator. An organizer stated that linking the log in the submission description is fine.
 - **Signed APK evidence:** [Step 71 report](STEP71_FIRE_TV_JUDGE_RELEASE.md) documents v1.0.2 installation, release signing and a downloaded-asset SHA-256 match. The current GitHub release asset itself was not independently downloaded in this Step 72 documentation review.
 - **Privacy:** Never include temporary judge pairing codes, operator tokens, AWS credentials, signed S3 URLs or customer evidence in a feedback answer or public copy of this report. The private judge-only Devpost access attachment is handled separately.
-- **For submission:** Keep the source repo private with accepted judge collaborator access; add the **friction-log link** to the Devpost description or feedback; paste the five answers above after owner sign-off. Step 73 demo video and judge-access readiness are separate submission requirements.
-- **October 21 check:** Before freeze, add only any newly evidenced friction, confirm final wording/reuse preferences, verify access and remove obsolete “draft” language as appropriate. **The next check has not yet occurred**.
+- **For submission:** Keep the source repo private with accepted judge collaborator access; add the **friction-log link** to the Devpost description or feedback; paste the five owner-approved answers above into Devpost when submitting. Step 73 demo video and judge-access readiness are separate submission requirements.
+- **October 21 check:** Before freeze, add only any newly evidenced friction, recheck final wording and any newly observed friction, verify judge access and remove obsolete draft wording as appropriate. **The next check has not yet occurred**.
 
 ## Link to use in Devpost
 
