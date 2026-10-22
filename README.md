@@ -4,7 +4,9 @@
 
 RentReady Vision brings saved, AI-assisted rental-property inspections to a television. Review rooms, potential issues, preserved photographs, short evidence clips, human-review decisions, and an Amazon Bedrock-powered rental-readiness briefing with a remote control.
 
-**Amazon Developer Hackathon 2026** · Fire TV category · AWS Builder mini-challenge (intended) · Kotlin/Android · [`amazon-2026` branch](https://github.com/vincentwenger/rentready-vision/tree/amazon-2026)
+**Amazon Developer Hackathon 2026** · Fire TV category · AWS Builder mini-challenge · Kotlin/Android · [`amazon-2026` branch](https://github.com/vincentwenger/rentready-vision/tree/amazon-2026)
+
+**Amazon Fire TV demonstration video:** [Watch the submitted demo](https://youtu.be/bdoJd8tADoU)
 
 > **Platform evidence:** The application was tested on a **Google Android TV API 36 emulator**, a category of emulator explicitly permitted by the [hackathon FAQ](https://amazonappdev2026.devpost.com/details/faqs). It has **not** been tested on physical Fire TV hardware, an Amazon Fire OS image, or Vega OS. Emulator acceptance does not certify compatibility with every Fire OS device.
 
@@ -32,7 +34,7 @@ Install the same APK and select **Open Live AWS Inspection — Pairing Required*
 
 ### Quick start — Windows (verified build / install / launch)
 
-**Install once:** [Git](https://git-scm.com/), [Android Studio](https://developer.android.com/studio) with its bundled JDK, Android SDK Platform **37** and Platform-Tools, and an **Android TV API 36 emulator**. In Android Studio's **Device Manager**, start the TV emulator and allow it to finish booting. Connect only that emulator. Access to this private repository is required until reviewer permissions are arranged.
+**Install once:** [Git](https://git-scm.com/), [Android Studio](https://developer.android.com/studio) with its bundled JDK, Android SDK Platform **37** and Platform-Tools, and an **Android TV API 36 emulator**. In Android Studio's **Device Manager**, start the TV emulator and allow it to finish booting. Connect only that emulator. The repository is public; no GitHub invitation is required to access the source or signed APK release.
 
 From **Windows PowerShell**:
 
@@ -70,7 +72,7 @@ The verified Android TV judge journey was:
 4. Review the Garage floor-damage finding and play its approved six-second evidence excerpt.
 5. Open the Rental Readiness Briefing, inspect reviewer-confirmed/rejected findings, and view the **cached** Amazon Bedrock recommendations linked to original findings.
 
-[Step 69](STEP69_JUDGE_JOURNEY.md) records **five consecutive operator-observed end-to-end successes** on Android TV API 36, including an emulator cold boot. This is not a claim of physical Fire OS testing or a fresh-install, independently authenticated judge run. The separate three-minute submission video is handled in Step 73; no unverified video link is included here.
+[Step 69](STEP69_JUDGE_JOURNEY.md) records **five consecutive operator-observed end-to-end successes** on Android TV API 36, including an emulator cold boot. This is not a claim of physical Fire OS testing or a fresh-install, independently authenticated judge run. The submitted Amazon Fire TV demo video is linked near the top of this README.
 
 ## Architecture
 
@@ -218,7 +220,7 @@ A cached Bedrock briefing selects three original candidate findings. Each remain
 - A restricted TV token cannot upload a walkthrough, delete reports, or generate new Bedrock recommendations.
 - Raw tokens, signed URLs, pairing codes, private footage, personal details, and `.env` must not be published in this README, GitHub issues, Devpost materials or logs.
 
-The private repository was scanned across reachable Git history. Thirteen known Gitleaks alerts were reviewed as apparent infrastructure identifiers, checksums, and configuration references, with no new alerts. This is not a guarantee that every sensitive value is absent; the repository remains private.
+The private repository was scanned across reachable Git history. Thirteen known Gitleaks alerts were reviewed as apparent infrastructure identifiers, checksums, and configuration references, with no new alerts. This is not a guarantee that every sensitive value is absent. The repository is now public, and a comprehensive historical privacy audit remains outstanding.
 
 ## Known limitations
 
@@ -233,7 +235,7 @@ The private repository was scanned across reachable Git history. Thirteen known 
 
 ## Product feedback
 
-Developer experience observations are maintained in [Amazon Product Feedback and Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). The log distinguishes Amazon-specific development issues from Android Studio/tooling, OpenCV, and other project friction. Reviewing and completing its final entry set belongs to **Step 72**; it is not presented as already finalized here.
+Developer experience observations are maintained in [Amazon Product Feedback and Friction Log](AMAZON_PRODUCT_FEEDBACK_FRICTION_LOG.md). The log distinguishes Amazon-specific development issues from Android Studio/tooling, OpenCV, and other project friction. Step 72 completed the feedback review and documented the five developer-approved product-feedback responses. See [Step 72 feedback summary](STEP72_AMAZON_FEEDBACK_SUBMISSION.md) for the final responses, evidence, and limitations.
 
 ## OpenCV baseline vs Amazon version
 

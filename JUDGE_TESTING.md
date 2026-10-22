@@ -2,7 +2,7 @@
 
 **Amazon Developer Hackathon 2026** — Fire TV primary track; AWS Builder mini-challenge.
 
-This project is hosted in a **private GitHub repository**. Accepted repository invitations are required to view the source and download its releases.
+The source repository and signed APK release are public. For this hackathon, use the [amazon-2026 branch](https://github.com/vincentwenger/rentready-vision/tree/amazon-2026). The offline demonstration requires no pairing code. Live AWS inspection requires the restricted judge pairing code provided separately through private Devpost instructions.
 
 ## Download and install
 
