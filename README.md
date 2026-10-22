@@ -2,7 +2,7 @@
 
 **Walk through once. Know what to fix before you rent.**
 
-[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md) · [System architecture](docs/step58/system_architecture.svg) · [Agent workflow](docs/step58/agent_loop.svg)
+[Live website](https://rentreadyvision.com/) · [OpenCV demo video](https://youtu.be/u726qJvR2qg) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md) · [System architecture](docs/step58/system_architecture.svg) · [Agent workflow](docs/step58/agent_loop.svg)
 
 RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
 
