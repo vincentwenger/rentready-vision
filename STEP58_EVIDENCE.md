@@ -105,7 +105,7 @@ Before Git commit, examine `git diff --check` and `git status --short`; stage **
 - [x] Development vs frozen-holdout results explicitly separated.
 - [x] Five failure cases and new v4 holdout miss referenced honestly.
 - [x] Actual production agent action log identified and summarized.
-- [ ] Run local Step 58 validator against the user's full repository checkout and attach its report.
+- [x] Run local Step 58 validator against the full repository checkout. Completed October 10, 2026: **22/22 checks passed**. See [verification results](evaluation/step58/local_verification.json).
 - [ ] Review new images/JSON for privacy before any public Devpost/repository publication.
 - [ ] Commit/push reviewed Step 58 evidence on a controlled branch.
 

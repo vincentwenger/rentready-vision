@@ -251,6 +251,22 @@ Practical future work is to collect explicit finding-level corrections and misse
 
 RentReady Vision implements an evidence-centered rental-inspection prototype: OpenCV 5 prepares and investigates video evidence, official COOL runs that workload on AWS Graviton4, Bedrock assists condition interpretation, and the application retains reviewable reports and action traces. The strongest frozen v4 result is 17/18 correct video classifications on a small curated external holdout. Separate experiments demonstrate equivalent selected evidence under COOL and an agent recovery alongside a documented false confirmation. Human review remains essential, and current product reliability must not be inferred from any single historical metric.
 
+## Addendum: Step 59 (October 11, 2026)
+
+This addendum describes improvements completed after the original October 10 report. It does not replace or retroactively update the frozen detector evaluations.
+
+### Bounding-box rendering
+
+Step 59 replaced screen-dependent pixel positioning with SVG overlays aligned to the source image dimensions. Four previously saved reports were reopened without rerunning detection. Seven displayed bounding boxes matched their stored coordinates within 0.21 PDF points; one full-frame box was correctly suppressed. This validates rendering geometry, not the accuracy of AI-generated issue locations or descriptions. See [Step 59 rendering verification](STEP59_FINAL.md).
+
+### Temporary public judging mode
+
+Step 59 implemented an operator-controlled, token-free judging mode with automatic expiration, configurable admission quotas, and video-upload limits. A live rehearsal verified video upload, processing, report viewing, timestamp playback, checklist persistence, quota enforcement, access controls, and expiry. Public mode was disabled after the recorded rehearsal; its current live state is not established by this report. This mode does not provide separate visitor accounts, and inspection IDs created within one public window can be accessed by anyone who knows those IDs. See [Step 59 public-mode verification](STEP59_PUBLIC_MODE.md).
+
+### Release and evidence limitations
+
+The source repository is public, but the existing security review does not certify the entire Git history or binary artifacts as free of sensitive information. A live judging window must be separately enabled and verified. Historical Step 48 video-level detector metrics do not measure the complete Step 59 report workflow, bounding-box accuracy, or general production reliability.
+
 ## Evidence index
 
 | Subject | Authoritative project records |

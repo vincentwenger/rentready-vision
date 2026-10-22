@@ -2,22 +2,22 @@
 
 **Walk through once. Know what to fix before you rent.**
 
-[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md)
+[Live website](https://rentreadyvision.com/) · [Evaluation](STEP48_RESULTS.md) · [Deployment](COOL_AWS_LAUNCH.md) · [Security](STEP40_SECURITY.md) · [Technical report](TECHNICAL_REPORT.md) · [System architecture](docs/step58/system_architecture.svg) · [Agent workflow](docs/step58/agent_loop.svg)
 
 RentReady Vision is an AI-assisted rental-property walkthrough inspector built by **Réunia** for the **OpenCV AI Competition 2026, powered by AWS**. Upload a property walkthrough video to receive a reviewable rental-readiness report with visible issue candidates, linked image evidence and timestamps, recommended actions, and a repair checklist.
 
-**Current milestone: Step 54 (October 10, 2026)** — hosted application and report overlay improvements deployed; [implementation and limitations](STEP54_FINAL.md). Earlier engineering steps remain available in [Development history](DEVELOPMENT_HISTORY.md).
+**Current milestone: Step 59 (October 11, 2026)** — bounding-box rendering improvements deployed and verified; temporary public judging mode implemented and rehearsed, with access disabled after testing. See [Step 59 rendering validation](STEP59_FINAL.md) and [public judging mode](STEP59_PUBLIC_MODE.md). Earlier engineering steps remain available in [Development history](DEVELOPMENT_HISTORY.md).
 
 > **Human review is required.** Issue descriptions and rectangular highlights are AI-generated and may be inaccurate. RentReady Vision is not a licensed property inspection, hazard diagnosis, mold/asbestos assessment, structural determination, or electrical-safety certification.
 
 ## What judges can see
 
 - **Video-to-report workflow:** browser upload, processing progress, scene/keyframe selection, potential defect detection, evidence images, issue timestamps, priorities and repair checklist.
-- **Current report:** Step 54 highlights AI-estimated issue locations with responsive red rectangles; overly large rectangles (covering 80% or more of an image) are hidden, original evidence is preserved, and the UI warns users to verify localization visually.
+- **Current report:** Step 59 uses SVG overlays to display AI-estimated issue locations. Bounding boxes remain aligned with their evidence images in responsive layouts and printed reports. Rectangles covering 80% or more of an image are hidden. Correct rendering does not establish that the AI correctly identified or localized the underlying defect. See [Step 59 validation](STEP59_FINAL.md).
 - **Operational controls:** processing progress uses measured counts where available ([Step 50](STEP50_REAL_PROGRESS.md)); safe cancellation is available ([Step 53](STEP53_CANCEL_INSPECTION.md)); the COOL worker starts on demand and has guarded idle shutdown ([Step 49](STEP49_ON_DEMAND_WORKER.md)).
 - **Large-video protection:** bounded Bedrock image batching ([Step 52](STEP52_BEDROCK_INPUT_GUARD.md)), disk-space safeguards ([Step 51](STEP51_STORAGE_SAFETY.md)), and one batch request for retained-frame URLs ([Step 52 report optimization](STEP52_REPORT_BATCH_OPTIMIZATION.md)).
 
-The hosted demo uses authenticated inspection operations. **The public URL alone does not grant access to private videos or reports.** Judge credentials/access will be provided separately through an approved, limited method; no bearer tokens belong in this repository or Devpost's public project story.
+Normal inspection operations require authentication. For competition judging, Step 59 provides an optional, operator-controlled temporary public mode with automatic expiration, upload-size limits, and inspection quotas. Public access is disabled by default and must be explicitly enabled for the judging window. This mode does not provide separate visitor accounts; anyone who knows an inspection ID created during the same public window may access that inspection and its checklist. See [temporary judging access](STEP59_PUBLIC_MODE.md) for operating instructions, restrictions, and validation. Never publish the privileged operator token in GitHub or Devpost.
 
 ## Why OpenCV matters
 
@@ -119,6 +119,7 @@ python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test
 
 | Topic | Evidence |
 | --- | --- |
+| OpenCV competition evidence | [Step 58 evidence package](STEP58_EVIDENCE.md), [verification results](evaluation/step58/local_verification.json) |
 | Technical report | [RentReady Vision technical report](TECHNICAL_REPORT.md) |
 | Architecture / COOL runtime | [COOL launch](COOL_AWS_LAUNCH.md), [deployment hardening](STEP38_AWS_COOL_HARDENING.md), [hosting](STEP40_HOSTING.md) |
 | Evaluation / holdout | [Step 48 results](STEP48_RESULTS.md), [protocol](STEP48_PROTOCOL.md), [Step 35 contribution](STEP35_OPENCV_CONTRIBUTION.md), [Step 37 failures](STEP37_FAILURE_CASES.md) |
@@ -131,11 +132,11 @@ python -m pytest -q -p no:cacheprovider tests/test_video_processor.py tests/test
 
 Storage is private by default, upload/evidence links are time-limited, and hosted inspection operations require authentication. API tokens are stored outside tracked code, with runtime-secret mechanisms described in [Step 40 security](STEP40_SECURITY.md). Do not place tokens, presigned links, private media, AWS credentials or real tenant details in issues, pull requests, sample configuration, screenshots or Devpost attachments.
 
-- The repository is currently **private**. Public release or judge access is **pending a separate tracked-content and Git-history review**, including image/evaluation artifacts and infrastructure identifiers. The presence of `.gitignore` does not remove previously committed files.
-- The development tree has contained tracked Python `__pycache__` files and screenshot artifacts. These need review before public release; do not mistake their presence for a completed privacy audit.
+- The repository is now **public**. Previous security checks found no known credential patterns but did not constitute a complete historical privacy audit. Evaluation artifacts, infrastructure identifiers, and Git history require separate review. The presence of `.gitignore` does not remove previously committed files.
+- **Historical artifact review:** Earlier Git commits contained tracked Python bytecode files, although these are no longer tracked on the current main branch. Evaluation screenshots and metadata are also present. The repository is public, but its complete Git history and binary artifacts have not received a comprehensive privacy audit.
 - Bounding boxes can be inaccurate even when small enough to display; a human must confirm any highlighted issue.
 - The holdout has one missed leak-related positive, and a sample size too small for broad reliability claims.
-- [Step 54](STEP54_FINAL.md) reports the hosted site and frontend checks as passing, but does **not** claim a new authenticated end-to-end report-browser run after its final quality adjustment.
+- **Post-Step 54 verification:** Step 59 subsequently completed live token-free inspection, report playback, and checklist persistence tests. An authenticated operator inspection also succeeded after public mode was disabled. See [Step 59 public-mode validation](STEP59_PUBLIC_MODE.md) and [rendering verification](STEP59_FINAL.md). These tests do not establish defect-detection or localization accuracy.
 - Large-video handling and certain cancellation/idle-shutdown edge cases have separately documented validation limits.
 
-**Status:** Documentation prepared for judge review; **full privacy audit and judge-access verification remain outstanding**. No cloud resources or production service are changed by this documentation.
+**Status:** The source repository is publicly accessible. The comprehensive Git-history privacy audit and live application judge-access verification remain outstanding. These documentation changes do not modify AWS resources or production services.
